@@ -13,9 +13,9 @@ RUN mkdir /app/database
 
 # Use runtime image
 FROM mcr.microsoft.com/dotnet/runtime-deps:8.0-noble-chiseled
-ARG PUID=1000
-ARG PGID=1000
+ARG PUID
+ARG PGID
+WORKDIR /app
 USER $PUID:$PGID
 COPY --from=build /app/ /app/
-WORKDIR /app
 ENTRYPOINT ["./TransmissionManager.Api"]
