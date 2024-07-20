@@ -1,13 +1,16 @@
 @TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
 
+# Get all torrents
 GET {{TransmissionManager_Web_HostAddress}}/
 
 ###
 
+# Get one torrent by id
 GET {{TransmissionManager_Web_HostAddress}}/1
 
 ###
 
+# Add or update a torrent
 POST {{TransmissionManager_Web_HostAddress}}/
 Content-Type: application/json
 
@@ -19,6 +22,7 @@ Content-Type: application/json
 
 ###
 
+# Remove one torrent by id
 DELETE  {{TransmissionManager_Web_HostAddress}}/1
 
 ###

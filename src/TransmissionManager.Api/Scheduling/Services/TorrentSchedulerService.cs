@@ -1,7 +1,5 @@
 ﻿using Coravel.Scheduling.Schedule;
-using Coravel.Scheduling.Schedule.Event;
 using Coravel.Scheduling.Schedule.Interfaces;
-using System.Collections.Concurrent;
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
 
@@ -9,9 +7,7 @@ namespace TransmissionManager.Api.Scheduling.Services;
 
 public sealed class TorrentSchedulerService(IScheduler scheduler, TorrentService torrentService)
 {
-    private static readonly ConcurrentDictionary<long, string> _scheduledTaskIdentifiers = [];
-
-    private readonly Scheduler _scheduler = (scheduler as Scheduler)!;
+    private readonly Scheduler _scheduler = (Scheduler)scheduler;
 
     public void ScheduleUpdatesForAllTorrents()
     {
@@ -27,13 +23,14 @@ public sealed class TorrentSchedulerService(IScheduler scheduler, TorrentService
 
     public void ScheduleTorrentUpdates(long torrentId, string cron)
     {
-        var schedule = (ScheduledEvent)_scheduler.ScheduleWithParams<TorrentUpdateTask>(torrentId).Cron(cron);
-        _scheduledTaskIdentifiers[torrentId] = schedule.OverlappingUniqueIdentifier();
+        _scheduler.ScheduleWithParams<TorrentUpdateTask>(torrentId)
+            .Cron(cron)
+            .Zoned(TimeZoneInfo.Local)
+            .PreventOverlapping(torrentId.ToString());
     }
 
     public bool TryUnscheduleTorrentUpdates(long torrentId)
     {
-        return _scheduledTaskIdentifiers.Remove(torrentId, out var scheduleIdentifier)
-            && _scheduler.TryUnschedule(scheduleIdentifier);
+        return _scheduler.TryUnschedule(torrentId.ToString());
     }
 }

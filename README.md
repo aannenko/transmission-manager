@@ -1,23 +1,29 @@
 # Transmission Manager
+Do more with Transmission!<br>
+- Add torrents by their web page
+- Download new TV show episodes on a schedule
 
-## Given
+### Given
+Raspberry Pi with LibreELEC 12<br>
+Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (change it to your time zone)
 
-Raspberry Pi with LibreELEC 12
-
-## Steps
-
+### Steps
 ```bash
+# Create a Docker network
+docker network create transmission-network
+
 # Create these folders
 mkdir /storage/transmission/config
 mkdir /storage/transmission/watch
-mkdir /storage/transmission/downloads
 
 # Run Transmission
 docker run -d \
   --name=transmission \
+  --hostname transmission \
+  --network transmission-network \
   -e PUID=0 \
   -e PGID=0 \
-  -e TZ=Etc/UTC \
+  -e TZ=Europe/Prague \
   -p 9091:9091 \
   -p 51413:51413 \
   -p 51413:51413/udp \
@@ -29,57 +35,20 @@ docker run -d \
   --restart unless-stopped \
   lscr.io/linuxserver/transmission:latest
 
-# Create a Docker network
-docker network create myNetwork
-
-# Add Transmission to this network
-docker network connect myNetwork transmission
-
-# Inspect the network to see Transmission's IP address
-docker network inspect myNetwork
-
 # Run Transmission Manager
-# REPLACE 172.18.0.3 with Transmission's IP address
-docker run -d -p 9092:9092 -e Transmission__BaseAddress="http://172.18.0.3:9091" --name=transmission-manager ghcr.io/aannenko/transmission-manager:main
-
-# Add Transmission Manager to the network
-docker network connect myNetwork transmission-manager
-
-# Inspect the network again to see Transmission Manager's IP
-docker network inspect myNetwork
+docker run -d \
+  --name=transmission-manager \
+  --hostname=transmission-manager \
+  --network=transmission-network \
+  -e PUID=0 \
+  -e PGID=0 \
+  -e TZ=Europe/Prague \
+  -p 9092:9092 \
+  -v /storage/transmission-manager/database:/app/database \
+  --restart unless-stopped \
+  ghcr.io/aannenko/transmission-manager:latest
 ```
 
-Now you can send POST request to the Transmission Manager's IP to make it update the torrents for you on a schedule.
+Now you can send HTTP requests to `http://<docker_host>:9092/api/v1/torrents`
 
-You can, for example, send requests using Visual Studio Code with the REST Client extension - create a file TransmissionManager.http, open it in VS Code, add the following content to it and send requests.
-
-```http
-@TransmissionManager_Web_HostAddress = http://libreelec:9092/api/v1/torrents
-
-# Get all torrents
-GET {{TransmissionManager_Web_HostAddress}}/
-
-###
-
-# Get one torrent by id
-GET {{TransmissionManager_Web_HostAddress}}/1
-
-###
-
-# Add or update a torrent
-POST {{TransmissionManager_Web_HostAddress}}/
-Content-Type: application/json
-
-{
-    "webPageUri": "https://nnmclub.to/forum/viewtopic.php?t=206418",
-    "downloadDir": "/videos",
-    "cron": "0 11,17 * * *"
-}
-
-###
-
-# Remove one torrent by id
-DELETE  {{TransmissionManager_Web_HostAddress}}/1
-
-###
-```
+You can, for example, send requests using Visual Studio Code with the REST Client extension - open [TransmissionManager.Api.http](src/TransmissionManager.Api/TransmissionManager.Api.http) in VS Code, change the hostname, request data and start sending requests.
