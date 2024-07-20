@@ -1,0 +1,24 @@
+@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
+
+GET {{TransmissionManager_Web_HostAddress}}/
+
+###
+
+GET {{TransmissionManager_Web_HostAddress}}/1
+
+###
+
+POST {{TransmissionManager_Web_HostAddress}}/
+Content-Type: application/json
+
+{
+    "webPageUri": "https://nnmclub.to/forum/viewtopic.php?t=206418",
+    "downloadDir": "/videos",
+    "cron": "0 11,17 * * *"
+}
+
+###
+
+DELETE  {{TransmissionManager_Web_HostAddress}}/1
+
+###

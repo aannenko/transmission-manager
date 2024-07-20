@@ -1,0 +1,6 @@
+*.csproj.user
+.vs
+.vscode
+TransmissionManager.db
+src/TransmissionManager*/bin
+src/TransmissionManager*/obj
