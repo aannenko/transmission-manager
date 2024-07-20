@@ -15,6 +15,7 @@ docker network create transmission-network
 # Create these folders
 mkdir /storage/transmission/config
 mkdir /storage/transmission/watch
+mkdir /storage/videos/movies
 
 # Run Transmission
 docker run -d \
