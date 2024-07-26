@@ -4,7 +4,7 @@ Do more with Transmission!<br>
 - Download new TV show episodes on a schedule
 
 ### Given
-Raspberry Pi with LibreELEC 12<br>
+Raspberry Pi with LibreELEC 12 and Docker add-on<br>
 Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (change it to your time zone)
 
 ### Steps
