@@ -46,11 +46,21 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
             .AsNoTracking()
             .Where(torrent => torrent.Id == id)
             .ExecuteUpdate(properties => properties
-                .SetProperty(static torrent => torrent.TransmissionId, dto.TransmissionId)
-                .SetProperty(static torrent => torrent.Name, dto.Name)
-                .SetProperty(static torrent => torrent.DownloadDir, dto.DownloadDir)
-                .SetProperty(static torrent => torrent.MagnetRegexPattern, dto.MagnetRegexPattern)
-                .SetProperty(static torrent => torrent.Cron, dto.Cron));
+                .SetProperty(
+                    static torrent => torrent.TransmissionId,
+                    torrent => dto.TransmissionId ?? torrent.Id)
+                .SetProperty(
+                    static torrent => torrent.Name,
+                    torrent => dto.Name ?? torrent.Name)
+                .SetProperty(
+                    static torrent => torrent.DownloadDir,
+                    torrent => dto.DownloadDir ?? torrent.DownloadDir)
+                .SetProperty(
+                    static torrent => torrent.MagnetRegexPattern,
+                    torrent => dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
+                .SetProperty(
+                    static torrent => torrent.Cron,
+                    torrent => dto.Cron ?? torrent.Cron));
 
         if (updatedRows is 0)
             throw new ArgumentException($"Torrent with id={id} does not exist.", nameof(id));

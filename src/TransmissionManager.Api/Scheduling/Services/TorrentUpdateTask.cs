@@ -11,6 +11,6 @@ public sealed class TorrentUpdateTask(CompositeService<TorrentService> composite
 
     public Task Invoke()
     {
-        return compositeService.TryUpdateTorrentAsync(torrentId, CancellationToken);
+        return compositeService.TryRefreshTorrentAsync(torrentId, CancellationToken);
     }
 }

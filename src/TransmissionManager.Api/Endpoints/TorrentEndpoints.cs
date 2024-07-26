@@ -3,6 +3,7 @@ using TransmissionManager.Api.Composite.Services;
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints.Dto;
+using TransmissionManager.Api.Endpoints.Extensions;
 
 namespace TransmissionManager.Api.Endpoints;
 
@@ -15,6 +16,7 @@ public static class TorrentEndpoints
         group.MapGet("/", FindMany);
         group.MapGet("/{id}", FindOneById);
         group.MapPost("/", TryAddOrUpdateOneAsync);
+        group.MapPut("/{id}", UpdateOne);
         group.MapDelete("/{id}", RemoveOne);
 
         return builder;
@@ -49,6 +51,14 @@ public static class TorrentEndpoints
         CancellationToken cancellationToken = default)
     {
         return compositeService.TryAddOrUpdateTorrentAsync(dto, cancellationToken);
+    }
+
+    private static void UpdateOne(
+        [FromServices] SchedulableTorrentService torrentService,
+        long id,
+        TorrentPutRequest dto)
+    {
+        torrentService.UpdateOne(id, dto.ToTorrentUpdateDto());
     }
 
     private static void RemoveOne(

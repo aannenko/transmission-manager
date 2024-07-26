@@ -1,10 +1,8 @@
-﻿namespace TransmissionManager.Api.Database.Dto;
+﻿namespace TransmissionManager.Api.Endpoints.Dto;
 
-public sealed class TorrentUpdateDto
+public sealed class TorrentPutRequest
 {
     public long? TransmissionId { get; set; }
-
-    public string? Name { get; set; }
 
     public string? DownloadDir { get; set; }
 

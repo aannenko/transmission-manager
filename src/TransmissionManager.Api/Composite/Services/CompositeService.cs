@@ -2,6 +2,7 @@
 using TransmissionManager.Api.Database.Abstractions;
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Endpoints.Dto;
+using TransmissionManager.Api.Endpoints.Extensions;
 using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Models;
 using TransmissionManager.Api.Transmission.Services;
@@ -49,7 +50,7 @@ public sealed class CompositeService<TTorrentService>(
         return true;
     }
 
-    public async Task<bool> TryUpdateTorrentAsync(
+    public async Task<bool> TryRefreshTorrentAsync(
         long torrentId,
         CancellationToken cancellationToken = default)
     {
@@ -93,7 +94,9 @@ public sealed class CompositeService<TTorrentService>(
 
     private async Task UpdateTorrentNameWithRetriesAsync(long id, TorrentUpdateDto dto)
     {
-        long[] singleTransmissionIdArray = [dto.TransmissionId];
+        ArgumentNullException.ThrowIfNull(dto?.TransmissionId);
+
+        long[] singleTransmissionIdArray = [dto.TransmissionId.Value];
         for (int i = 1; i <= 10; i++)
         {
             await Task.Delay(TimeSpan.FromSeconds(i * i)).ConfigureAwait(false);

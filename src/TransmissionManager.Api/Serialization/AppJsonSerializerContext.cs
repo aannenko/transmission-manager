@@ -14,6 +14,7 @@ namespace TransmissionManager.Api.Serialization;
 [JsonSerializable(typeof(TorrentAddResponse))]
 [JsonSerializable(typeof(Torrent[]))]
 [JsonSerializable(typeof(TorrentPostRequest))]
+[JsonSerializable(typeof(TorrentPutRequest))]
 [JsonSerializable(typeof(bool))]
 public partial class AppJsonSerializerContext : JsonSerializerContext
 {

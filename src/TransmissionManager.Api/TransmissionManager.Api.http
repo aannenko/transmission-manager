@@ -22,6 +22,16 @@ Content-Type: application/json
 
 ###
 
+# Update one torrent by id
+PUT {{TransmissionManager_Web_HostAddress}}/1
+Content-Type: application/json
+
+{
+    "cron": "0 10,16 * * *"
+}
+
+###
+
 # Remove one torrent by id
 DELETE  {{TransmissionManager_Web_HostAddress}}/1
 

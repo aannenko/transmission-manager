@@ -25,6 +25,7 @@ builder.Services.AddTransient(typeof(CompositeService<>));
 
 builder.Services.AddScheduler();
 builder.Services.AddTransient<TorrentSchedulerService>();
+builder.Services.AddTransient<StartupSchedulerService>();
 builder.Services.AddTransient<SchedulableTorrentService>();
 
 var app = builder.Build();
@@ -32,7 +33,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
-    scope.ServiceProvider.GetRequiredService<TorrentSchedulerService>().ScheduleUpdatesForAllTorrents();
+    scope.ServiceProvider.GetRequiredService<StartupSchedulerService>().ScheduleUpdatesForAllTorrents();
 }
 
 app.MapTorrentEndpoints();
