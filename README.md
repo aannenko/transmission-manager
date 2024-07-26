@@ -20,7 +20,7 @@ mkdir /storage/transmission-manager/database
 
 # Run Transmission
 docker run -d \
-  --name=transmission \
+  --name transmission \
   --hostname transmission \
   --network transmission-network \
   -e PUID=0 \
@@ -39,9 +39,9 @@ docker run -d \
 
 # Run Transmission Manager
 docker run -d \
-  --name=transmission-manager \
-  --hostname=transmission-manager \
-  --network=transmission-network \
+  --name transmission-manager \
+  --hostname transmission-manager \
+  --network transmission-network \
   -e PUID=0 \
   -e PGID=0 \
   -e TZ=Europe/Prague \
