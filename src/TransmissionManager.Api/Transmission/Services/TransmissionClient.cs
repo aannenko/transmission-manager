@@ -12,38 +12,23 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
     private static readonly TorrentGetRequestFields[] _defaultRequestFields =
         Enum.GetValues<TorrentGetRequestFields>();
 
-    private static JsonTypeInfo<TorrentGetRequest> GetRequestInfo =>
-        AppJsonSerializerContext.Default.TorrentGetRequest;
-
-    private static JsonTypeInfo<TorrentGetResponse> GetResponseInfo =>
-        AppJsonSerializerContext.Default.TorrentGetResponse;
-
-    private static JsonTypeInfo<TorrentAddRequest> AddRequestInfo =>
-        AppJsonSerializerContext.Default.TorrentAddRequest;
-
-    private static JsonTypeInfo<TorrentAddResponse> AddResponseInfo =>
-        AppJsonSerializerContext.Default.TorrentAddResponse;
-
-    private string Endpoint => options.CurrentValue.RpcEndpointAddressSuffix;
-
     public async Task<TorrentGetResponse> GetTorrentsAsync(
         long[]? ids = null,
         TorrentGetRequestFields[]? requestFields = null,
         CancellationToken cancellationToken = default)
     {
-        var request = new TorrentGetRequest
-        {
-            Arguments = new()
+        return await GetResultWithValidationAsync(
+            new TorrentGetRequest
             {
-                Fields = requestFields ?? _defaultRequestFields,
-                Ids = ids,
-            }
-        };
-
-        var response = await httpClient.PostAsJsonAsync(Endpoint, request, GetRequestInfo, cancellationToken)
-            .ConfigureAwait(false);
-
-        return await GetResultWithValidationAsync(response, GetResponseInfo, cancellationToken)
+                Arguments = new()
+                {
+                    Fields = requestFields ?? _defaultRequestFields,
+                    Ids = ids,
+                }
+            },
+            AppJsonSerializerContext.Default.TorrentGetRequest,
+            AppJsonSerializerContext.Default.TorrentGetResponse,
+            cancellationToken)
             .ConfigureAwait(false);
     }
 
@@ -52,32 +37,36 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
         string downloadDir,
         CancellationToken cancellationToken = default)
     {
-        var request = new TorrentAddRequest
-        {
-            Arguments = new()
+        return await GetResultWithValidationAsync(
+            new TorrentAddRequest
             {
-                Filename = magnetUri,
-                DownloadDir = downloadDir,
-            }
-        };
-
-        var response = await httpClient.PostAsJsonAsync(Endpoint, request, AddRequestInfo, cancellationToken)
-            .ConfigureAwait(false);
-
-        return await GetResultWithValidationAsync(response, AddResponseInfo, cancellationToken)
+                Arguments = new()
+                {
+                    Filename = magnetUri,
+                    DownloadDir = downloadDir,
+                }
+            },
+            AppJsonSerializerContext.Default.TorrentAddRequest,
+            AppJsonSerializerContext.Default.TorrentAddResponse,
+            cancellationToken)
             .ConfigureAwait(false);
     }
 
-    private static async Task<T> GetResultWithValidationAsync<T>(
-        HttpResponseMessage response,
-        JsonTypeInfo<T> jsonTypeInfo,
+    private async Task<TResponse> GetResultWithValidationAsync<TRequest, TResponse>(
+        TRequest request,
+        JsonTypeInfo<TRequest> requestTypeInfo,
+        JsonTypeInfo<TResponse> responseTypeInfo,
         CancellationToken cancellationToken)
-        where T : ITransmissionResponse
+        where TResponse : ITransmissionResponse
     {
+        var endpoint = options.CurrentValue.RpcEndpointAddressSuffix;
+        var response = await httpClient.PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
+            .ConfigureAwait(false);
+
         response.EnsureSuccessStatusCode();
 
-        T? responseObject = await response.Content
-            .ReadFromJsonAsync(jsonTypeInfo, cancellationToken)
+        var responseObject = await response.Content
+            .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
             .ConfigureAwait(false);
 
         if (responseObject is null)
@@ -85,7 +74,7 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
             var responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             throw new HttpRequestException(
                 "Unexpected response from Transmission. " +
-                $"Cannot deserialize the following content to {typeof(T).FullName}: '{responseString}'.");
+                $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.");
         }
 
         if (!responseObject.IsSuccess())
