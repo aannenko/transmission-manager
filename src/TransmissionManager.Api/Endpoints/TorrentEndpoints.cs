@@ -13,24 +13,24 @@ public static class TorrentEndpoints
     {
         var group = builder.MapGroup("/api/v1/torrents");
 
-        group.MapGet("/", FindMany);
+        group.MapGet("/", FindPage);
         group.MapGet("/{id}", FindOneById);
         group.MapPost("/", TryAddOrUpdateOneAsync);
-        group.MapPut("/{id}", UpdateOne);
-        group.MapDelete("/{id}", RemoveOne);
+        group.MapPut("/{id}", UpdateOneById);
+        group.MapDelete("/{id}", RemoveOneById);
 
         return builder;
     }
 
-    private static Torrent[] FindMany(
-        [FromServices] TorrentService torrentService,
+    private static Torrent[] FindPage(
+        [FromServices] TorrentService service,
         int take = 20,
         long afterId = 0,
         string? webPageUri = null,
         string? nameStartsWith = null,
         bool? cronExists = null)
     {
-        return torrentService.FindPage(new()
+        return service.FindPage(new()
         {
             Take = take,
             AfterId = afterId,
@@ -46,25 +46,23 @@ public static class TorrentEndpoints
     }
 
     private static Task<bool> TryAddOrUpdateOneAsync(
-        [FromServices] CompositeService<SchedulableTorrentService> compositeService,
+        [FromServices] CompositeService<SchedulableTorrentService> service,
         TorrentPostRequest dto,
         CancellationToken cancellationToken = default)
     {
-        return compositeService.TryAddOrUpdateTorrentAsync(dto, cancellationToken);
+        return service.TryAddOrUpdateTorrentAsync(dto, cancellationToken);
     }
 
-    private static void UpdateOne(
-        [FromServices] SchedulableTorrentService torrentService,
+    private static void UpdateOneById(
+        [FromServices] SchedulableTorrentService service,
         long id,
         TorrentPutRequest dto)
     {
-        torrentService.UpdateOneById(id, dto.ToTorrentUpdateDto());
+        service.UpdateOneById(id, dto.ToTorrentUpdateDto());
     }
 
-    private static void RemoveOne(
-        [FromServices] SchedulableTorrentService torrentService,
-        long id)
+    private static void RemoveOneById([FromServices] SchedulableTorrentService service, long id)
     {
-        torrentService.DeleteOneById(id);
+        service.DeleteOneById(id);
     }
 }
