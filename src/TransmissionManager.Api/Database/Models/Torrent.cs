@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Utilities;
 
 namespace TransmissionManager.Api.Database.Models;
 
@@ -19,9 +17,7 @@ public sealed class Torrent
 
     public required string DownloadDir { get; set; }
 
-    [RegularExpression(AppRegex.FindMagnet)]
     public string? MagnetRegexPattern { get; set; }
 
-    [RegularExpression(AppRegex.IsCron, MatchTimeoutInMilliseconds = 50)]
     public string? Cron { get; set; }
 }

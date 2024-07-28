@@ -1,4 +1,7 @@
-﻿namespace TransmissionManager.Api.Endpoints.Dto;
+﻿using System.ComponentModel.DataAnnotations;
+using TransmissionManager.Api.Utilities;
+
+namespace TransmissionManager.Api.Endpoints.Dto;
 
 public sealed class TorrentPutRequest
 {
@@ -6,7 +9,9 @@ public sealed class TorrentPutRequest
 
     public string? DownloadDir { get; set; }
 
+    [RegularExpression(AppRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
     public string? MagnetRegexPattern { get; set; }
 
+    [RegularExpression(AppRegex.IsCron, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
     public string? Cron { get; set; }
 }

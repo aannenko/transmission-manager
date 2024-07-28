@@ -8,7 +8,7 @@ public static class TorrentExtensions
 {
     public static TorrentUpdateDto ToTorrentUpdateDto(
         this Torrent torrent,
-        TorrentAddResponseItem transmissionTorrent)
+        TransmissionTorrentAddResponseItem transmissionTorrent)
     {
         return new()
         {

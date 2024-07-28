@@ -9,9 +9,9 @@ public static partial class AppRegex
         @"^((\*(\/\d{1,2})?|\d{1,2}(\/\d{1,2})?|(\d{1,2}-\d{1,2})(\/\d{1,2})?|((\d{1,2},)+\d{1,2}))\s){4}(\*(\/\d{1,2})?|\d{1,2}(\/\d{1,2})?|(\d{1,2}-\d{1,2})(\/\d{1,2})?|((\d{1,2},)+\d{1,2}))$";
 
     // language=regex
-    internal const string FindMagnet = $@"\(\?<{FindMagnetGroup}>magnet:\\\?.*\)";
-    internal const string FindMagnetGroup = "magnet";
+    internal const string IsFindMagnet = $@"^.*\(\?<{MagnetGroup}>magnet:\\\?.*\).*$";
+    internal const string MagnetGroup = "magnet";
 
-    [GeneratedRegex(FindMagnet, RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture, 100)]
-    internal static partial Regex FindMagnetRegex();
+    [GeneratedRegex(IsFindMagnet, RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture, 100)]
+    internal static partial Regex IsFindMagnetRegex();
 }

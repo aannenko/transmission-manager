@@ -8,7 +8,7 @@ public static class TorrentPostRequestExtensions
 {
     public static TorrentAddDto ToTorrentAddDto(
         this TorrentPostRequest dto,
-        TorrentAddResponseItem transmissionTorrent)
+        TransmissionTorrentAddResponseItem transmissionTorrent)
     {
         return new()
         {
@@ -23,7 +23,7 @@ public static class TorrentPostRequestExtensions
 
     public static TorrentUpdateDto ToTorrentUpdateDto(
         this TorrentPostRequest dto,
-        TorrentAddResponseItem transmissionTorrent)
+        TransmissionTorrentAddResponseItem transmissionTorrent)
     {
         return new()
         {

@@ -15,7 +15,8 @@ public sealed class CompositeService<TTorrentService>(
     TTorrentService torrentService)
     where TTorrentService : ITorrentService
 {
-    private static readonly TorrentGetRequestFields[] _getNameOnlyFieldsArray = [TorrentGetRequestFields.Name];
+    private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
+        [TransmissionTorrentGetRequestFields.Name];
 
     public async Task<bool> TryAddOrUpdateTorrentAsync(
         TorrentPostRequest dto,

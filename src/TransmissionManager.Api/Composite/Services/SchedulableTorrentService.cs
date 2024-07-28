@@ -9,7 +9,7 @@ namespace TransmissionManager.Api.Composite.Services;
 public sealed class SchedulableTorrentService(TorrentService torrentService, TorrentSchedulerService schedulerService)
     : ITorrentService
 {
-    public Torrent[] FindPage(TorrentGetPageDescriptor dto)
+    public Torrent[] FindPage(TorrentPageDescriptor dto)
     {
         return torrentService.FindPage(dto);
     }

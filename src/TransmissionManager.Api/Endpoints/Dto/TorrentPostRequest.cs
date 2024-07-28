@@ -1,12 +1,21 @@
-﻿namespace TransmissionManager.Api.Endpoints.Dto;
+﻿using System.ComponentModel.DataAnnotations;
+using TransmissionManager.Api.Utilities;
+
+namespace TransmissionManager.Api.Endpoints.Dto;
 
 public sealed class TorrentPostRequest
 {
-    public required string DownloadDir { get; init; }
+    [Required]
+    public required string DownloadDir { get; set; }
 
-    public required string WebPageUri { get; init; }
+    [Required]
+    public required string WebPageUri { get; set; }
 
-    public string? MagnetRegexPattern { get; init; }
+    [MinLength(1, ErrorMessage = $"The property {nameof(MagnetRegexPattern)} cannot be an empty string.")]
+    [RegularExpression(AppRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)]
+    public string? MagnetRegexPattern { get; set; }
 
-    public string? Cron { get; init; }
+    [MinLength(1, ErrorMessage = $"The property {nameof(Cron)} cannot be an empty string.")]
+    [RegularExpression(AppRegex.IsCron, MatchTimeoutInMilliseconds = 50)]
+    public string? Cron { get; set; }
 }

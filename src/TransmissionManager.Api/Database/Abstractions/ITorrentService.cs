@@ -5,7 +5,7 @@ namespace TransmissionManager.Api.Database.Abstractions;
 
 public interface ITorrentService
 {
-    Torrent[] FindPage(TorrentGetPageDescriptor dto);
+    Torrent[] FindPage(TorrentPageDescriptor dto);
 
     Torrent? FindOneById(long id);
 

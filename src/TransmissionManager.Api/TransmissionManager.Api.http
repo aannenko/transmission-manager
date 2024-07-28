@@ -10,7 +10,9 @@ GET {{TransmissionManager_Web_HostAddress}}/1
 
 ###
 
-# Add or update a torrent
+# Add a torrent by web page uri
+# Do not provide cron if you don't want the torrent to be automatically updated
+# Do not provide magnetRegexPattern to use a global one
 POST {{TransmissionManager_Web_HostAddress}}/
 Content-Type: application/json
 
@@ -22,17 +24,30 @@ Content-Type: application/json
 
 ###
 
-# Update one torrent by id
+# Update existing torrent's download directory, cron and magnet-finding regex
 PUT {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {
+    "downloadDir": "/tvshows",
+    "magnetRegexPattern": "\\\"(?<magnet>magnet:\\?xt=urn:btih:.*?)\\\"",
     "cron": "0 10,16 * * *"
 }
 
 ###
 
-# Remove one torrent by id
+# Clear existing torrent's cron and magnet-finding regex using empty strings
+PUT {{TransmissionManager_Web_HostAddress}}/1
+Content-Type: application/json
+
+{
+    "cron": "",
+    "magnetRegexPattern": ""
+}
+
+###
+
+# Remove a torrent from Transmission Manager by id
 DELETE  {{TransmissionManager_Web_HostAddress}}/1
 
 ###

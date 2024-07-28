@@ -9,16 +9,16 @@ namespace TransmissionManager.Api.Transmission.Services;
 
 public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions> options, HttpClient httpClient)
 {
-    private static readonly TorrentGetRequestFields[] _defaultRequestFields =
-        Enum.GetValues<TorrentGetRequestFields>();
+    private static readonly TransmissionTorrentGetRequestFields[] _defaultRequestFields =
+        Enum.GetValues<TransmissionTorrentGetRequestFields>();
 
-    public async Task<TorrentGetResponse> GetTorrentsAsync(
+    public async Task<TransmissionTorrentGetResponse> GetTorrentsAsync(
         long[]? ids = null,
-        TorrentGetRequestFields[]? requestFields = null,
+        TransmissionTorrentGetRequestFields[]? requestFields = null,
         CancellationToken cancellationToken = default)
     {
         return await GetResultWithValidationAsync(
-            new TorrentGetRequest
+            new TransmissionTorrentGetRequest
             {
                 Arguments = new()
                 {
@@ -26,19 +26,19 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
                     Ids = ids,
                 }
             },
-            AppJsonSerializerContext.Default.TorrentGetRequest,
-            AppJsonSerializerContext.Default.TorrentGetResponse,
+            AppJsonSerializerContext.Default.TransmissionTorrentGetRequest,
+            AppJsonSerializerContext.Default.TransmissionTorrentGetResponse,
             cancellationToken)
             .ConfigureAwait(false);
     }
 
-    public async Task<TorrentAddResponse> AddTorrentMagnetAsync(
+    public async Task<TransmissionTorrentAddResponse> AddTorrentMagnetAsync(
         string magnetUri,
         string downloadDir,
         CancellationToken cancellationToken = default)
     {
         return await GetResultWithValidationAsync(
-            new TorrentAddRequest
+            new TransmissionTorrentAddRequest
             {
                 Arguments = new()
                 {
@@ -46,8 +46,8 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
                     DownloadDir = downloadDir,
                 }
             },
-            AppJsonSerializerContext.Default.TorrentAddRequest,
-            AppJsonSerializerContext.Default.TorrentAddResponse,
+            AppJsonSerializerContext.Default.TransmissionTorrentAddRequest,
+            AppJsonSerializerContext.Default.TransmissionTorrentAddResponse,
             cancellationToken)
             .ConfigureAwait(false);
     }

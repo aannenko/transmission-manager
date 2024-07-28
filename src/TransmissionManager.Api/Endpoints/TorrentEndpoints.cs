@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Mvc;
+using MiniValidation;
 using TransmissionManager.Api.Composite.Services;
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
@@ -45,20 +47,28 @@ public static class TorrentEndpoints
         return service.FindOneById(id);
     }
 
-    private static Task<bool> TryAddOrUpdateOneAsync(
+    private static async Task<Results<Ok<bool>, ValidationProblem>> TryAddOrUpdateOneAsync(
         [FromServices] CompositeService<SchedulableTorrentService> service,
         TorrentPostRequest dto,
         CancellationToken cancellationToken = default)
     {
-        return service.TryAddOrUpdateTorrentAsync(dto, cancellationToken);
+        if (!MiniValidator.TryValidate(dto, out var errors))
+            return TypedResults.ValidationProblem(errors);
+
+        var isSuccess = await service.TryAddOrUpdateTorrentAsync(dto, cancellationToken);
+        return TypedResults.Ok(isSuccess);
     }
 
-    private static void UpdateOneById(
+    private static Results<Ok, ValidationProblem> UpdateOneById(
         [FromServices] SchedulableTorrentService service,
         long id,
         TorrentPutRequest dto)
     {
+        if (!MiniValidator.TryValidate(dto, out var errors))
+            return TypedResults.ValidationProblem(errors);
+
         service.UpdateOneById(id, dto.ToTorrentUpdateDto());
+        return TypedResults.Ok();
     }
 
     private static void RemoveOneById([FromServices] SchedulableTorrentService service, long id)

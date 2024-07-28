@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Api.Database.Dto;
 
-public readonly record struct TorrentGetPageDescriptor(
+public readonly record struct TorrentPageDescriptor(
     int Take,
     long AfterId,
     string? WebPageUri = null,

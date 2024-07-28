@@ -1,20 +1,20 @@
 ﻿namespace TransmissionManager.Api.Transmission.Models;
 
-public sealed class TorrentGetResponse : ITransmissionResponse
+public sealed class TransmissionTorrentGetResponse : ITransmissionResponse
 {
     public required string Result { get; init; }
 
-    public TorrentGetResponseArguments? Arguments { get; init; }
+    public TransmissionTorrentGetResponseArguments? Arguments { get; init; }
 
     public int? Tag { get; init; }
 }
 
-public sealed class TorrentGetResponseArguments
+public sealed class TransmissionTorrentGetResponseArguments
 {
-    public TorrentGetResponseItem[]? Torrents { get; init; }
+    public TransmissionTorrentGetResponseItem[]? Torrents { get; init; }
 }
 
-public sealed class TorrentGetResponseItem
+public sealed class TransmissionTorrentGetResponseItem
 {
     public long? Id { get; init; }
 

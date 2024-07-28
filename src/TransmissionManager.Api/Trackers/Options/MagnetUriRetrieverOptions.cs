@@ -6,7 +6,7 @@ namespace TransmissionManager.Api.Trackers.Options;
 public sealed class MagnetUriRetrieverOptions
 {
     [Required]
-    [RegularExpression(AppRegex.FindMagnet)]
+    [RegularExpression(AppRegex.IsFindMagnet)]
     public required string DefaultRegexPattern { get; set; }
 
     [Required]

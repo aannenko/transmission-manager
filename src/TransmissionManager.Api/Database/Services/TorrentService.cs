@@ -8,7 +8,7 @@ namespace TransmissionManager.Api.Database.Services;
 
 public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
 {
-    public Torrent[] FindPage(TorrentGetPageDescriptor dto)
+    public Torrent[] FindPage(TorrentPageDescriptor dto)
     {
         var query = dbContext.Torrents.AsNoTracking();
 

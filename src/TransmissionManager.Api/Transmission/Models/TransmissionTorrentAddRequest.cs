@@ -2,16 +2,16 @@
 
 namespace TransmissionManager.Api.Transmission.Models;
 
-public sealed class TorrentAddRequest
+public sealed class TransmissionTorrentAddRequest
 {
     public string Method { get; } = "torrent-add";
 
-    public required TorrentAddRequestArguments Arguments { get; init; }
+    public required TransmissionTorrentAddRequestArguments Arguments { get; init; }
 
     public int? Tag { get; init; }
 }
 
-public sealed class TorrentAddRequestArguments
+public sealed class TransmissionTorrentAddRequestArguments
 {
     public required string Filename { get; init; } // magnet uri
 

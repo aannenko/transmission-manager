@@ -23,7 +23,7 @@ public sealed partial class MagnetUriRetriever(
         while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) is not null)
         {
             var match = regex.Match(line);
-            if (match.Success && match.Groups.TryGetValue(AppRegex.FindMagnetGroup, out var group))
+            if (match.Success && match.Groups.TryGetValue(AppRegex.MagnetGroup, out var group))
                 return group.Value;
         }
 
@@ -36,17 +36,17 @@ public sealed partial class MagnetUriRetriever(
         if (regexPattern is null)
         {
             finalRegexPattern = options.CurrentValue.DefaultRegexPattern;
-            if (finalRegexPattern is null || !AppRegex.FindMagnetRegex().IsMatch(finalRegexPattern))
+            if (finalRegexPattern is null || !AppRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
                 throw new InvalidOperationException(
                     $"Invalid {nameof(options.CurrentValue.DefaultRegexPattern)} config value. " +
-                    $"The value must match '{AppRegex.FindMagnet}'.");
+                    $"The value must match '{AppRegex.IsFindMagnet}'.");
         }
         else
         {
             finalRegexPattern = regexPattern;
-            if (!AppRegex.FindMagnetRegex().IsMatch(finalRegexPattern))
+            if (!AppRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
                 throw new ArgumentException(
-                    $"Invalid magnet-matching regex provided. The value must match '{AppRegex.FindMagnet}'.",
+                    $"Invalid magnet-matching regex provided. The value must match '{AppRegex.IsFindMagnet}'.",
                     nameof(regexPattern));
         }
 

@@ -1,6 +1,7 @@
 using Coravel;
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Api.Composite.Services;
+using TransmissionManager.Api.Database;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints;
 using TransmissionManager.Api.Scheduling.Services;
