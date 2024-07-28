@@ -21,24 +21,24 @@ public sealed class SchedulableTorrentService(TorrentService torrentService, Tor
 
     public long AddOne(TorrentAddDto dto)
     {
-        var id = torrentService.AddOne(dto);
-        if (dto.Cron is not null)
-            schedulerService.ScheduleTorrentUpdates(id, dto.Cron);
+        var torrentId = torrentService.AddOne(dto);
+        if (!string.IsNullOrEmpty(dto.Cron))
+            schedulerService.ScheduleTorrentUpdates(torrentId, dto.Cron);
 
-        return id;
+        return torrentId;
     }
 
-    public void UpdateOne(long id, TorrentUpdateDto dto)
+    public void UpdateOneById(long id, TorrentUpdateDto dto)
     {
-        torrentService.UpdateOne(id, dto);
+        torrentService.UpdateOneById(id, dto);
         schedulerService.TryUnscheduleTorrentUpdates(id);
-        if (dto.Cron is not null)
+        if (!string.IsNullOrEmpty(dto.Cron))
             schedulerService.ScheduleTorrentUpdates(id, dto.Cron);
     }
 
-    public void RemoveOne(long id)
+    public void DeleteOneById(long id)
     {
-        torrentService.RemoveOne(id);
+        torrentService.DeleteOneById(id);
         schedulerService.TryUnscheduleTorrentUpdates(id);
     }
 }

@@ -42,7 +42,7 @@ public sealed class CompositeService<TTorrentService>(
         if (torrentId is null)
             torrentId = torrentService.AddOne(dto.ToTorrentAddDto(transmissionTorrent));
         else
-            torrentService.UpdateOne(torrentId.Value, dto.ToTorrentUpdateDto(transmissionTorrent));
+            torrentService.UpdateOneById(torrentId.Value, dto.ToTorrentUpdateDto(transmissionTorrent));
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
             _ = UpdateTorrentNameWithRetriesAsync(torrentId.Value, dto.ToTorrentUpdateDto(transmissionTorrent));
@@ -84,7 +84,7 @@ public sealed class CompositeService<TTorrentService>(
             return false;
 
         var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
-        torrentService.UpdateOne(torrent.Id, updateDto);
+        torrentService.UpdateOneById(torrent.Id, updateDto);
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
             _ = UpdateTorrentNameWithRetriesAsync(torrentId, updateDto);
@@ -113,7 +113,7 @@ public sealed class CompositeService<TTorrentService>(
             else if (dto.Name != newName)
             {
                 dto.Name = newName;
-                torrentService.UpdateOne(id, dto);
+                torrentService.UpdateOneById(id, dto);
                 return;
             }
         }

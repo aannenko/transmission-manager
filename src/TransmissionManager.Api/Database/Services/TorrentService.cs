@@ -40,7 +40,7 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
         return torrent.Id;
     }
 
-    public void UpdateOne(long id, TorrentUpdateDto dto)
+    public void UpdateOneById(long id, TorrentUpdateDto dto)
     {
         var updatedRows = dbContext.Torrents
             .AsNoTracking()
@@ -48,7 +48,7 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
             .ExecuteUpdate(properties => properties
                 .SetProperty(
                     static torrent => torrent.TransmissionId,
-                    torrent => dto.TransmissionId ?? torrent.Id)
+                    torrent => dto.TransmissionId ?? torrent.TransmissionId)
                 .SetProperty(
                     static torrent => torrent.Name,
                     torrent => dto.Name ?? torrent.Name)
@@ -57,16 +57,20 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
                     torrent => dto.DownloadDir ?? torrent.DownloadDir)
                 .SetProperty(
                     static torrent => torrent.MagnetRegexPattern,
-                    torrent => dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
+                    torrent => dto.MagnetRegexPattern == string.Empty
+                        ? null
+                        : dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
                 .SetProperty(
                     static torrent => torrent.Cron,
-                    torrent => dto.Cron ?? torrent.Cron));
+                    torrent => dto.Cron == string.Empty
+                        ? null
+                        : dto.Cron ?? torrent.Cron));
 
         if (updatedRows is 0)
             throw new ArgumentException($"Torrent with id={id} does not exist.", nameof(id));
     }
 
-    public void RemoveOne(long id)
+    public void DeleteOneById(long id)
     {
         dbContext.Torrents.AsNoTracking().Where(torrent => torrent.Id == id).ExecuteDelete();
     }

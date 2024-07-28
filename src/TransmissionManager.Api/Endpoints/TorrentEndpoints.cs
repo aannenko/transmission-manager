@@ -58,13 +58,13 @@ public static class TorrentEndpoints
         long id,
         TorrentPutRequest dto)
     {
-        torrentService.UpdateOne(id, dto.ToTorrentUpdateDto());
+        torrentService.UpdateOneById(id, dto.ToTorrentUpdateDto());
     }
 
     private static void RemoveOne(
         [FromServices] SchedulableTorrentService torrentService,
         long id)
     {
-        torrentService.RemoveOne(id);
+        torrentService.DeleteOneById(id);
     }
 }

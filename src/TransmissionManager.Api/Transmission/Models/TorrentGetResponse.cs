@@ -16,7 +16,7 @@ public sealed class TorrentGetResponseArguments
 
 public sealed class TorrentGetResponseItem
 {
-    public int? Id { get; init; }
+    public long? Id { get; init; }
 
     public string? Name { get; init; }
 

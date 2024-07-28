@@ -6,9 +6,9 @@ public sealed class TorrentAddDto
 
     public required string Name { get; set; }
 
-    public required string DownloadDir { get; set; }
-
     public required string WebPageUri { get; set; }
+    
+    public required string DownloadDir { get; set; }
 
     public string? MagnetRegexPattern { get; set; }
 
