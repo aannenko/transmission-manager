@@ -8,6 +8,8 @@ Raspberry Pi with LibreELEC 12 and Docker add-on<br>
 Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (change it to your time zone)
 
 ### Steps
+SSH to your LibreELEC and execute the following commands:
+
 ```bash
 # Create a Docker network
 docker network create transmission-network
@@ -51,6 +53,12 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager:latest
 ```
 
+### Result
 Now you can send HTTP requests to `http://<docker_host>:9092/api/v1/torrents`
 
 You can, for example, send requests using Visual Studio Code with the REST Client extension - open [TransmissionManager.Api.http](src/TransmissionManager.Api/TransmissionManager.Api.http) in VS Code, change the hostname, request data and start sending requests.
+
+### Scenarios
+1. You download new episodes of a tv show once a week from the same torrent tracker web page.
+
+   Let Transmission Manager do this for you - add the address of this web page to Transmission Manager along with a schedule of automatic checks in cron format and a location to download the new episodes to. Optionally, also add a regex pattern which will make Transmission Manager correctly find magnet links on that web page.
