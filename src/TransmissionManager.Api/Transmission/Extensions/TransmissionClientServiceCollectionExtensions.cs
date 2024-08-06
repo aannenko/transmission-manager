@@ -40,8 +40,8 @@ public static class TransmissionClientServiceCollectionExtensions
             ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
                 .HandleResult(static response => response is
                 {
+                    IsSuccessStatusCode: false,
                     StatusCode: not HttpStatusCode.Conflict,
-                    IsSuccessStatusCode: false
                 })
         });
 

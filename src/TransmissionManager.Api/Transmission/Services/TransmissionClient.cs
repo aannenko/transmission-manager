@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization.Metadata;
-using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Transmission.Extensions;
 using TransmissionManager.Api.Transmission.Models;
 using TransmissionManager.Api.Transmission.Options;
+using TransmissionManager.Api.Transmission.Serialization;
 
 namespace TransmissionManager.Api.Transmission.Services;
 
@@ -26,8 +26,8 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
                     Ids = ids,
                 }
             },
-            AppJsonSerializerContext.Default.TransmissionTorrentGetRequest,
-            AppJsonSerializerContext.Default.TransmissionTorrentGetResponse,
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentGetRequest,
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentGetResponse,
             cancellationToken)
             .ConfigureAwait(false);
     }
@@ -46,8 +46,8 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
                     DownloadDir = downloadDir,
                 }
             },
-            AppJsonSerializerContext.Default.TransmissionTorrentAddRequest,
-            AppJsonSerializerContext.Default.TransmissionTorrentAddResponse,
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentAddRequest,
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentAddResponse,
             cancellationToken)
             .ConfigureAwait(false);
     }
