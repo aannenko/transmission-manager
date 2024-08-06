@@ -1,12 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Utilities;
+using TransmissionManager.Api.Trackers.Constants;
 
 namespace TransmissionManager.Api.Trackers.Options;
 
 public sealed class MagnetUriRetrieverOptions
 {
     [Required]
-    [RegularExpression(AppRegex.IsFindMagnet)]
+    [RegularExpression(TrackersRegex.IsFindMagnet)]
     public required string DefaultRegexPattern { get; set; }
 
     [Required]

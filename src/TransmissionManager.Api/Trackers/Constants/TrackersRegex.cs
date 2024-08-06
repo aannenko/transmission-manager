@@ -1,13 +1,9 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace TransmissionManager.Api.Utilities;
+namespace TransmissionManager.Api.Trackers.Constants;
 
-public static partial class AppRegex
+public static partial class TrackersRegex
 {
-    // language=regex
-    internal const string IsCron =
-        @"^((\*(\/\d{1,2})?|\d{1,2}(\/\d{1,2})?|(\d{1,2}-\d{1,2})(\/\d{1,2})?|((\d{1,2},)+\d{1,2}))\s){4}(\*(\/\d{1,2})?|\d{1,2}(\/\d{1,2})?|(\d{1,2}-\d{1,2})(\/\d{1,2})?|((\d{1,2},)+\d{1,2}))$";
-
     // language=regex
     internal const string IsFindMagnet = $@"^.*\(\?<{MagnetGroup}>magnet:\\\?.*\).*$";
     internal const string MagnetGroup = "magnet";

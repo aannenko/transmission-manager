@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
+using TransmissionManager.Api.Trackers.Constants;
 using TransmissionManager.Api.Trackers.Options;
-using TransmissionManager.Api.Utilities;
 
 namespace TransmissionManager.Api.Trackers.Services;
 
@@ -23,7 +23,7 @@ public sealed partial class MagnetUriRetriever(
         while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) is not null)
         {
             var match = regex.Match(line);
-            if (match.Success && match.Groups.TryGetValue(AppRegex.MagnetGroup, out var group))
+            if (match.Success && match.Groups.TryGetValue(TrackersRegex.MagnetGroup, out var group))
                 return group.Value;
         }
 
@@ -36,17 +36,17 @@ public sealed partial class MagnetUriRetriever(
         if (regexPattern is null)
         {
             finalRegexPattern = options.CurrentValue.DefaultRegexPattern;
-            if (finalRegexPattern is null || !AppRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
+            if (finalRegexPattern is null || !TrackersRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
                 throw new InvalidOperationException(
                     $"Invalid {nameof(options.CurrentValue.DefaultRegexPattern)} config value. " +
-                    $"The value must match '{AppRegex.IsFindMagnet}'.");
+                    $"The value must match '{TrackersRegex.IsFindMagnet}'.");
         }
         else
         {
             finalRegexPattern = regexPattern;
-            if (!AppRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
+            if (!TrackersRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
                 throw new ArgumentException(
-                    $"Invalid magnet-matching regex provided. The value must match '{AppRegex.IsFindMagnet}'.",
+                    $"Invalid magnet-matching regex provided. The value must match '{TrackersRegex.IsFindMagnet}'.",
                     nameof(regexPattern));
         }
 

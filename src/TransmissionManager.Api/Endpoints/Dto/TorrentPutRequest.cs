@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Utilities;
+using TransmissionManager.Api.Endpoints.Constants;
+using TransmissionManager.Api.Trackers.Constants;
 
 namespace TransmissionManager.Api.Endpoints.Dto;
 
@@ -9,9 +10,9 @@ public sealed class TorrentPutRequest
 
     public string? DownloadDir { get; set; }
 
-    [RegularExpression(AppRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
+    [RegularExpression(TrackersRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
     public string? MagnetRegexPattern { get; set; }
 
-    [RegularExpression(AppRegex.IsCron, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
+    [RegularExpression(EndpointsRegex.IsCron, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
     public string? Cron { get; set; }
 }
