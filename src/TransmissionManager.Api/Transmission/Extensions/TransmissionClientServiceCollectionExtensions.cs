@@ -35,15 +35,16 @@ public static class TransmissionClientServiceCollectionExtensions
 
     private static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> builder)
     {
-        builder.AddRetry(new()
-        {
-            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-                .HandleResult(static response => response is
-                {
-                    IsSuccessStatusCode: false,
-                    StatusCode: not HttpStatusCode.Conflict,
-                })
-        });
+        builder.AddRetry(
+            new()
+            {
+                ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
+                    .HandleResult(static response => response is
+                    {
+                        IsSuccessStatusCode: false,
+                        StatusCode: not HttpStatusCode.Conflict,
+                    })
+            });
 
         builder.AddTimeout(TimeSpan.FromSeconds(3));
     }
