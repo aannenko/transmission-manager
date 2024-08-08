@@ -35,6 +35,11 @@ using (var scope = app.Services.CreateScope())
     scope.ServiceProvider.GetRequiredService<StartupSchedulerService>().ScheduleUpdatesForAllTorrents();
 }
 
+if (!app.Environment.IsDevelopment())
+    app.UseExceptionHandler();
+
+app.UseStatusCodePages();
+
 app.MapTorrentEndpoints();
 
 app.Run();

@@ -2,15 +2,18 @@
 
 public sealed class TorrentUpdateDto
 {
+    // null is ignored
     public long? TransmissionId { get; set; }
 
+    // null is ignored
     public string? Name { get; set; }
 
+    // null is ignored
     public string? DownloadDir { get; set; }
 
-    // string.Empty -> null
+    // null is ignored, string.Empty sets the value in the DB to null
     public string? MagnetRegexPattern { get; set; }
 
-    // string.Empty -> null
+    // null is ignored, string.Empty sets the value in the DB to null
     public string? Cron { get; set; }
 }

@@ -28,17 +28,20 @@ public sealed class SchedulableTorrentService(TorrentService torrentService, Tor
         return torrentId;
     }
 
-    public void UpdateOneById(long id, TorrentUpdateDto dto)
+    public bool TryUpdateOneById(long id, TorrentUpdateDto dto)
     {
-        torrentService.UpdateOneById(id, dto);
+        var result = torrentService.TryUpdateOneById(id, dto);
         schedulerService.TryUnscheduleTorrentUpdates(id);
         if (!string.IsNullOrEmpty(dto.Cron))
             schedulerService.ScheduleTorrentUpdates(id, dto.Cron);
+
+        return result;
     }
 
-    public void DeleteOneById(long id)
+    public bool TryDeleteOneById(long id)
     {
-        torrentService.DeleteOneById(id);
+        var result = torrentService.TryDeleteOneById(id);
         schedulerService.TryUnscheduleTorrentUpdates(id);
+        return result;
     }
 }

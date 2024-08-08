@@ -25,7 +25,7 @@ Content-Type: application/json
 ###
 
 # Update existing torrent's download directory, cron and magnet-finding regex
-PUT {{TransmissionManager_Web_HostAddress}}/1
+PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {
@@ -37,7 +37,7 @@ Content-Type: application/json
 ###
 
 # Clear existing torrent's cron and magnet-finding regex using empty strings
-PUT {{TransmissionManager_Web_HostAddress}}/1
+PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {

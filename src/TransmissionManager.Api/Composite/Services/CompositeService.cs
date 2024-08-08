@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Api.Composite.Extensions;
+﻿using System.Collections.Concurrent;
+using TransmissionManager.Api.Composite.Extensions;
 using TransmissionManager.Api.Database.Abstractions;
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Endpoints.Dto;
@@ -18,35 +19,32 @@ public sealed class CompositeService<TTorrentService>(
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
         [TransmissionTorrentGetRequestFields.Name];
 
+    private static readonly ConcurrentDictionary<long, bool> _runningNameUpdates = [];
+
     public async Task<bool> TryAddOrUpdateTorrentAsync(
         TorrentPostRequest dto,
         CancellationToken cancellationToken = default)
     {
-        var magnetUri = await magnetRetriever
-            .FindMagnetUri(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (magnetUri is null)
-            return false;
-
-        var transmissionResponse = await transmissionClient
-            .AddTorrentMagnetAsync(magnetUri, dto.DownloadDir, cancellationToken)
-            .ConfigureAwait(false);
-
-        var transmissionTorrent =
-            transmissionResponse.Arguments?.TorrentAdded ?? transmissionResponse.Arguments?.TorrentDuplicate;
+        var transmissionTorrent = await GetTransmissionTorrentAsync(
+            dto.WebPageUri,
+            dto.MagnetRegexPattern,
+            dto.DownloadDir,
+            cancellationToken);
 
         if (transmissionTorrent is null)
             return false;
 
         var torrentId = torrentService.FindPage(new(1, 0, WebPageUri: dto.WebPageUri)).SingleOrDefault()?.Id;
+        TorrentUpdateDto? updateDto = null;
         if (torrentId is null)
             torrentId = torrentService.AddOne(dto.ToTorrentAddDto(transmissionTorrent));
         else
-            torrentService.UpdateOneById(torrentId.Value, dto.ToTorrentUpdateDto(transmissionTorrent));
+            torrentService.TryUpdateOneById(torrentId.Value, updateDto = dto.ToTorrentUpdateDto(transmissionTorrent));
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = UpdateTorrentNameWithRetriesAsync(torrentId.Value, dto.ToTorrentUpdateDto(transmissionTorrent));
+            _ = UpdateTorrentNameWithRetriesAsync(
+                torrentId.Value,
+                updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
 
         return true;
     }
@@ -67,56 +65,85 @@ public sealed class CompositeService<TTorrentService>(
         if (transmissionGetResponse.Arguments?.Torrents?.Length is null or 0)
             return false;
 
-        var magnetUri = await magnetRetriever
-            .FindMagnetUri(torrent.WebPageUri, torrent.MagnetRegexPattern, cancellationToken)
-            .ConfigureAwait(false);
+        var transmissionTorrent = await GetTransmissionTorrentAsync(
+            torrent.WebPageUri,
+            torrent.MagnetRegexPattern,
+            torrent.DownloadDir,
+            cancellationToken);
 
-        if (magnetUri is null)
+        if (transmissionTorrent is null)
             return false;
 
-        var transmissionResponse = await transmissionClient
-            .AddTorrentMagnetAsync(magnetUri, torrent.DownloadDir, cancellationToken)
-            .ConfigureAwait(false);
-
-        var transmissionAddTorrent =
-            transmissionResponse.Arguments?.TorrentAdded ?? transmissionResponse.Arguments?.TorrentDuplicate;
-
-        if (transmissionAddTorrent is null)
+        var updateDto = torrent.ToTorrentUpdateDto(transmissionTorrent);
+        if (!torrentService.TryUpdateOneById(torrent.Id, updateDto))
             return false;
 
-        var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
-        torrentService.UpdateOneById(torrent.Id, updateDto);
-
-        if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
+        if (transmissionTorrent.HashString == transmissionTorrent.Name)
             _ = UpdateTorrentNameWithRetriesAsync(torrentId, updateDto);
 
         return true;
+    }
+
+    private async ValueTask<TransmissionTorrentAddResponseItem?> GetTransmissionTorrentAsync(
+        string webPageUri,
+        string? magnetRegexPattern,
+        string downloadDir,
+        CancellationToken cancellationToken)
+    {
+        var magnetUri = await magnetRetriever
+            .FindMagnetUri(webPageUri, magnetRegexPattern, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (magnetUri is null)
+            return null;
+
+        var transmissionResponse = await transmissionClient
+            .AddTorrentMagnetAsync(magnetUri, downloadDir, cancellationToken)
+            .ConfigureAwait(false);
+
+        return transmissionResponse.Arguments?.TorrentAdded ?? transmissionResponse.Arguments?.TorrentDuplicate;
     }
 
     private async Task UpdateTorrentNameWithRetriesAsync(long id, TorrentUpdateDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto?.TransmissionId);
 
+        if (!_runningNameUpdates.TryAdd(dto.TransmissionId.Value, true))
+            return;
+
         long[] singleTransmissionIdArray = [dto.TransmissionId.Value];
-        for (int i = 1; i <= 10; i++)
+        
+        const int numberOfRetries = 40; // make attempts to get the name for 6 hours
+        for (int i = 1, delaySeconds = i * i; i <= numberOfRetries; i++)
         {
-            await Task.Delay(TimeSpan.FromSeconds(i * i)).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds)).ConfigureAwait(false);
 
-            var transmissionResponse = await transmissionClient
-                .GetTorrentsAsync(singleTransmissionIdArray, _getNameOnlyFieldsArray)
-                .ConfigureAwait(false);
+            TransmissionTorrentGetResponse? transmissionResponse = null;
+            try
+            {
+                transmissionResponse = await transmissionClient
+                    .GetTorrentsAsync(singleTransmissionIdArray, _getNameOnlyFieldsArray)
+                    .ConfigureAwait(false);
+            }
+            catch
+            {
+                if (i is numberOfRetries)
+                    throw;
+            }
 
-            var newName = transmissionResponse.Arguments?.Torrents?.SingleOrDefault()?.Name;
+            var newName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
             if (string.IsNullOrEmpty(newName))
             {
-                return;
+                break;
             }
             else if (dto.Name != newName)
             {
                 dto.Name = newName;
-                torrentService.UpdateOneById(id, dto);
-                return;
+                torrentService.TryUpdateOneById(id, dto);
+                break;
             }
         }
+
+        _runningNameUpdates.TryRemove(dto.TransmissionId.Value, out _);
     }
 }

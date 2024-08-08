@@ -18,7 +18,7 @@ public static class TorrentEndpoints
         group.MapGet("/", FindPage);
         group.MapGet("/{id}", FindOneById);
         group.MapPost("/", TryAddOrUpdateOneAsync);
-        group.MapPut("/{id}", UpdateOneById);
+        group.MapPatch("/{id}", UpdateOneById);
         group.MapDelete("/{id}", RemoveOneById);
 
         return builder;
@@ -42,9 +42,12 @@ public static class TorrentEndpoints
         });
     }
 
-    private static Torrent? FindOneById([FromServices] TorrentService service, long id)
+    private static Results<Ok<Torrent>, NotFound> FindOneById(
+        [FromServices] TorrentService service,
+        long id)
     {
-        return service.FindOneById(id);
+        var result = service.FindOneById(id);
+        return result is not null ? TypedResults.Ok(result) : TypedResults.NotFound();
     }
 
     private static async Task<Results<Ok<bool>, ValidationProblem>> TryAddOrUpdateOneAsync(
@@ -59,7 +62,7 @@ public static class TorrentEndpoints
         return TypedResults.Ok(isSuccess);
     }
 
-    private static Results<Ok, ValidationProblem> UpdateOneById(
+    private static Results<Ok, NotFound, ValidationProblem> UpdateOneById(
         [FromServices] SchedulableTorrentService service,
         long id,
         TorrentPutRequest dto)
@@ -67,12 +70,13 @@ public static class TorrentEndpoints
         if (!MiniValidator.TryValidate(dto, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        service.UpdateOneById(id, dto.ToTorrentUpdateDto());
-        return TypedResults.Ok();
+        return service.TryUpdateOneById(id, dto.ToTorrentUpdateDto()) ? TypedResults.Ok() : TypedResults.NotFound();
     }
 
-    private static void RemoveOneById([FromServices] SchedulableTorrentService service, long id)
+    private static Results<Ok, NotFound> RemoveOneById(
+        [FromServices] SchedulableTorrentService service,
+        long id)
     {
-        service.DeleteOneById(id);
+        return service.TryDeleteOneById(id) ? TypedResults.Ok() : TypedResults.NotFound();
     }
 }

@@ -78,7 +78,7 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
         }
 
         if (!responseObject.IsSuccess())
-            throw new BadHttpRequestException(
+            throw new HttpRequestException(
                 $"Response from Transmission does not indicate success: '{responseObject.Result}'");
 
         return responseObject;

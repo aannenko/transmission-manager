@@ -11,7 +11,7 @@ public interface ITorrentService
 
     long AddOne(TorrentAddDto dto);
 
-    void UpdateOneById(long id, TorrentUpdateDto dto);
+    bool TryUpdateOneById(long id, TorrentUpdateDto dto);
 
-    void DeleteOneById(long id);
+    bool TryDeleteOneById(long id);
 }

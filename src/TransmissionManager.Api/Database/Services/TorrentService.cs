@@ -40,7 +40,7 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
         return torrent.Id;
     }
 
-    public void UpdateOneById(long id, TorrentUpdateDto dto)
+    public bool TryUpdateOneById(long id, TorrentUpdateDto dto)
     {
         var updatedRows = dbContext.Torrents
             .AsNoTracking()
@@ -66,12 +66,16 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
                         ? null
                         : dto.Cron ?? torrent.Cron));
 
-        if (updatedRows is 0)
-            throw new ArgumentException($"Torrent with id={id} does not exist.", nameof(id));
+        return updatedRows is 1;
     }
 
-    public void DeleteOneById(long id)
+    public bool TryDeleteOneById(long id)
     {
-        dbContext.Torrents.AsNoTracking().Where(torrent => torrent.Id == id).ExecuteDelete();
+        var deletedRows = dbContext.Torrents
+            .AsNoTracking()
+            .Where(torrent => torrent.Id == id)
+            .ExecuteDelete();
+
+        return deletedRows is 1;
     }
 }
