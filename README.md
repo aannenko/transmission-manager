@@ -5,7 +5,7 @@ Do more with Transmission!<br>
 
 ### Given
 Raspberry Pi with LibreELEC 12 and Docker add-on<br>
-Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (change it to your time zone)
+Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (use your time zone instead)
 
 ### Steps
 SSH to your LibreELEC and execute the following commands:

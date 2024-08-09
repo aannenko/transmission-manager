@@ -32,7 +32,7 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
             .ConfigureAwait(false);
     }
 
-    public async Task<TransmissionTorrentAddResponse> AddTorrentMagnetAsync(
+    public async Task<TransmissionTorrentAddResponse> AddTorrentUsingMagnetUriAsync(
         string magnetUri,
         string downloadDir,
         CancellationToken cancellationToken = default)

@@ -4,7 +4,7 @@ using TransmissionManager.Api.Trackers.Constants;
 
 namespace TransmissionManager.Api.Endpoints.Dto;
 
-public sealed class TorrentPutRequest
+public sealed class TorrentPatchRequest
 {
     public long? TransmissionId { get; set; }
 

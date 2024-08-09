@@ -20,7 +20,7 @@ public sealed class TransmissionTorrentGetResponseItem
 
     public string? Name { get; init; }
 
-    public int? SizeWhenDone { get; init; }
+    public long? SizeWhenDone { get; init; }
 
     public double? PercentDone { get; init; }
 

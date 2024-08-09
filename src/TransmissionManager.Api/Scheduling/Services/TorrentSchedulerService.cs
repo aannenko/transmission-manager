@@ -14,10 +14,10 @@ public sealed class TorrentSchedulerService
         _scheduler.LogScheduledTaskProgress(logger);
     }
 
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TorrentUpdateTask))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TorrentRefreshTask))]
     public void ScheduleTorrentUpdates(long torrentId, string cron)
     {
-        _scheduler.ScheduleWithParams<TorrentUpdateTask>(torrentId)
+        _scheduler.ScheduleWithParams<TorrentRefreshTask>(torrentId)
             .Cron(cron)
             .Zoned(TimeZoneInfo.Local)
             .PreventOverlapping(torrentId.ToString());

@@ -24,6 +24,14 @@ Content-Type: application/json
 
 ###
 
+# Refresh a torrent by id
+POST {{TransmissionManager_Web_HostAddress}}/4
+Content-Type: application/json
+
+""
+
+###
+
 # Update existing torrent's download directory, cron and magnet-finding regex
 PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json

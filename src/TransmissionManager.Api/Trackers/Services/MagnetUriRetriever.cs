@@ -9,7 +9,7 @@ public sealed partial class MagnetUriRetriever(
     IOptionsMonitor<MagnetUriRetrieverOptions> options,
     HttpClient httpClient)
 {
-    public async Task<string?> FindMagnetUri(
+    public async Task<string?> FindMagnetUriAsync(
         string trackerWebPageUri,
         string? regexPattern,
         CancellationToken cancellationToken = default)

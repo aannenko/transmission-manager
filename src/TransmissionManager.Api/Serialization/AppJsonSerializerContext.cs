@@ -7,7 +7,7 @@ namespace TransmissionManager.Api.Serialization;
 [JsonSourceGenerationOptions(
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(TorrentPostRequest))]
-[JsonSerializable(typeof(TorrentPutRequest))]
+[JsonSerializable(typeof(TorrentPatchRequest))]
 [JsonSerializable(typeof(Torrent[]))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(HttpValidationProblemDetails))]

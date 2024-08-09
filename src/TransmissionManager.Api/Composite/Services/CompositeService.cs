@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using TransmissionManager.Api.Composite.Dto;
 using TransmissionManager.Api.Composite.Extensions;
 using TransmissionManager.Api.Database.Abstractions;
 using TransmissionManager.Api.Database.Dto;
@@ -7,6 +8,7 @@ using TransmissionManager.Api.Endpoints.Extensions;
 using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Models;
 using TransmissionManager.Api.Transmission.Services;
+using static TransmissionManager.Api.Composite.Dto.AddOrUpdateTorrentResult;
 
 namespace TransmissionManager.Api.Composite.Services;
 
@@ -21,20 +23,24 @@ public sealed class CompositeService<TTorrentService>(
 
     private static readonly ConcurrentDictionary<long, bool> _runningNameUpdates = [];
 
-    public async Task<bool> TryAddOrUpdateTorrentAsync(
+    public async Task<AddOrUpdateTorrentResult> AddOrUpdateTorrentAsync(
         TorrentPostRequest dto,
         CancellationToken cancellationToken = default)
     {
-        var transmissionTorrent = await GetTransmissionTorrentAsync(
-            dto.WebPageUri,
-            dto.MagnetRegexPattern,
-            dto.DownloadDir,
-            cancellationToken);
+        var (magnetUri, trackerError) =
+            await GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken);
+        
+        if (string.IsNullOrEmpty(magnetUri))
+            return new(ResultType.Error, -1, trackerError);
 
+        var (transmissionTorrent, transmissionError) =
+            await SendMagnetToTransmissionAsync(magnetUri, dto.DownloadDir, cancellationToken);
+        
         if (transmissionTorrent is null)
-            return false;
+            return new(ResultType.Error, -1, transmissionError);
 
         var torrentId = torrentService.FindPage(new(1, 0, WebPageUri: dto.WebPageUri)).SingleOrDefault()?.Id;
+        var resultType = torrentId is null ? ResultType.Add : ResultType.Update;
         TorrentUpdateDto? updateDto = null;
         if (torrentId is null)
             torrentId = torrentService.AddOne(dto.ToTorrentAddDto(transmissionTorrent));
@@ -46,77 +52,135 @@ public sealed class CompositeService<TTorrentService>(
                 torrentId.Value,
                 updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
 
-        return true;
+        return new(resultType, torrentId.Value, null);
     }
 
-    public async Task<bool> TryRefreshTorrentAsync(
+    public async Task<string?> RefreshTorrentAsync(
         long torrentId,
         CancellationToken cancellationToken = default)
     {
+        const string error = "Refresh of the torrent with id '{0}' has failed: '{1}'.";
         var torrent = torrentService.FindOneById(torrentId);
-
         if (torrent is null)
-            return false;
+            return string.Format(error, torrentId, "No such torrent.");
 
-        var transmissionGetResponse = await transmissionClient
-            .GetTorrentsAsync([torrent.TransmissionId], _getNameOnlyFieldsArray, cancellationToken)
-            .ConfigureAwait(false);
+        var (transmissionGetTorrent, transmissionGetError) =
+            await GetTorrentFromTransmissionAsync(torrent.TransmissionId, cancellationToken);
 
-        if (transmissionGetResponse.Arguments?.Torrents?.Length is null or 0)
-            return false;
+        if (transmissionGetTorrent is null)
+            return string.Format(error, torrentId, transmissionGetError);
 
-        var transmissionTorrent = await GetTransmissionTorrentAsync(
-            torrent.WebPageUri,
-            torrent.MagnetRegexPattern,
-            torrent.DownloadDir,
-            cancellationToken);
+        var (magnetUri, trackerError) =
+           await GetMagnetUriAsync(torrent.WebPageUri, torrent.MagnetRegexPattern, cancellationToken);
 
-        if (transmissionTorrent is null)
-            return false;
+        if (string.IsNullOrEmpty(magnetUri))
+            return string.Format(error, torrentId, trackerError);
 
-        var updateDto = torrent.ToTorrentUpdateDto(transmissionTorrent);
+        var (transmissionAddTorrent, transmissionAddError) =
+            await SendMagnetToTransmissionAsync(magnetUri, torrent.DownloadDir, cancellationToken);
+
+        if (transmissionAddTorrent is null)
+            return string.Format(error, torrentId, transmissionAddError);
+
+        var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
         if (!torrentService.TryUpdateOneById(torrent.Id, updateDto))
-            return false;
+            return string.Format(error, torrentId, "No such torrent.");
 
-        if (transmissionTorrent.HashString == transmissionTorrent.Name)
+        if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
             _ = UpdateTorrentNameWithRetriesAsync(torrentId, updateDto);
 
-        return true;
+        return null;
     }
 
-    private async ValueTask<TransmissionTorrentAddResponseItem?> GetTransmissionTorrentAsync(
+    private async Task<(string? Magnet, string? Error)> GetMagnetUriAsync(
         string webPageUri,
         string? magnetRegexPattern,
+        CancellationToken cancellationToken)
+    {
+        string? magnetUri = null;
+        string error = string.Empty;
+        try
+        {
+            magnetUri = await magnetRetriever
+                .FindMagnetUriAsync(webPageUri, magnetRegexPattern, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception e) when (e is HttpRequestException or ArgumentException or InvalidOperationException)
+        {
+            error = $": '{e.Message}'";
+        }
+
+        return magnetUri is null
+            ? (null, $"Could not retrieve a magnet link from '{webPageUri}'{error}.")
+            : (magnetUri, null);
+    }
+
+    private async Task<(TransmissionTorrentAddResponseItem? Torrent, string? Error)> SendMagnetToTransmissionAsync(
+        string magnetUri,
         string downloadDir,
         CancellationToken cancellationToken)
     {
-        var magnetUri = await magnetRetriever
-            .FindMagnetUri(webPageUri, magnetRegexPattern, cancellationToken)
-            .ConfigureAwait(false);
+        TransmissionTorrentAddResponse? transmissionResponse = null;
+        string error = string.Empty;
+        try
+        {
+            transmissionResponse = await transmissionClient
+                .AddTorrentUsingMagnetUriAsync(magnetUri, downloadDir, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (HttpRequestException e)
+        {
+            error = $": '{e.Message}'";
+        }
 
-        if (magnetUri is null)
-            return null;
+        var transmissionTorrent =
+            transmissionResponse?.Arguments?.TorrentAdded ?? transmissionResponse?.Arguments?.TorrentDuplicate;
+        
+        if (transmissionTorrent is null)
+            error = $"Could not add a torrent to Transmission{error}.";
 
-        var transmissionResponse = await transmissionClient
-            .AddTorrentMagnetAsync(magnetUri, downloadDir, cancellationToken)
-            .ConfigureAwait(false);
+        return (transmissionTorrent, error);
+    }
 
-        return transmissionResponse.Arguments?.TorrentAdded ?? transmissionResponse.Arguments?.TorrentDuplicate;
+    private async Task<(TransmissionTorrentGetResponseItem? Torrent, string? Error)> GetTorrentFromTransmissionAsync(
+        long transmissionId,
+        CancellationToken cancellationToken)
+    {
+        TransmissionTorrentGetResponse? transmissionResponse = null;
+        string error = string.Empty;
+        try
+        {
+            transmissionResponse = await transmissionClient
+                .GetTorrentsAsync([transmissionId], cancellationToken: cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (HttpRequestException e)
+        {
+            error = $": '{e.Message}'";
+        }
+
+        TransmissionTorrentGetResponseItem? transmissionTorrent = null;
+        if (transmissionResponse?.Arguments?.Torrents?.Length is 1)
+            transmissionTorrent = transmissionResponse.Arguments.Torrents[0];
+        else
+            error = $"Could not get a torrent with a Transmission id '{transmissionId}' from Transmission{error}.";
+
+        return new(transmissionTorrent, error);
     }
 
     private async Task UpdateTorrentNameWithRetriesAsync(long id, TorrentUpdateDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto?.TransmissionId);
 
-        if (!_runningNameUpdates.TryAdd(dto.TransmissionId.Value, true))
+        if (!_runningNameUpdates.TryAdd(id, true))
             return;
 
         long[] singleTransmissionIdArray = [dto.TransmissionId.Value];
         
         const int numberOfRetries = 40; // make attempts to get the name for 6 hours
-        for (int i = 1, delaySeconds = i * i; i <= numberOfRetries; i++)
+        for (int i = 1, millisecondsDelay = i * i * 1000; i <= numberOfRetries; i++)
         {
-            await Task.Delay(TimeSpan.FromSeconds(delaySeconds)).ConfigureAwait(false);
+            await Task.Delay(millisecondsDelay).ConfigureAwait(false);
 
             TransmissionTorrentGetResponse? transmissionResponse = null;
             try
@@ -144,6 +208,6 @@ public sealed class CompositeService<TTorrentService>(
             }
         }
 
-        _runningNameUpdates.TryRemove(dto.TransmissionId.Value, out _);
+        _runningNameUpdates.TryRemove(id, out _);
     }
 }

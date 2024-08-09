@@ -5,7 +5,7 @@ namespace TransmissionManager.Api.Endpoints.Extensions;
 
 public static class TorrentPutRequestExtensions
 {
-    public static TorrentUpdateDto ToTorrentUpdateDto(this TorrentPutRequest dto)
+    public static TorrentUpdateDto ToTorrentUpdateDto(this TorrentPatchRequest dto)
     {
         return new()
         {
