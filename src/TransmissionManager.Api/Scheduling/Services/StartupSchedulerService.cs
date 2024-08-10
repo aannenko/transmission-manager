@@ -9,7 +9,7 @@ public sealed class StartupSchedulerService(TorrentSchedulerService torrentSched
     {
         long afterId = 0;
         Torrent[]? torrentPage;
-        while ((torrentPage = torrentService.FindPage(new(50, afterId, CronExists: true)))?.Length is not null and > 0)
+        while ((torrentPage = torrentService.FindPage(new(50, afterId, CronExists: true)))?.Length > 0)
         {
             afterId = torrentPage.Last().Id;
             foreach (var torrent in torrentPage)

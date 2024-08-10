@@ -26,6 +26,7 @@ builder.Services.AddScheduler();
 builder.Services.AddTransient<TorrentSchedulerService>();
 builder.Services.AddTransient<StartupSchedulerService>();
 builder.Services.AddTransient<SchedulableTorrentService>();
+builder.Services.AddTransient<BackgroundTaskService>();
 
 var app = builder.Build();
 

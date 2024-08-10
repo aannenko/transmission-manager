@@ -3,8 +3,10 @@ using TransmissionManager.Api.Composite.Dto;
 using TransmissionManager.Api.Composite.Extensions;
 using TransmissionManager.Api.Database.Abstractions;
 using TransmissionManager.Api.Database.Dto;
+using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints.Dto;
 using TransmissionManager.Api.Endpoints.Extensions;
+using TransmissionManager.Api.Scheduling.Services;
 using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Models;
 using TransmissionManager.Api.Transmission.Services;
@@ -15,13 +17,14 @@ namespace TransmissionManager.Api.Composite.Services;
 public sealed class CompositeService<TTorrentService>(
     MagnetUriRetriever magnetRetriever,
     TransmissionClient transmissionClient,
-    TTorrentService torrentService)
+    TTorrentService torrentService,
+    BackgroundTaskService backgroundTaskService)
     where TTorrentService : ITorrentService
 {
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
         [TransmissionTorrentGetRequestFields.Name];
 
-    private static readonly ConcurrentDictionary<long, bool> _runningNameUpdates = [];
+    private static readonly ConcurrentDictionary<long, CancellationTokenSource> _runningNameUpdates = [];
 
     public async Task<AddOrUpdateTorrentResult> AddOrUpdateTorrentAsync(
         TorrentPostRequest dto,
@@ -48,9 +51,7 @@ public sealed class CompositeService<TTorrentService>(
             torrentService.TryUpdateOneById(torrentId.Value, updateDto = dto.ToTorrentUpdateDto(transmissionTorrent));
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = UpdateTorrentNameWithRetriesAsync(
-                torrentId.Value,
-                updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
+            _ = StartUpdateTorrentNameTask(torrentId.Value, updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
 
         return new(resultType, torrentId.Value, null);
     }
@@ -87,7 +88,7 @@ public sealed class CompositeService<TTorrentService>(
             return string.Format(error, torrentId, "No such torrent.");
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
-            _ = UpdateTorrentNameWithRetriesAsync(torrentId, updateDto);
+            _ = StartUpdateTorrentNameTask(torrentId, updateDto);
 
         return null;
     }
@@ -163,33 +164,57 @@ public sealed class CompositeService<TTorrentService>(
         if (transmissionResponse?.Arguments?.Torrents?.Length is 1)
             transmissionTorrent = transmissionResponse.Arguments.Torrents[0];
         else
-            error = $"Could not get a torrent with a Transmission id '{transmissionId}' from Transmission{error}.";
+            error = $"Could not get a torrent with the Transmission id '{transmissionId}' from Transmission{error}.";
 
         return new(transmissionTorrent, error);
     }
 
-    private async Task UpdateTorrentNameWithRetriesAsync(long id, TorrentUpdateDto dto)
+    private async Task StartUpdateTorrentNameTask(long id, TorrentUpdateDto dto)
     {
         ArgumentNullException.ThrowIfNull(dto?.TransmissionId);
 
-        if (!_runningNameUpdates.TryAdd(id, true))
-            return;
+        if (_runningNameUpdates.TryRemove(id, out var oldCts))
+            oldCts.Cancel();
 
-        long[] singleTransmissionIdArray = [dto.TransmissionId.Value];
+        using var newCts = new CancellationTokenSource();
+        if (!_runningNameUpdates.TryAdd(id, newCts))
+            return;
         
+        try
+        {
+            await backgroundTaskService.RunScopedAsync(UpdateTorrentNameWithRetriesAsync, (id, dto), newCts.Token);
+        }
+        finally
+        {
+            _runningNameUpdates.TryRemove(id, out _);
+        }
+    }
+
+    private static async Task UpdateTorrentNameWithRetriesAsync(
+        IServiceProvider serviceProvider,
+        (long, TorrentUpdateDto) argument,
+        CancellationToken cancellationToken)
+    {
+        var (id, dto) = argument;
+
+        var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
+        var torrentService = serviceProvider.GetRequiredService<TorrentService>();
+
+        long[] singleTransmissionIdArray = [dto.TransmissionId!.Value];
+
         const int numberOfRetries = 40; // make attempts to get the name for 6 hours
         for (int i = 1, millisecondsDelay = i * i * 1000; i <= numberOfRetries; i++)
         {
-            await Task.Delay(millisecondsDelay).ConfigureAwait(false);
+            await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
 
             TransmissionTorrentGetResponse? transmissionResponse = null;
             try
             {
                 transmissionResponse = await transmissionClient
-                    .GetTorrentsAsync(singleTransmissionIdArray, _getNameOnlyFieldsArray)
+                    .GetTorrentsAsync(singleTransmissionIdArray, _getNameOnlyFieldsArray, cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch
+            catch (HttpRequestException)
             {
                 if (i is numberOfRetries)
                     throw;
@@ -207,7 +232,5 @@ public sealed class CompositeService<TTorrentService>(
                 break;
             }
         }
-
-        _runningNameUpdates.TryRemove(id, out _);
     }
 }
