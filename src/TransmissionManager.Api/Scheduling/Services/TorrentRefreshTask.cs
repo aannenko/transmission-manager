@@ -6,7 +6,7 @@ namespace TransmissionManager.Api.Scheduling.Services;
 
 public sealed class TorrentRefreshTask(
     ILogger<TorrentRefreshTask> logger,
-    CompositeService<TorrentService> compositeService,
+    CompositeTorrentService<TorrentService> compositeService,
     long torrentId)
     : IInvocable, ICancellableInvocable
 {
@@ -14,10 +14,13 @@ public sealed class TorrentRefreshTask(
 
     public async Task Invoke()
     {
-        var error = await compositeService.RefreshTorrentAsync(torrentId, CancellationToken);
-        if (!string.IsNullOrEmpty(error))
+        var (_, errorMessage) = await compositeService.RefreshTorrentAsync(torrentId, CancellationToken);
+        if (!string.IsNullOrEmpty(errorMessage))
         {
-            logger.LogError("Could not refresh the torrent with id '{id}' on schedule: '{error}'.", torrentId, error);
+            logger.LogError(
+                "Could not refresh the torrent with id '{torrentId}' on schedule: '{errorMessage}'.",
+                torrentId,
+                errorMessage);
         }
     }
 }

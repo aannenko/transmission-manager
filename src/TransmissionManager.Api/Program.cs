@@ -20,7 +20,7 @@ builder.Services.AddMagnetUriRetriever(builder.Configuration);
 builder.Services.AddTransmissionClient(builder.Configuration);
 
 builder.Services.AddTransient<TorrentService>();
-builder.Services.AddTransient(typeof(CompositeService<>));
+builder.Services.AddTransient(typeof(CompositeTorrentService<>));
 
 builder.Services.AddScheduler();
 builder.Services.AddTransient<TorrentSchedulerService>();

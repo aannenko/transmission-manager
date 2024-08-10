@@ -1,12 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
-using TransmissionManager.Api.Composite.Dto;
 using TransmissionManager.Api.Composite.Services;
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints.Dto;
 using TransmissionManager.Api.Endpoints.Extensions;
+using AddOrUpdateResult = TransmissionManager.Api.Composite.Dto.AddOrUpdateTorrentResult.ResultType;
+using RefreshResult = TransmissionManager.Api.Composite.Dto.RefreshTorrentResult.ResultType;
 
 namespace TransmissionManager.Api.Endpoints;
 
@@ -55,7 +56,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Results<Created, NoContent, BadRequest<string>, ValidationProblem>> AddOrUpdateOneAsync(
-        [FromServices] CompositeService<SchedulableTorrentService> service,
+        [FromServices] CompositeTorrentService<SchedulableTorrentService> service,
         TorrentPostRequest dto,
         CancellationToken cancellationToken = default)
     {
@@ -66,21 +67,25 @@ public static class TorrentEndpoints
         
         return resultType switch
         {
-            AddOrUpdateTorrentResult.ResultType.Add => TypedResults.Created($"{_torrentsApiAddress}/{id}"),
-            AddOrUpdateTorrentResult.ResultType.Update => TypedResults.NoContent(),
+            AddOrUpdateResult.Add => TypedResults.Created($"{_torrentsApiAddress}/{id}"),
+            AddOrUpdateResult.Update => TypedResults.NoContent(),
             _ => TypedResults.BadRequest(errorMessage)
         };
     }
 
-    private static async Task<Results<NoContent, BadRequest<string>>> RefreshOneByIdAsync(
-        [FromServices] CompositeService<TorrentService> service,
+    private static async Task<Results<NoContent, NotFound, BadRequest<string>>> RefreshOneByIdAsync(
+        [FromServices] CompositeTorrentService<TorrentService> service,
         long id,
         CancellationToken cancellationToken)
     {
-        var error = await service.RefreshTorrentAsync(id, cancellationToken);
-        return string.IsNullOrEmpty(error)
-            ? TypedResults.NoContent()
-            : TypedResults.BadRequest(error);
+        var (resultType, errorMessage) = await service.RefreshTorrentAsync(id, cancellationToken);
+
+        return resultType switch
+        {
+            RefreshResult.Success => TypedResults.NoContent(),
+            RefreshResult.NotFound => TypedResults.NotFound(),
+            _ => TypedResults.BadRequest(errorMessage)
+        };
     }
 
     private static Results<NoContent, NotFound, ValidationProblem> UpdateOneById(
