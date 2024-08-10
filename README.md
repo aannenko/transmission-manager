@@ -53,6 +53,45 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager:latest
 ```
 
+Alternatively, if you already have a working Transmission Docker container, do this instead:
+
+```bash
+# Create a Docker network
+docker network create transmission-network
+
+# Find the ID of your Transmission container
+# (should look similar to 228b4333c2cd)
+docker ps
+
+# Add your Transmission container to this network
+# (replace 228b4333c2cd with the ID of your Transmission container)
+docker network connect transmission-network 228b4333c2cd
+
+# Find the Transmission's IP address within transmission-network
+# (replace 228b4333c2cd with the ID of your Transmission container,
+# look for the node called "transmission-network" and within it - "IPAddress",
+# the IP address should look similar to 172.18.0.2)
+docker inspect 228b4333c2cd
+
+# Create a folder for TransmissionManager.db
+mkdir /storage/transmission-manager/database
+
+# Run Transmission Manager
+(replace 172.18.0.2 with the IP address of your Transmission container)
+docker run -d \
+  --name transmission-manager \
+  --hostname transmission-manager \
+  --network transmission-network \
+  -e PUID=0 \
+  -e PGID=0 \
+  -e TZ=Europe/Prague \
+  -e Transmission__BaseAddress="http://172.18.0.2:9091" \
+  -p 9092:9092 \
+  -v /storage/transmission-manager/database:/app/database \
+  --restart unless-stopped \
+  ghcr.io/aannenko/transmission-manager:latest
+```
+
 ### Result
 Now you can send HTTP requests to `http://<docker_host>:9092/api/v1/torrents`
 
