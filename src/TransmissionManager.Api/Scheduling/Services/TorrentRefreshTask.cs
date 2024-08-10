@@ -1,12 +1,11 @@
 ﻿using Coravel.Invocable;
 using TransmissionManager.Api.Composite.Services;
-using TransmissionManager.Api.Database.Services;
 
 namespace TransmissionManager.Api.Scheduling.Services;
 
 public sealed class TorrentRefreshTask(
     ILogger<TorrentRefreshTask> logger,
-    CompositeTorrentService<TorrentService> compositeService,
+    CompositeRefreshTorrentService compositeService,
     long torrentId)
     : IInvocable, ICancellableInvocable
 {

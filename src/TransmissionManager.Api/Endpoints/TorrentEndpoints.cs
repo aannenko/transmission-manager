@@ -56,7 +56,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Results<Created, NoContent, BadRequest<string>, ValidationProblem>> AddOrUpdateOneAsync(
-        [FromServices] CompositeTorrentService<SchedulableTorrentService> service,
+        [FromServices] CompositeAddOrUpdateTorrentService service,
         TorrentPostRequest dto,
         CancellationToken cancellationToken = default)
     {
@@ -64,7 +64,7 @@ public static class TorrentEndpoints
             return TypedResults.ValidationProblem(errors);
 
         var (resultType, id, errorMessage) = await service.AddOrUpdateTorrentAsync(dto, cancellationToken);
-        
+
         return resultType switch
         {
             AddOrUpdateResult.Add => TypedResults.Created($"{_torrentsApiAddress}/{id}"),
@@ -74,7 +74,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Results<NoContent, NotFound, BadRequest<string>>> RefreshOneByIdAsync(
-        [FromServices] CompositeTorrentService<TorrentService> service,
+        [FromServices] CompositeRefreshTorrentService service,
         long id,
         CancellationToken cancellationToken)
     {
