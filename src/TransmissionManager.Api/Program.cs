@@ -12,8 +12,8 @@ var builder = WebApplication.CreateSlimBuilder(args);
 
 builder.Services.AddProblemDetails();
 
-builder.Services.ConfigureHttpJsonOptions(options =>
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
+builder.Services.ConfigureHttpJsonOptions(
+    static options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
 builder.Services.AddAppDbContext();
 builder.Services.AddMagnetUriRetriever(builder.Configuration);

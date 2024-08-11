@@ -19,7 +19,7 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
             query = query.Where(torrent => torrent.WebPageUri == dto.WebPageUri);
 
         if (dto.CronExists is not null)
-            query = query.Where(torrent => torrent.Cron != null);
+            query = query.Where(static torrent => torrent.Cron != null);
 
         return query.Where(torrent => torrent.Id > dto.AfterId)
             .OrderBy(static torrent => torrent.Id)
@@ -43,7 +43,6 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
     public bool TryUpdateOneById(long id, TorrentUpdateDto dto)
     {
         var updatedRows = dbContext.Torrents
-            .AsNoTracking()
             .Where(torrent => torrent.Id == id)
             .ExecuteUpdate(properties => properties
                 .SetProperty(
@@ -72,7 +71,6 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
     public bool TryDeleteOneById(long id)
     {
         var deletedRows = dbContext.Torrents
-            .AsNoTracking()
             .Where(torrent => torrent.Id == id)
             .ExecuteDelete();
 
