@@ -77,7 +77,7 @@ docker inspect 228b4333c2cd
 mkdir /storage/transmission-manager/database
 
 # Run Transmission Manager
-(replace 172.18.0.2 with the IP address of your Transmission container)
+# (replace 172.18.0.2 with the IP address of your Transmission container)
 docker run -d \
   --name transmission-manager \
   --hostname transmission-manager \
