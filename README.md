@@ -1,15 +1,21 @@
 # Transmission Manager
 Do more with Transmission!<br>
 - Add torrents by their web page
-- Download new TV show episodes on a schedule
+- Automatically download new TV show episodes on a schedule
+
+## How-to
 
 ### Given
-Raspberry Pi with LibreELEC 12 and Docker add-on<br>
-Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (use your time zone instead)
+- Raspberry Pi with LibreELEC 12 and Docker add-on<br>
+- Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (use your own time zone instead)
 
-### Steps
+### Setup
+There are two ways to set things up:
+- [set up Transmission and Transmission Manager from scratch](#set-up-transmission-and-transmission-manager-from-scratch)
+- [connect Transmission Manager to a running Transmission container](#connect-transmission-manager-to-a-running-transmission-container)
+
+#### Set up Transmission and Transmission Manager from scratch
 SSH to your LibreELEC and execute the following commands:
-
 ```bash
 # Create a Docker network
 docker network create transmission-network
@@ -53,8 +59,8 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager:latest
 ```
 
-Alternatively, if you already have a working Transmission Docker container, do this instead:
-
+#### Connect Transmission Manager to a running Transmission container
+SSH to your LibreELEC and execute the following commands:
 ```bash
 # Create a Docker network
 docker network create transmission-network
@@ -92,12 +98,29 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager:latest
 ```
 
-### Result
-Now you can send HTTP requests to `http://<docker_host>:9092/api/v1/torrents`
+### Send requests
+Now that you have set up Transmission Manager, try sending HTTP requests to it from PowerShell 7.</br>
+Here are some examples (replace <docker_host> with the hostname or IP address of your docker host):
+```powershell
+# See all torrents registered in Transmission Manager
+iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json
 
-You can, for example, send requests using Visual Studio Code with the REST Client extension - open [TransmissionManager.Api.http](src/TransmissionManager.Api/TransmissionManager.Api.http) in VS Code, change the hostname, request data and start sending requests.
+# Register a new torrent in Transmission Manager, send it to Transmission for download and check for the updates every day at 11:00 and 17:00
+iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"webPageUri":"https://nnmclub.to/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
-### Scenarios
-1. You download new episodes of a tv show once a week from the same torrent tracker web page.
+# Can't wait for Transmission Manager to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
+iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json -Body ""
 
-   Let Transmission Manager do this for you - add the address of this web page to Transmission Manager along with a schedule of automatic checks in cron format and a location to download the new episodes to. Optionally, also add a regex pattern which will make Transmission Manager correctly find magnet links on that web page.
+# Force-refresh all torrents
+iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json -Body "" }
+
+# Unregister torrent #5 from Transmission Manager but do not touch it in Transmission
+iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
+```
+
+Alternatively, send requests using [Visual Studio Code](https://code.visualstudio.com/) with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension installed - open the file [TransmissionManager.Api.http](src/TransmissionManager.Api/TransmissionManager.Api.http) in VS Code, change the host address, the request data and start sending requests.
+
+## Usage scenarios
+
+### You manually download new episodes of a TV show once a week from the same torrent tracker web page.
+Let Transmission Manager do this for you - add the address of this web page to Transmission Manager along with a schedule of automatic checks in cron format and a location to download the new episodes to. Optionally, also add a regex pattern which will make Transmission Manager correctly find magnet links on that web page.
