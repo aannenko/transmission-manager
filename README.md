@@ -100,7 +100,7 @@ docker run -d \
 
 ### Send requests
 Now that you have set up Transmission Manager, try sending HTTP requests to it from PowerShell 7.</br>
-Here are some examples (replace <docker_host> with the hostname or IP address of your docker host):
+Here are some examples (replace `<docker_host>` with the hostname or IP address of your docker host):
 ```powershell
 # See all torrents registered in Transmission Manager
 iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json
