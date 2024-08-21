@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TransmissionManager.Api.Transmission.Models;
+namespace TransmissionManager.Api.Transmission.Dto;
 
 public sealed class TransmissionTorrentAddRequest
 {
-    public string Method { get; } = "torrent-add";
+    public string Method => "torrent-add";
 
     public required TransmissionTorrentAddRequestArguments Arguments { get; init; }
 

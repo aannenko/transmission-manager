@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Transmission.Models;
+﻿using TransmissionManager.Api.Transmission.Dto;
 
 namespace TransmissionManager.Api.Transmission.Extensions;
 

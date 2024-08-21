@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Transmission.Models;
+﻿namespace TransmissionManager.Api.Transmission.Dto;
 
 public sealed class TransmissionTorrentGetResponse : ITransmissionResponse
 {

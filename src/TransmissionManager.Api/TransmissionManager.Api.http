@@ -1,7 +1,17 @@
 @TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
 
-# Get all torrents
+# Get a page of torrents
 GET {{TransmissionManager_Web_HostAddress}}/
+
+###
+
+# Get the next three torrents after the one with ID = 2
+GET {{TransmissionManager_Web_HostAddress}}/?take=3&afterId=2
+
+###
+
+# Get the first 10 torrents whose names start with "["
+GET {{TransmissionManager_Web_HostAddress}}/?take=10&nameStartsWith=%5B
 
 ###
 
@@ -25,7 +35,7 @@ Content-Type: application/json
 ###
 
 # Refresh a torrent by id
-POST {{TransmissionManager_Web_HostAddress}}/4
+POST {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 ""
@@ -56,6 +66,6 @@ Content-Type: application/json
 ###
 
 # Remove a torrent from Transmission Manager by id
-DELETE  {{TransmissionManager_Web_HostAddress}}/1
+DELETE {{TransmissionManager_Web_HostAddress}}/1
 
 ###

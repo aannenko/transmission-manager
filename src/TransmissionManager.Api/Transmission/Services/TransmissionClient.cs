@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization.Metadata;
 using TransmissionManager.Api.Transmission.Extensions;
-using TransmissionManager.Api.Transmission.Models;
+using TransmissionManager.Api.Transmission.Dto;
 using TransmissionManager.Api.Transmission.Options;
 using TransmissionManager.Api.Transmission.Serialization;
 

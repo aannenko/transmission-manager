@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Api.Transmission.Models;
+using TransmissionManager.Api.Transmission.Dto;
 
 namespace TransmissionManager.Api.Transmission.Serialization;
 

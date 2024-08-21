@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Trackers.Services;
-using TransmissionManager.Api.Transmission.Models;
+using TransmissionManager.Api.Transmission.Dto;
 using TransmissionManager.Api.Transmission.Services;
 
 namespace TransmissionManager.Api.Composite.Services;
@@ -90,7 +90,7 @@ public abstract class BaseCompositeTorrentService(
         else
             error = $"Could not get a torrent with the Transmission id '{transmissionId}' from Transmission{error}.";
 
-        return new(transmissionTorrent, error);
+        return (transmissionTorrent, error);
     }
 
     protected async Task StartUpdateTorrentNameTask(long id, TorrentUpdateDto dto)

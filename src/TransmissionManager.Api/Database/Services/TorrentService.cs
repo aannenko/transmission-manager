@@ -21,8 +21,8 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
         if (dto.CronExists is not null)
             query = query.Where(static torrent => torrent.Cron != null);
 
-        return query.Where(torrent => torrent.Id > dto.AfterId)
-            .OrderBy(static torrent => torrent.Id)
+        return query.OrderBy(static torrent => torrent.Id)
+            .Where(torrent => torrent.Id > dto.AfterId)            
             .Take(dto.Take)
             .ToArray();
     }

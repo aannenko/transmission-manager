@@ -1,11 +1,11 @@
 ﻿using System.Text.Json.Serialization;
 using TransmissionManager.Api.Transmission.Serialization;
 
-namespace TransmissionManager.Api.Transmission.Models;
+namespace TransmissionManager.Api.Transmission.Dto;
 
 public sealed class TransmissionTorrentGetRequest
 {
-    public string Method { get; } = "torrent-get";
+    public string Method => "torrent-get";
 
     public required TransmissionTorrentGetRequestArguments Arguments { get; init; }
 
