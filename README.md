@@ -123,4 +123,4 @@ Alternatively, send requests using [Visual Studio Code](https://code.visualstudi
 ## Usage scenarios
 
 ### You manually download new episodes of a TV show once a week from the same torrent tracker web page.
-Let Transmission Manager do this for you - add the address of this web page to Transmission Manager along with a schedule of automatic checks in cron format and a location to download the new episodes to. Optionally, also add a regex pattern which will make Transmission Manager correctly find magnet links on that web page.
+Let Transmission Manager do this for you - add the address of this web page to Transmission Manager along with a schedule in cron format that says when to check for new episodes and a location to download the new episodes to. Optionally, also add a regex pattern which will make Transmission Manager correctly find magnet links on that web page.
