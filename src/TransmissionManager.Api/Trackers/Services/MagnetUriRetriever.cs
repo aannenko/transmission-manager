@@ -37,17 +37,21 @@ public sealed partial class MagnetUriRetriever(
         {
             finalRegexPattern = options.CurrentValue.DefaultRegexPattern;
             if (finalRegexPattern is null || !TrackersRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
+            {
                 throw new InvalidOperationException(
                     $"Invalid {nameof(options.CurrentValue.DefaultRegexPattern)} config value. " +
                     $"The value must match '{TrackersRegex.IsFindMagnet}'.");
+            }
         }
         else
         {
             finalRegexPattern = regexPattern;
             if (!TrackersRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
+            {
                 throw new ArgumentException(
                     $"Invalid magnet-matching regex provided. The value must match '{TrackersRegex.IsFindMagnet}'.",
                     nameof(regexPattern));
+            }
         }
 
         return new(

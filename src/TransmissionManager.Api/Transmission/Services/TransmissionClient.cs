@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.Json.Serialization.Metadata;
-using TransmissionManager.Api.Transmission.Extensions;
 using TransmissionManager.Api.Transmission.Dto;
+using TransmissionManager.Api.Transmission.Extensions;
 using TransmissionManager.Api.Transmission.Options;
 using TransmissionManager.Api.Transmission.Serialization;
 
@@ -78,10 +78,9 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
                 $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.");
         }
 
-        if (!responseObject.IsSuccess())
-            throw new HttpRequestException(
+        return responseObject.IsSuccess()
+            ? responseObject
+            : throw new HttpRequestException(
                 $"Response from Transmission does not indicate success: '{responseObject.Result}'");
-
-        return responseObject;
     }
 }

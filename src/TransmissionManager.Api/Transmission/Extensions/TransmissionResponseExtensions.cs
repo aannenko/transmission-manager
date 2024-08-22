@@ -4,6 +4,8 @@ namespace TransmissionManager.Api.Transmission.Extensions;
 
 public static class TransmissionResponseExtensions
 {
-    public static bool IsSuccess(this ITransmissionResponse response) =>
-        response.Result is "success";
+    public static bool IsSuccess(this ITransmissionResponse response)
+    {
+        return response.Result is "success";
+    }
 }

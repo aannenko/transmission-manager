@@ -23,7 +23,7 @@ public abstract class BaseCompositeTorrentService(
         CancellationToken cancellationToken)
     {
         string? magnetUri = null;
-        string error = string.Empty;
+        var error = string.Empty;
         try
         {
             magnetUri = await magnetRetriever
@@ -46,7 +46,7 @@ public abstract class BaseCompositeTorrentService(
         CancellationToken cancellationToken)
     {
         TransmissionTorrentAddResponse? transmissionResponse = null;
-        string error = string.Empty;
+        var error = string.Empty;
         try
         {
             transmissionResponse = await transmissionClient
@@ -72,7 +72,7 @@ public abstract class BaseCompositeTorrentService(
         CancellationToken cancellationToken)
     {
         TransmissionTorrentGetResponse? transmissionResponse = null;
-        string error = string.Empty;
+        var error = string.Empty;
         try
         {
             transmissionResponse = await transmissionClient

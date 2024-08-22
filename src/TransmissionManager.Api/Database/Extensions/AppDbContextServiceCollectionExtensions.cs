@@ -7,9 +7,13 @@ public static class AppDbContextServiceCollectionExtensions
 {
     private const string _appDbConfigKey = "AppDb";
 
-    public static IServiceCollection AddAppDbContext(this IServiceCollection services) =>
-        services.AddDbContext<AppDbContext>(ConfigureDbContextOptions);
+    public static IServiceCollection AddAppDbContext(this IServiceCollection services)
+    {
+        return services.AddDbContext<AppDbContext>(ConfigureDbContextOptions);
+    }
 
-    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options) =>
+    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options)
+    {
         options.UseSqlite(services.GetRequiredService<IConfiguration>().GetConnectionString(_appDbConfigKey));
+    }
 }
