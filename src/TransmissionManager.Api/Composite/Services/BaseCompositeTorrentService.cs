@@ -106,7 +106,9 @@ public abstract class BaseCompositeTorrentService(
 
         try
         {
-            await backgroundTaskService.RunScopedAsync(UpdateTorrentNameWithRetriesAsync, (id, dto), newCts.Token);
+            await backgroundTaskService
+                .RunScopedAsync(UpdateTorrentNameWithRetriesAsync, (id, dto), newCts.Token)
+                .ConfigureAwait(false);
         }
         finally
         {
@@ -152,7 +154,7 @@ public abstract class BaseCompositeTorrentService(
             else if (dto.Name != newName)
             {
                 dto.Name = newName;
-                torrentService.TryUpdateOneById(id, dto);
+                await torrentService.TryUpdateOneByIdAsync(id, dto).ConfigureAwait(false);
                 break;
             }
         }

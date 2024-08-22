@@ -19,17 +19,17 @@ public static class TorrentEndpoints
     {
         var group = builder.MapGroup(_torrentsApiAddress);
 
-        group.MapGet("/", FindPage);
-        group.MapGet("/{id}", FindOneById);
+        group.MapGet("/", FindPageAsync);
+        group.MapGet("/{id}", FindOneByIdAsync);
         group.MapPost("/", AddOrUpdateOneAsync);
         group.MapPost("/{id}", RefreshOneByIdAsync);
-        group.MapPatch("/{id}", UpdateOneById);
-        group.MapDelete("/{id}", RemoveOneById);
+        group.MapPatch("/{id}", UpdateOneByIdAsync);
+        group.MapDelete("/{id}", RemoveOneByIdAsync);
 
         return builder;
     }
 
-    private static Torrent[] FindPage(
+    private static async Task<Torrent[]> FindPageAsync(
         [FromServices] TorrentService service,
         int take = 20,
         long afterId = 0,
@@ -37,21 +37,21 @@ public static class TorrentEndpoints
         string? nameStartsWith = null,
         bool? cronExists = null)
     {
-        return service.FindPage(new()
+        return await service.FindPageAsync(new()
         {
             Take = take,
             AfterId = afterId,
             WebPageUri = webPageUri,
             NameStartsWith = nameStartsWith,
             CronExists = cronExists
-        });
+        }).ConfigureAwait(false);
     }
 
-    private static Results<Ok<Torrent>, NotFound> FindOneById(
+    private static async Task<Results<Ok<Torrent>, NotFound>> FindOneByIdAsync(
         [FromServices] TorrentService service,
         long id)
     {
-        var result = service.FindOneById(id);
+        var result = await service.FindOneByIdAsync(id).ConfigureAwait(false);
         return result is not null ? TypedResults.Ok(result) : TypedResults.NotFound();
     }
 
@@ -63,7 +63,8 @@ public static class TorrentEndpoints
         if (!MiniValidator.TryValidate(dto, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        var (resultType, id, errorMessage) = await service.AddOrUpdateTorrentAsync(dto, cancellationToken);
+        var (resultType, id, errorMessage) =
+            await service.AddOrUpdateTorrentAsync(dto, cancellationToken).ConfigureAwait(false);
 
         return resultType switch
         {
@@ -78,7 +79,8 @@ public static class TorrentEndpoints
         long id,
         CancellationToken cancellationToken)
     {
-        var (resultType, errorMessage) = await service.RefreshTorrentAsync(id, cancellationToken);
+        var (resultType, errorMessage) =
+            await service.RefreshTorrentAsync(id, cancellationToken).ConfigureAwait(false);
 
         return resultType switch
         {
@@ -88,7 +90,7 @@ public static class TorrentEndpoints
         };
     }
 
-    private static Results<NoContent, NotFound, ValidationProblem> UpdateOneById(
+    private static async Task<Results<NoContent, NotFound, ValidationProblem>> UpdateOneByIdAsync(
         [FromServices] SchedulableTorrentService service,
         long id,
         TorrentPatchRequest dto)
@@ -96,16 +98,16 @@ public static class TorrentEndpoints
         if (!MiniValidator.TryValidate(dto, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        return service.TryUpdateOneById(id, dto.ToTorrentUpdateDto())
+        return await service.TryUpdateOneByIdAsync(id, dto.ToTorrentUpdateDto()).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.NotFound();
     }
 
-    private static Results<NoContent, NotFound> RemoveOneById(
+    private static async Task<Results<NoContent, NotFound>> RemoveOneByIdAsync(
         [FromServices] SchedulableTorrentService service,
         long id)
     {
-        return service.TryDeleteOneById(id)
+        return await service.TryDeleteOneByIdAsync(id).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.NotFound();
     }

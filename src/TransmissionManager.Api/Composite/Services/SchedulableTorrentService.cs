@@ -9,39 +9,38 @@ namespace TransmissionManager.Api.Composite.Services;
 public sealed class SchedulableTorrentService(TorrentService torrentService, TorrentSchedulerService schedulerService)
     : ITorrentService
 {
-    public Torrent[] FindPage(TorrentPageDescriptor dto)
+    public Task<Torrent[]> FindPageAsync(TorrentPageDescriptor dto)
     {
-        return torrentService.FindPage(dto);
+        return torrentService.FindPageAsync(dto);
     }
 
-    public Torrent? FindOneById(long id)
+    public Task<Torrent?> FindOneByIdAsync(long id)
     {
-        return torrentService.FindOneById(id);
+        return torrentService.FindOneByIdAsync(id);
     }
 
-    public long AddOne(TorrentAddDto dto)
+    public async Task<long> AddOneAsync(TorrentAddDto dto)
     {
-        var torrentId = torrentService.AddOne(dto);
+        var torrentId = await torrentService.AddOneAsync(dto).ConfigureAwait(false);
         if (!string.IsNullOrEmpty(dto.Cron))
             schedulerService.ScheduleTorrentUpdates(torrentId, dto.Cron);
 
         return torrentId;
     }
 
-    public bool TryUpdateOneById(long id, TorrentUpdateDto dto)
+    public async Task<bool> TryUpdateOneByIdAsync(long id, TorrentUpdateDto dto)
     {
-        var result = torrentService.TryUpdateOneById(id, dto);
         schedulerService.TryUnscheduleTorrentUpdates(id);
-        if (!string.IsNullOrEmpty(dto.Cron))
+        var result = await torrentService.TryUpdateOneByIdAsync(id, dto).ConfigureAwait(false);
+        if (result && !string.IsNullOrEmpty(dto.Cron))
             schedulerService.ScheduleTorrentUpdates(id, dto.Cron);
 
         return result;
     }
 
-    public bool TryDeleteOneById(long id)
+    public Task<bool> TryDeleteOneByIdAsync(long id)
     {
-        var result = torrentService.TryDeleteOneById(id);
         schedulerService.TryUnscheduleTorrentUpdates(id);
-        return result;
+        return torrentService.TryDeleteOneByIdAsync(id);
     }
 }

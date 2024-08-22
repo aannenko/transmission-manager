@@ -13,7 +13,10 @@ public sealed class TorrentRefreshTask(
 
     public async Task Invoke()
     {
-        var (_, errorMessage) = await compositeService.RefreshTorrentAsync(torrentId, CancellationToken);
+        var (_, errorMessage) = await compositeService
+            .RefreshTorrentAsync(torrentId, CancellationToken)
+            .ConfigureAwait(false);
+
         if (!string.IsNullOrEmpty(errorMessage))
         {
             logger.LogError(

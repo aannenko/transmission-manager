@@ -21,29 +21,32 @@ public sealed class CompositeAddOrUpdateTorrentService(
     {
         const string error = "Addition or update of a torrent from the web page '{0}' has failed: {1}.";
         var (magnetUri, trackerError) =
-            await GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken);
+            await GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken).ConfigureAwait(false);
 
         if (string.IsNullOrEmpty(magnetUri))
             return new(AddOrUpdateResult.Error, -1, string.Format(error, dto.WebPageUri, trackerError));
 
         var (transmissionTorrent, transmissionError) =
-            await SendMagnetToTransmissionAsync(magnetUri, dto.DownloadDir, cancellationToken);
+            await SendMagnetToTransmissionAsync(magnetUri, dto.DownloadDir, cancellationToken).ConfigureAwait(false);
 
         if (transmissionTorrent is null)
             return new(AddOrUpdateResult.Error, -1, string.Format(error, dto.WebPageUri, transmissionError));
 
-        var torrentId = torrentService.FindPage(new(1, 0, WebPageUri: dto.WebPageUri)).FirstOrDefault()?.Id;
+        var torrents = await torrentService.FindPageAsync(new(1, 0, WebPageUri: dto.WebPageUri)).ConfigureAwait(false);
+        var torrentId = torrents.FirstOrDefault()?.Id;
         AddOrUpdateResult resultType;
         TorrentUpdateDto? updateDto = null;
         if (torrentId is null)
         {
             resultType = AddOrUpdateResult.Add;
-            torrentId = torrentService.AddOne(dto.ToTorrentAddDto(transmissionTorrent));
+            var addDto = dto.ToTorrentAddDto(transmissionTorrent);
+            torrentId = await torrentService.AddOneAsync(addDto).ConfigureAwait(false);
         }
         else
         {
             resultType = AddOrUpdateResult.Update;
-            torrentService.TryUpdateOneById(torrentId.Value, updateDto = dto.ToTorrentUpdateDto(transmissionTorrent));
+            updateDto = dto.ToTorrentUpdateDto(transmissionTorrent);
+            await torrentService.TryUpdateOneByIdAsync(torrentId.Value, updateDto).ConfigureAwait(false);
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)

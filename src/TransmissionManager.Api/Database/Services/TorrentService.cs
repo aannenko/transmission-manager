@@ -8,7 +8,7 @@ namespace TransmissionManager.Api.Database.Services;
 
 public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
 {
-    public Torrent[] FindPage(TorrentPageDescriptor dto)
+    public async Task<Torrent[]> FindPageAsync(TorrentPageDescriptor dto)
     {
         var query = dbContext.Torrents.AsNoTracking();
 
@@ -21,30 +21,33 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
         if (dto.CronExists is not null)
             query = query.Where(static torrent => torrent.Cron != null);
 
-        return query.OrderBy(static torrent => torrent.Id)
+        return await query.OrderBy(static torrent => torrent.Id)
             .Where(torrent => torrent.Id > dto.AfterId)            
             .Take(dto.Take)
-            .ToArray();
+            .ToArrayAsync()
+            .ConfigureAwait(false);
     }
 
-    public Torrent? FindOneById(long id)
+    public async Task<Torrent?> FindOneByIdAsync(long id)
     {
-        return dbContext.Torrents.AsNoTracking().FirstOrDefault(torrent => torrent.Id == id);
+        return await dbContext.Torrents.AsNoTracking()
+            .FirstOrDefaultAsync(torrent => torrent.Id == id)
+            .ConfigureAwait(false);
     }
 
-    public long AddOne(TorrentAddDto dto)
+    public async Task<long> AddOneAsync(TorrentAddDto dto)
     {
         var torrent = dto.ToTorrent();
         dbContext.Torrents.Add(torrent);
-        dbContext.SaveChanges();
+        await dbContext.SaveChangesAsync().ConfigureAwait(false);
         return torrent.Id;
     }
 
-    public bool TryUpdateOneById(long id, TorrentUpdateDto dto)
+    public async Task<bool> TryUpdateOneByIdAsync(long id, TorrentUpdateDto dto)
     {
-        var updatedRows = dbContext.Torrents
+        var updatedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
-            .ExecuteUpdate(properties => properties
+            .ExecuteUpdateAsync(properties => properties
                 .SetProperty(
                     static torrent => torrent.TransmissionId,
                     torrent => dto.TransmissionId ?? torrent.TransmissionId)
@@ -63,16 +66,18 @@ public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
                     static torrent => torrent.Cron,
                     torrent => dto.Cron == string.Empty
                         ? null
-                        : dto.Cron ?? torrent.Cron));
+                        : dto.Cron ?? torrent.Cron))
+            .ConfigureAwait(false);
 
         return updatedRows is 1;
     }
 
-    public bool TryDeleteOneById(long id)
+    public async Task<bool> TryDeleteOneByIdAsync(long id)
     {
-        var deletedRows = dbContext.Torrents
+        var deletedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
-            .ExecuteDelete();
+            .ExecuteDeleteAsync()
+            .ConfigureAwait(false);
 
         return deletedRows is 1;
     }

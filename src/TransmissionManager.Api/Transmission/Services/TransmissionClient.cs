@@ -60,7 +60,8 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
         where TResponse : ITransmissionResponse
     {
         var endpoint = options.CurrentValue.RpcEndpointAddressSuffix;
-        var response = await httpClient.PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
+        var response = await httpClient
+            .PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
             .ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();

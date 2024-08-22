@@ -5,13 +5,13 @@ namespace TransmissionManager.Api.Database.Abstractions;
 
 public interface ITorrentService
 {
-    Torrent[] FindPage(TorrentPageDescriptor dto);
+    Task<Torrent[]> FindPageAsync(TorrentPageDescriptor dto);
 
-    Torrent? FindOneById(long id);
+    Task<Torrent?> FindOneByIdAsync(long id);
 
-    long AddOne(TorrentAddDto dto);
+    Task<long> AddOneAsync(TorrentAddDto dto);
 
-    bool TryUpdateOneById(long id, TorrentUpdateDto dto);
+    Task<bool> TryUpdateOneByIdAsync(long id, TorrentUpdateDto dto);
 
-    bool TryDeleteOneById(long id);
+    Task<bool> TryDeleteOneByIdAsync(long id);
 }

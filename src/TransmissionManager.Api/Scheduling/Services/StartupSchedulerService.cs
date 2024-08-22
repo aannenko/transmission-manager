@@ -1,17 +1,18 @@
-﻿using TransmissionManager.Api.Database.Models;
+﻿using TransmissionManager.Api.Database.Dto;
+using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
 
 namespace TransmissionManager.Api.Scheduling.Services;
 
 public sealed class StartupSchedulerService(TorrentSchedulerService torrentScheduler, TorrentService torrentService)
 {
-    public void ScheduleUpdatesForAllTorrents()
+    public async Task ScheduleUpdatesForAllTorrentsAsync()
     {
-        long afterId = 0;
         Torrent[] torrentPage;
-        while ((torrentPage = torrentService.FindPage(new(50, afterId, CronExists: true))).Length > 0)
+        var pageDescriptor = new TorrentPageDescriptor(Take: 50, AfterId: 0, CronExists: true);
+        while ((torrentPage = await torrentService.FindPageAsync(pageDescriptor).ConfigureAwait(false)).Length > 0)
         {
-            afterId = torrentPage.Last().Id;
+            pageDescriptor = pageDescriptor with { AfterId = torrentPage.Last().Id };
             foreach (var torrent in torrentPage)
                 torrentScheduler.ScheduleTorrentUpdates(torrent.Id, torrent.Cron!);
         }

@@ -8,6 +8,6 @@ public sealed class BackgroundTaskService(IServiceProvider serviceProvider)
         CancellationToken cancellationToken = default)
     {
         using var scope = serviceProvider.CreateScope();
-        await func(scope.ServiceProvider, argument, cancellationToken);
+        await func(scope.ServiceProvider, argument, cancellationToken).ConfigureAwait(false);
     }
 }

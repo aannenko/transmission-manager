@@ -19,30 +19,32 @@ public sealed class CompositeRefreshTorrentService(
         CancellationToken cancellationToken = default)
     {
         const string error = "Refresh of the torrent with id '{0}' has failed: '{1}'.";
-        var torrent = torrentService.FindOneById(torrentId);
+        var torrent = await torrentService.FindOneByIdAsync(torrentId).ConfigureAwait(false);
         if (torrent is null)
             return new(RefreshResult.NotFound, string.Format(error, torrentId, "No such torrent."));
 
         var (transmissionGetTorrent, transmissionGetError) =
-            await GetTorrentFromTransmissionAsync(torrent.TransmissionId, cancellationToken);
+            await GetTorrentFromTransmissionAsync(torrent.TransmissionId, cancellationToken).ConfigureAwait(false);
 
         if (transmissionGetTorrent is null)
             return new(RefreshResult.Error, string.Format(error, torrentId, transmissionGetError));
 
         var (magnetUri, trackerError) =
-           await GetMagnetUriAsync(torrent.WebPageUri, torrent.MagnetRegexPattern, cancellationToken);
+            await GetMagnetUriAsync(torrent.WebPageUri, torrent.MagnetRegexPattern, cancellationToken)
+                .ConfigureAwait(false);
 
         if (string.IsNullOrEmpty(magnetUri))
             return new(RefreshResult.Error, string.Format(error, torrentId, trackerError));
 
         var (transmissionAddTorrent, transmissionAddError) =
-            await SendMagnetToTransmissionAsync(magnetUri, torrent.DownloadDir, cancellationToken);
+            await SendMagnetToTransmissionAsync(magnetUri, torrent.DownloadDir, cancellationToken)
+                .ConfigureAwait(false);
 
         if (transmissionAddTorrent is null)
             return new(RefreshResult.Error, string.Format(error, torrentId, transmissionAddError));
 
         var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
-        if (!torrentService.TryUpdateOneById(torrent.Id, updateDto))
+        if (!await torrentService.TryUpdateOneByIdAsync(torrent.Id, updateDto).ConfigureAwait(false))
             return new(RefreshResult.NotFound, string.Format(error, torrentId, "No such torrent."));
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
