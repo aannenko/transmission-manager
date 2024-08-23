@@ -37,14 +37,8 @@ public static class TorrentEndpoints
         string? nameStartsWith = null,
         bool? cronExists = null)
     {
-        return await service.FindPageAsync(new()
-        {
-            Take = take,
-            AfterId = afterId,
-            WebPageUri = webPageUri,
-            NameStartsWith = nameStartsWith,
-            CronExists = cronExists
-        }).ConfigureAwait(false);
+        return await service.FindPageAsync(new(take, afterId), new(webPageUri, nameStartsWith, cronExists))
+            .ConfigureAwait(false);
     }
 
     private static async Task<Results<Ok<Torrent>, NotFound>> FindOneByIdAsync(

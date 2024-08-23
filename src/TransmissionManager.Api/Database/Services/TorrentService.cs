@@ -8,22 +8,22 @@ namespace TransmissionManager.Api.Database.Services;
 
 public sealed class TorrentService(AppDbContext dbContext) : ITorrentService
 {
-    public async Task<Torrent[]> FindPageAsync(TorrentPageDescriptor dto)
+    public async Task<Torrent[]> FindPageAsync(PageDescriptor page, TorrentFilter filter = default)
     {
         var query = dbContext.Torrents.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(dto.NameStartsWith))
-            query = query.Where(torrent => torrent.Name.StartsWith(dto.NameStartsWith));
+        if (!string.IsNullOrEmpty(filter.NameStartsWith))
+            query = query.Where(torrent => torrent.Name.StartsWith(filter.NameStartsWith));
 
-        if (!string.IsNullOrEmpty(dto.WebPageUri))
-            query = query.Where(torrent => torrent.WebPageUri == dto.WebPageUri);
+        if (!string.IsNullOrEmpty(filter.WebPageUri))
+            query = query.Where(torrent => torrent.WebPageUri == filter.WebPageUri);
 
-        if (dto.CronExists is not null)
+        if (filter.CronExists is not null)
             query = query.Where(static torrent => torrent.Cron != null);
 
-        return await query.Where(torrent => torrent.Id > dto.AfterId)
+        return await query.Where(torrent => torrent.Id > page.AfterId)
             .OrderBy(static torrent => torrent.Id)
-            .Take(dto.Take)
+            .Take(page.Take)
             .ToArrayAsync()
             .ConfigureAwait(false);
     }

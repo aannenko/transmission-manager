@@ -32,7 +32,7 @@ public sealed class CompositeAddOrUpdateTorrentService(
         if (transmissionTorrent is null)
             return new(AddOrUpdateResult.Error, -1, string.Format(error, dto.WebPageUri, transmissionError));
 
-        var torrents = await torrentService.FindPageAsync(new(1, 0, WebPageUri: dto.WebPageUri)).ConfigureAwait(false);
+        var torrents = await torrentService.FindPageAsync(new(1, 0), new(dto.WebPageUri)).ConfigureAwait(false);
         var torrentId = torrents.FirstOrDefault()?.Id;
         AddOrUpdateResult resultType;
         TorrentUpdateDto? updateDto = null;

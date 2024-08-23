@@ -9,10 +9,11 @@ public sealed class StartupSchedulerService(TorrentSchedulerService torrentSched
     public async Task ScheduleUpdatesForAllTorrentsAsync()
     {
         Torrent[] torrentPage;
-        var pageDescriptor = new TorrentPageDescriptor(Take: 50, AfterId: 0, CronExists: true);
-        while ((torrentPage = await torrentService.FindPageAsync(pageDescriptor).ConfigureAwait(false)).Length > 0)
+        var page = new PageDescriptor(50, 0);
+        var filter = new TorrentFilter(CronExists: true);
+        while ((torrentPage = await torrentService.FindPageAsync(page, filter).ConfigureAwait(false)).Length > 0)
         {
-            pageDescriptor = pageDescriptor with { AfterId = torrentPage.Last().Id };
+            page = page with { AfterId = torrentPage.Last().Id };
             foreach (var torrent in torrentPage)
                 torrentScheduler.ScheduleTorrentUpdates(torrent.Id, torrent.Cron!);
         }

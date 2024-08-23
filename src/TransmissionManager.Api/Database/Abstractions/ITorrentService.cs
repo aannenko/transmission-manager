@@ -5,7 +5,7 @@ namespace TransmissionManager.Api.Database.Abstractions;
 
 public interface ITorrentService
 {
-    Task<Torrent[]> FindPageAsync(TorrentPageDescriptor dto);
+    Task<Torrent[]> FindPageAsync(PageDescriptor page, TorrentFilter filter);
 
     Task<Torrent?> FindOneByIdAsync(long id);
 

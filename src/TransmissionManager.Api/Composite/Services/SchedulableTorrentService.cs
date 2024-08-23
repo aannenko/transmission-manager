@@ -9,9 +9,9 @@ namespace TransmissionManager.Api.Composite.Services;
 public sealed class SchedulableTorrentService(TorrentService torrentService, TorrentSchedulerService schedulerService)
     : ITorrentService
 {
-    public Task<Torrent[]> FindPageAsync(TorrentPageDescriptor dto)
+    public Task<Torrent[]> FindPageAsync(PageDescriptor page, TorrentFilter filter = default)
     {
-        return torrentService.FindPageAsync(dto);
+        return torrentService.FindPageAsync(page, filter);
     }
 
     public Task<Torrent?> FindOneByIdAsync(long id)
