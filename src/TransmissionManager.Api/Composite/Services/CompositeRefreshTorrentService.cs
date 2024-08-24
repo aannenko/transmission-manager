@@ -19,7 +19,7 @@ public sealed class CompositeRefreshTorrentService(
         CancellationToken cancellationToken = default)
     {
         const string error = "Refresh of the torrent with id '{0}' has failed: '{1}'.";
-        var torrent = await torrentService.FindOneByIdAsync(torrentId).ConfigureAwait(false);
+        var torrent = await torrentService.FindOneByIdAsync(torrentId, cancellationToken).ConfigureAwait(false);
         if (torrent is null)
             return new(RefreshResult.NotFound, string.Format(error, torrentId, "No such torrent."));
 
@@ -44,7 +44,7 @@ public sealed class CompositeRefreshTorrentService(
             return new(RefreshResult.Error, string.Format(error, torrentId, transmissionAddError));
 
         var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
-        if (!await torrentService.TryUpdateOneByIdAsync(torrent.Id, updateDto).ConfigureAwait(false))
+        if (!await torrentService.TryUpdateOneByIdAsync(torrent.Id, updateDto, cancellationToken).ConfigureAwait(false))
             return new(RefreshResult.NotFound, string.Format(error, torrentId, "No such torrent."));
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)

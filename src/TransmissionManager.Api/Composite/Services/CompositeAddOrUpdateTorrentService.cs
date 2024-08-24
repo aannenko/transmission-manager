@@ -32,7 +32,9 @@ public sealed class CompositeAddOrUpdateTorrentService(
         if (transmissionTorrent is null)
             return new(AddOrUpdateResult.Error, -1, string.Format(error, dto.WebPageUri, transmissionError));
 
-        var torrents = await torrentService.FindPageAsync(new(1, 0), new(dto.WebPageUri)).ConfigureAwait(false);
+        var torrents = await torrentService.FindPageAsync(new(1, 0), new(dto.WebPageUri), cancellationToken)
+            .ConfigureAwait(false);
+
         var torrentId = torrents.FirstOrDefault()?.Id;
         AddOrUpdateResult resultType;
         TorrentUpdateDto? updateDto = null;
@@ -40,13 +42,15 @@ public sealed class CompositeAddOrUpdateTorrentService(
         {
             resultType = AddOrUpdateResult.Add;
             var addDto = dto.ToTorrentAddDto(transmissionTorrent);
-            torrentId = await torrentService.AddOneAsync(addDto).ConfigureAwait(false);
+            torrentId = await torrentService.AddOneAsync(addDto, cancellationToken)
+                .ConfigureAwait(false);
         }
         else
         {
             resultType = AddOrUpdateResult.Update;
             updateDto = dto.ToTorrentUpdateDto(transmissionTorrent);
-            await torrentService.TryUpdateOneByIdAsync(torrentId.Value, updateDto).ConfigureAwait(false);
+            await torrentService.TryUpdateOneByIdAsync(torrentId.Value, updateDto, cancellationToken)
+                .ConfigureAwait(false);
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)

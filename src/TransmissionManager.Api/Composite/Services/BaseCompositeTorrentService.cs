@@ -97,17 +97,26 @@ public abstract class BaseCompositeTorrentService(
     {
         ArgumentNullException.ThrowIfNull(dto?.TransmissionId);
 
-        if (_runningNameUpdates.TryRemove(id, out var oldCts))
-            oldCts.Cancel();
+        using var cts = _runningNameUpdates.AddOrUpdate(
+            id,
+            static _ => new CancellationTokenSource(),
+            static (_, oldCts) =>
+            {
+                try
+                {
+                    oldCts.Cancel();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
 
-        using var newCts = new CancellationTokenSource();
-        if (!_runningNameUpdates.TryAdd(id, newCts))
-            return;
+                return new CancellationTokenSource();
+            });
 
         try
         {
             await backgroundTaskService
-                .RunScopedAsync(UpdateTorrentNameWithRetriesAsync, (id, dto), newCts.Token)
+                .RunScopedAsync(UpdateTorrentNameWithRetriesAsync, (id, dto), cts.Token)
                 .ConfigureAwait(false);
         }
         finally
@@ -118,15 +127,13 @@ public abstract class BaseCompositeTorrentService(
 
     private static async Task UpdateTorrentNameWithRetriesAsync(
         IServiceProvider serviceProvider,
-        (long, TorrentUpdateDto) argument,
+        (long, TorrentUpdateDto) torrentIdAndUpdateDto,
         CancellationToken cancellationToken)
     {
-        var (id, dto) = argument;
+        var (id, dto) = torrentIdAndUpdateDto;
+        long[] singleTransmissionIdArray = [dto.TransmissionId!.Value];
 
         var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
-        var torrentService = serviceProvider.GetRequiredService<TorrentService>();
-
-        long[] singleTransmissionIdArray = [dto.TransmissionId!.Value];
 
         const int numberOfRetries = 40; // make attempts to get the name for 6 hours
         for (int i = 1, millisecondsDelay = i * i * 1000; i <= numberOfRetries; i++)
@@ -154,7 +161,8 @@ public abstract class BaseCompositeTorrentService(
             else if (dto.Name != newName)
             {
                 dto.Name = newName;
-                await torrentService.TryUpdateOneByIdAsync(id, dto).ConfigureAwait(false);
+                var torrentService = serviceProvider.GetRequiredService<TorrentService>();
+                await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;
             }
         }

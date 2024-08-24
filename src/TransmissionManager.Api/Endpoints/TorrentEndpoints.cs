@@ -14,6 +14,7 @@ namespace TransmissionManager.Api.Endpoints;
 public static class TorrentEndpoints
 {
     private const string _torrentsApiAddress = "/api/v1/torrents";
+    private const string _idNotFoundMessage = "Torrent with id {0} was not found.";
 
     public static IEndpointRouteBuilder MapTorrentEndpoints(this IEndpointRouteBuilder builder)
     {
@@ -31,28 +32,29 @@ public static class TorrentEndpoints
 
     private static async Task<Torrent[]> FindPageAsync(
         [FromServices] TorrentService service,
-        int take = 20,
-        long afterId = 0,
-        string? webPageUri = null,
-        string? nameStartsWith = null,
-        bool? cronExists = null)
+        [AsParameters] TorrentFindPageParameters parameters,
+        CancellationToken cancellationToken)
     {
-        return await service.FindPageAsync(new(take, afterId), new(webPageUri, nameStartsWith, cronExists))
+        return await service
+            .FindPageAsync(parameters.ToPageDescriptor(), parameters.ToTorrentFilter(), cancellationToken)
             .ConfigureAwait(false);
     }
 
-    private static async Task<Results<Ok<Torrent>, NotFound>> FindOneByIdAsync(
+    private static async Task<Results<Ok<Torrent>, NotFound<string>>> FindOneByIdAsync(
         [FromServices] TorrentService service,
-        long id)
+        long id,
+        CancellationToken cancellationToken)
     {
-        var result = await service.FindOneByIdAsync(id).ConfigureAwait(false);
-        return result is not null ? TypedResults.Ok(result) : TypedResults.NotFound();
+        var result = await service.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        return result is not null
+            ? TypedResults.Ok(result)
+            : TypedResults.NotFound(string.Format(_idNotFoundMessage, id));
     }
 
     private static async Task<Results<Created, NoContent, BadRequest<string>, ValidationProblem>> AddOrUpdateOneAsync(
         [FromServices] CompositeAddOrUpdateTorrentService service,
         TorrentPostRequest dto,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         if (!MiniValidator.TryValidate(dto, out var errors))
             return TypedResults.ValidationProblem(errors);
@@ -68,7 +70,7 @@ public static class TorrentEndpoints
         };
     }
 
-    private static async Task<Results<NoContent, NotFound, BadRequest<string>>> RefreshOneByIdAsync(
+    private static async Task<Results<NoContent, NotFound<string>, BadRequest<string>>> RefreshOneByIdAsync(
         [FromServices] CompositeRefreshTorrentService service,
         long id,
         CancellationToken cancellationToken)
@@ -79,30 +81,33 @@ public static class TorrentEndpoints
         return resultType switch
         {
             RefreshResult.Success => TypedResults.NoContent(),
-            RefreshResult.NotFound => TypedResults.NotFound(),
+            RefreshResult.NotFound => TypedResults.NotFound(string.Format(_idNotFoundMessage, id)),
             _ => TypedResults.BadRequest(errorMessage)
         };
     }
 
-    private static async Task<Results<NoContent, NotFound, ValidationProblem>> UpdateOneByIdAsync(
+    private static async Task<Results<NoContent, NotFound<string>, ValidationProblem>> UpdateOneByIdAsync(
         [FromServices] SchedulableTorrentService service,
         long id,
-        TorrentPatchRequest dto)
+        TorrentPatchRequest dto,
+        CancellationToken cancellationToken)
     {
         if (!MiniValidator.TryValidate(dto, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        return await service.TryUpdateOneByIdAsync(id, dto.ToTorrentUpdateDto()).ConfigureAwait(false)
+        var updateDto = dto.ToTorrentUpdateDto();
+        return await service.TryUpdateOneByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
-            : TypedResults.NotFound();
+            : TypedResults.NotFound(string.Format(_idNotFoundMessage, id));
     }
 
-    private static async Task<Results<NoContent, NotFound>> RemoveOneByIdAsync(
+    private static async Task<Results<NoContent, NotFound<string>>> RemoveOneByIdAsync(
         [FromServices] SchedulableTorrentService service,
-        long id)
+        long id,
+        CancellationToken cancellationToken)
     {
-        return await service.TryDeleteOneByIdAsync(id).ConfigureAwait(false)
+        return await service.TryDeleteOneByIdAsync(id, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
-            : TypedResults.NotFound();
+            : TypedResults.NotFound(string.Format(_idNotFoundMessage, id));
     }
 }
