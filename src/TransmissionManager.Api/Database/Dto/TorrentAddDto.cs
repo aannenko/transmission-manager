@@ -2,15 +2,42 @@
 
 public sealed class TorrentAddDto
 {
-    public required long TransmissionId { get; set; }
+    public TorrentAddDto(
+        long transmissionId,
+        string name,
+        string webPageUri,
+        string downloadDir,
+        string? magnetRegexPattern = null,
+        string? cron = null)
+    {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(transmissionId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(webPageUri);
+        ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
-    public required string Name { get; set; }
+        if (magnetRegexPattern is not null)
+            ArgumentException.ThrowIfNullOrWhiteSpace(magnetRegexPattern);
 
-    public required string WebPageUri { get; set; }
+        if (cron is not null)
+            ArgumentException.ThrowIfNullOrWhiteSpace(cron);
 
-    public required string DownloadDir { get; set; }
+        TransmissionId = transmissionId;
+        Name = name;
+        WebPageUri = webPageUri;
+        DownloadDir = downloadDir;
+        MagnetRegexPattern = magnetRegexPattern;
+        Cron = cron;
+    }
 
-    public string? MagnetRegexPattern { get; set; }
+    public long TransmissionId { get; }
 
-    public string? Cron { get; set; }
+    public string Name { get; }
+
+    public string WebPageUri { get; }
+
+    public string DownloadDir { get; }
+
+    public string? MagnetRegexPattern { get; }
+
+    public string? Cron { get; }
 }

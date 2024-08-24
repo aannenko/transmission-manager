@@ -10,13 +10,11 @@ public static class TorrentExtensions
         this Torrent torrent,
         TransmissionTorrentAddResponseItem transmissionTorrent)
     {
-        return new()
-        {
-            TransmissionId = transmissionTorrent.Id,
-            Name = transmissionTorrent.Name,
-            DownloadDir = torrent.DownloadDir,
-            MagnetRegexPattern = torrent.MagnetRegexPattern,
-            Cron = torrent.Cron,
-        };
+        return new(
+            transmissionId: transmissionTorrent.Id,
+            name: transmissionTorrent.Name,
+            downloadDir: torrent.DownloadDir,
+            magnetRegexPattern: torrent.MagnetRegexPattern,
+            cron: torrent.Cron);
     }
 }

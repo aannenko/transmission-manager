@@ -136,9 +136,9 @@ public abstract class BaseCompositeTorrentService(
         var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
 
         const int numberOfRetries = 40; // make attempts to get the name for 6 hours
-        for (int i = 1, millisecondsDelay = i * i * 1000; i <= numberOfRetries; i++)
+        for (int i = 1; i <= numberOfRetries; i++)
         {
-            await Task.Delay(millisecondsDelay, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(i * i), cancellationToken).ConfigureAwait(false);
 
             TransmissionTorrentGetResponse? transmissionResponse = null;
             try
@@ -160,7 +160,7 @@ public abstract class BaseCompositeTorrentService(
             }
             else if (dto.Name != newName)
             {
-                dto.Name = newName;
+                dto = new(name: newName);
                 var torrentService = serviceProvider.GetRequiredService<TorrentService>();
                 await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;

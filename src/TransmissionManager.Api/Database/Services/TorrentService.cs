@@ -8,10 +8,13 @@ namespace TransmissionManager.Api.Database.Services;
 public sealed class TorrentService(AppDbContext dbContext)
 {
     public async Task<Torrent[]> FindPageAsync(
-        PageDescriptor page,
+        PageDescriptor pageDescriptor,
         TorrentFilter filter = default,
         CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageDescriptor.Take);
+        ArgumentOutOfRangeException.ThrowIfNegative(pageDescriptor.AfterId);
+
         var query = dbContext.Torrents.AsNoTracking();
 
         if (!string.IsNullOrEmpty(filter.NameStartsWith))
@@ -23,15 +26,17 @@ public sealed class TorrentService(AppDbContext dbContext)
         if (filter.CronExists is not null)
             query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
 
-        return await query.Where(torrent => torrent.Id > page.AfterId)
+        return await query.Where(torrent => torrent.Id > pageDescriptor.AfterId)
             .OrderBy(static torrent => torrent.Id)
-            .Take(page.Take)
+            .Take(pageDescriptor.Take)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
     }
 
     public async Task<Torrent?> FindOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+
         return await dbContext.Torrents.AsNoTracking()
             .FirstOrDefaultAsync(torrent => torrent.Id == id, cancellationToken)
             .ConfigureAwait(false);
@@ -50,6 +55,8 @@ public sealed class TorrentService(AppDbContext dbContext)
         TorrentUpdateDto dto,
         CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+
         var updatedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
             .ExecuteUpdateAsync(
@@ -81,6 +88,8 @@ public sealed class TorrentService(AppDbContext dbContext)
 
     public async Task<bool> TryDeleteOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+
         var deletedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
             .ExecuteDeleteAsync(cancellationToken)

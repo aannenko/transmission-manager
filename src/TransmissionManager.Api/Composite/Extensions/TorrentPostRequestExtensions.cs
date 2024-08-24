@@ -10,28 +10,24 @@ public static class TorrentPostRequestExtensions
         this TorrentPostRequest dto,
         TransmissionTorrentAddResponseItem transmissionTorrent)
     {
-        return new()
-        {
-            TransmissionId = transmissionTorrent.Id,
-            Name = transmissionTorrent.Name,
-            DownloadDir = dto.DownloadDir,
-            WebPageUri = dto.WebPageUri,
-            MagnetRegexPattern = dto.MagnetRegexPattern,
-            Cron = dto.Cron,
-        };
+        return new(
+            transmissionId: transmissionTorrent.Id,
+            name: transmissionTorrent.Name,
+            webPageUri: dto.WebPageUri,
+            downloadDir: dto.DownloadDir,
+            magnetRegexPattern: dto.MagnetRegexPattern,
+            cron: dto.Cron);
     }
 
     public static TorrentUpdateDto ToTorrentUpdateDto(
         this TorrentPostRequest dto,
         TransmissionTorrentAddResponseItem transmissionTorrent)
     {
-        return new()
-        {
-            TransmissionId = transmissionTorrent.Id,
-            Name = transmissionTorrent.Name,
-            DownloadDir = dto.DownloadDir,
-            MagnetRegexPattern = dto.MagnetRegexPattern,
-            Cron = dto.Cron,
-        };
+        return new(
+            transmissionId: transmissionTorrent.Id,
+            name: transmissionTorrent.Name,
+            downloadDir: dto.DownloadDir,
+            magnetRegexPattern: dto.MagnetRegexPattern,
+            cron: dto.Cron);
     }
 }
