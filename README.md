@@ -1,5 +1,5 @@
 # Transmission Manager
-Do more with Transmission!<br>
+Do more with [Transmission](https://transmissionbt.com/)!<br>
 - Add torrents by their web page
 - Automatically download new TV show episodes on a schedule
 
