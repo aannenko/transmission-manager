@@ -111,8 +111,11 @@ iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType applicat
 # Can't wait for Transmission Manager to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
 iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json -Body ""
 
-# Force-refresh all torrents
+# Force-refresh all torrents which are still known to Transmission
 iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json -Body "" }
+
+# Re-add all torrents registered in Transmission Manager to Transmission (similar to refresh but also adds torrents back to Transmission if they were removed from there)
+iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body "{""webPageUri"":""$($_.webPageUri)"",""downloadDir"":""$($_.downloadDir)"",""cron"":""$($_.cron)""}" }
 
 # Unregister torrent #5 from Transmission Manager but do not touch it in Transmission
 iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
