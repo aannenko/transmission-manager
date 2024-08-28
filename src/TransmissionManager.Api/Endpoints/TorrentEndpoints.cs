@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
-using TransmissionManager.Api.Composite.Services;
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints.Dto;
 using TransmissionManager.Api.Endpoints.Extensions;
-using AddOrUpdateResult = TransmissionManager.Api.Composite.Dto.AddOrUpdateTorrentResult.ResultType;
-using RefreshResult = TransmissionManager.Api.Composite.Dto.RefreshTorrentResult.ResultType;
+using TransmissionManager.Api.Endpoints.Services;
+using AddOrUpdateResult = TransmissionManager.Api.Endpoints.Dto.AddOrUpdateTorrentResult.ResultType;
+using RefreshResult = TransmissionManager.Api.Endpoints.Dto.RefreshTorrentResult.ResultType;
 
 namespace TransmissionManager.Api.Endpoints;
 

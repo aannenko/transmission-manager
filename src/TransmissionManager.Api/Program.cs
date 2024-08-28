@@ -1,9 +1,8 @@
 using Coravel;
-using TransmissionManager.Api.Composite.Services;
 using TransmissionManager.Api.Database.Extensions;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints;
-using TransmissionManager.Api.Scheduling.Services;
+using TransmissionManager.Api.Endpoints.Services;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Trackers.Extensions;
 using TransmissionManager.Api.Transmission.Extensions;

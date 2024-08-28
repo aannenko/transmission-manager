@@ -5,7 +5,7 @@ using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Dto;
 using TransmissionManager.Api.Transmission.Services;
 
-namespace TransmissionManager.Api.Composite.Services;
+namespace TransmissionManager.Api.Endpoints.Services;
 
 public abstract class BaseCompositeTorrentService(
     MagnetUriRetriever magnetRetriever,
@@ -136,7 +136,7 @@ public abstract class BaseCompositeTorrentService(
         var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
 
         const int numberOfRetries = 40; // make attempts to get the name for 6 hours
-        for (int i = 1; i <= numberOfRetries; i++)
+        for (var i = 1; i <= numberOfRetries; i++)
         {
             await Task.Delay(TimeSpan.FromSeconds(i * i), cancellationToken).ConfigureAwait(false);
 
@@ -155,9 +155,7 @@ public abstract class BaseCompositeTorrentService(
 
             var newName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
             if (string.IsNullOrEmpty(newName))
-            {
                 break;
-            }
             else if (dto.Name != newName)
             {
                 dto = new(name: newName);

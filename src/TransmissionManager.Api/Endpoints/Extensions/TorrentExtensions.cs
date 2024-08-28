@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Transmission.Dto;
 
-namespace TransmissionManager.Api.Composite.Extensions;
+namespace TransmissionManager.Api.Endpoints.Extensions;
 
 public static class TorrentExtensions
 {

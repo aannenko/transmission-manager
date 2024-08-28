@@ -1,9 +1,8 @@
 ﻿using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Database.Services;
-using TransmissionManager.Api.Scheduling.Services;
 
-namespace TransmissionManager.Api.Composite.Services;
+namespace TransmissionManager.Api.Endpoints.Services;
 
 public sealed class SchedulableTorrentService(TorrentService torrentService, TorrentSchedulerService schedulerService)
 {

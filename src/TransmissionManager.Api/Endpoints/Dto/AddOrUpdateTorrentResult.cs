@@ -1,6 +1,6 @@
-﻿using static TransmissionManager.Api.Composite.Dto.AddOrUpdateTorrentResult;
+﻿using static TransmissionManager.Api.Endpoints.Dto.AddOrUpdateTorrentResult;
 
-namespace TransmissionManager.Api.Composite.Dto;
+namespace TransmissionManager.Api.Endpoints.Dto;
 
 public readonly record struct AddOrUpdateTorrentResult(ResultType Type, long Id, string? ErrorMessage)
 {

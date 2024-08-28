@@ -5,13 +5,8 @@ GET {{TransmissionManager_Web_HostAddress}}/
 
 ###
 
-# Get the next three torrents after the one with ID = 2
-GET {{TransmissionManager_Web_HostAddress}}/?take=3&afterId=2
-
-###
-
-# Get the first 10 torrents whose names start with "["
-GET {{TransmissionManager_Web_HostAddress}}/?take=10&nameStartsWith=%5B
+# Get 5 torrents ordered by ID if their ID is greater than 2, name starts with "Mi" and cron is specified
+GET {{TransmissionManager_Web_HostAddress}}/?take=5&afterId=2&nameStartsWith=Mi&cronExists=true
 
 ###
 

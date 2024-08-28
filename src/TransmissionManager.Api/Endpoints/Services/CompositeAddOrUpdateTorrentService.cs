@@ -1,12 +1,11 @@
-﻿using TransmissionManager.Api.Composite.Dto;
-using TransmissionManager.Api.Composite.Extensions;
-using TransmissionManager.Api.Database.Dto;
+﻿using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Endpoints.Dto;
+using TransmissionManager.Api.Endpoints.Extensions;
 using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Services;
-using AddOrUpdateResult = TransmissionManager.Api.Composite.Dto.AddOrUpdateTorrentResult.ResultType;
+using Result = TransmissionManager.Api.Endpoints.Dto.AddOrUpdateTorrentResult.ResultType;
 
-namespace TransmissionManager.Api.Composite.Services;
+namespace TransmissionManager.Api.Endpoints.Services;
 
 public sealed class CompositeAddOrUpdateTorrentService(
     MagnetUriRetriever magnetRetriever,
@@ -24,38 +23,46 @@ public sealed class CompositeAddOrUpdateTorrentService(
             await GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken).ConfigureAwait(false);
 
         if (string.IsNullOrEmpty(magnetUri))
-            return new(AddOrUpdateResult.Error, -1, string.Format(error, dto.WebPageUri, trackerError));
+            return new(Result.Error, -1, string.Format(error, dto.WebPageUri, trackerError));
 
         var (transmissionTorrent, transmissionError) =
             await SendMagnetToTransmissionAsync(magnetUri, dto.DownloadDir, cancellationToken).ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return new(AddOrUpdateResult.Error, -1, string.Format(error, dto.WebPageUri, transmissionError));
+            return new(Result.Error, -1, string.Format(error, dto.WebPageUri, transmissionError));
 
         var torrents = await torrentService.FindPageAsync(new(1, 0), new(dto.WebPageUri), cancellationToken)
             .ConfigureAwait(false);
 
-        var torrentId = torrents.FirstOrDefault()?.Id;
-        AddOrUpdateResult resultType;
+        var torrentId = torrents.FirstOrDefault()?.Id ?? -1;
+        Result resultType;
         TorrentUpdateDto? updateDto = null;
-        if (torrentId is null)
+        if (torrentId is -1)
         {
-            resultType = AddOrUpdateResult.Add;
+            resultType = Result.Add;
             var addDto = dto.ToTorrentAddDto(transmissionTorrent);
             torrentId = await torrentService.AddOneAsync(addDto, cancellationToken)
                 .ConfigureAwait(false);
         }
         else
         {
-            resultType = AddOrUpdateResult.Update;
+            resultType = Result.Update;
             updateDto = dto.ToTorrentUpdateDto(transmissionTorrent);
-            await torrentService.TryUpdateOneByIdAsync(torrentId.Value, updateDto, cancellationToken)
-                .ConfigureAwait(false);
+            if (!await torrentService.TryUpdateOneByIdAsync(torrentId, updateDto, cancellationToken)
+                .ConfigureAwait(false))
+            {
+                var formattedError = string.Format(
+                    error,
+                    dto.WebPageUri,
+                    $"Torrent with id {torrentId} was removed before it could be updated.");
+
+                return new(Result.Error, torrentId, formattedError);
+            }
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = StartUpdateTorrentNameTask(torrentId.Value, updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
+            _ = StartUpdateTorrentNameTask(torrentId, updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
 
-        return new(resultType, torrentId.Value, null);
+        return new(resultType, torrentId, null);
     }
 }
