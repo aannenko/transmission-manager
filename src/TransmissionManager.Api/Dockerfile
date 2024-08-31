@@ -5,6 +5,7 @@ ARG BINARY_VERSION
 WORKDIR /source
 
 # Copy everything and publish the app
+COPY Directory.Packages.props .
 COPY TransmissionManager.TorrentTrackerClient/. TransmissionManager.TorrentTrackerClient/
 COPY TransmissionManager.TransmissionClient/. TransmissionManager.TransmissionClient/
 COPY TransmissionManager.Api/. TransmissionManager.Api/
