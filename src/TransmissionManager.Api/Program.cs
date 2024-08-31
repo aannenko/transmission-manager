@@ -2,9 +2,9 @@ using Coravel;
 using TransmissionManager.Api.Database.Extensions;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints;
+using TransmissionManager.Api.Endpoints.Serialization;
 using TransmissionManager.Api.Endpoints.Services;
-using TransmissionManager.Api.Serialization;
-using TransmissionManager.TorrentTrackers.Extensions;
+using TransmissionManager.TorrentTrackerClient.Extensions;
 using TransmissionManager.TransmissionClient.Extensions;
 
 var builder = WebApplication.CreateSlimBuilder(args);

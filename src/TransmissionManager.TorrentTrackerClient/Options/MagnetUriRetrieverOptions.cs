@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.TorrentTrackers.Constants;
+using TransmissionManager.TorrentTrackerClient.Constants;
 
-namespace TransmissionManager.TorrentTrackers.Options;
+namespace TransmissionManager.TorrentTrackerClient.Options;
 
 public sealed class MagnetUriRetrieverOptions
 {

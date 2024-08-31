@@ -2,10 +2,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using System.Diagnostics.CodeAnalysis;
-using TransmissionManager.TorrentTrackers.Options;
-using TransmissionManager.TorrentTrackers.Services;
+using TransmissionManager.TorrentTrackerClient.Options;
+using TransmissionManager.TorrentTrackerClient.Services;
 
-namespace TransmissionManager.TorrentTrackers.Extensions;
+namespace TransmissionManager.TorrentTrackerClient.Extensions;
 
 public static class MagnetUriRetrieverServiceCollectionExtensions
 {
@@ -19,7 +19,7 @@ public static class MagnetUriRetrieverServiceCollectionExtensions
     {
         services
             .Configure<MagnetUriRetrieverOptions>(configuration.GetSection(_trackersConfigKey))
-            .AddHttpClient<MagnetUriRetriever>()
+            .AddHttpClient<TorrentWebPageService>()
             .AddResilienceHandler(_resilienceKey, ConfigureResilience);
 
         return services;

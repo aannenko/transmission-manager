@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace TransmissionManager.TorrentTrackers.Constants;
+namespace TransmissionManager.TorrentTrackerClient.Constants;
 
 public static partial class TrackersRegex
 {

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using TransmissionManager.Api.Endpoints.Constants;
-using TransmissionManager.TorrentTrackers.Constants;
+using TransmissionManager.TorrentTrackerClient.Constants;
 
 namespace TransmissionManager.Api.Endpoints.Dto;
 

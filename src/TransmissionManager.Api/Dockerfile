@@ -5,7 +5,7 @@ ARG BINARY_VERSION
 WORKDIR /source
 
 # Copy everything and publish the app
-COPY TransmissionManager.TorrentTrackers/. TransmissionManager.TorrentTrackers/
+COPY TransmissionManager.TorrentTrackerClient/. TransmissionManager.TorrentTrackerClient/
 COPY TransmissionManager.TransmissionClient/. TransmissionManager.TransmissionClient/
 COPY TransmissionManager.Api/. TransmissionManager.Api/
 RUN (echo "$BINARY_VERSION" | grep -Eq "^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$") && \

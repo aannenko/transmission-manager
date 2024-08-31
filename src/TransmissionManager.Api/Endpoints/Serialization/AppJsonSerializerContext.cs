@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Database.Models;
 using TransmissionManager.Api.Endpoints.Dto;
 
-namespace TransmissionManager.Api.Serialization;
+namespace TransmissionManager.Api.Endpoints.Serialization;
 
 [JsonSourceGenerationOptions(
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
@@ -11,6 +11,6 @@ namespace TransmissionManager.Api.Serialization;
 [JsonSerializable(typeof(Torrent[]))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(HttpValidationProblemDetails))]
-public partial class AppJsonSerializerContext : JsonSerializerContext
+internal partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

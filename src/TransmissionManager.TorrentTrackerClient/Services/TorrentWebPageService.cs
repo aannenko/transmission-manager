@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
-using TransmissionManager.TorrentTrackers.Constants;
-using TransmissionManager.TorrentTrackers.Options;
+using TransmissionManager.TorrentTrackerClient.Options;
+using TransmissionManager.TorrentTrackerClient.Constants;
 
-namespace TransmissionManager.TorrentTrackers.Services;
+namespace TransmissionManager.TorrentTrackerClient.Services;
 
-public sealed partial class MagnetUriRetriever(
+public sealed partial class TorrentWebPageService(
     IOptionsMonitor<MagnetUriRetrieverOptions> options,
     HttpClient httpClient)
 {

@@ -1,14 +1,14 @@
 ﻿using System.Collections.Concurrent;
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Services;
-using TransmissionManager.TorrentTrackers.Services;
+using TransmissionManager.TorrentTrackerClient.Services;
 using TransmissionManager.TransmissionClient.Dto;
 using TransmissionManager.TransmissionClient.Services;
 
 namespace TransmissionManager.Api.Endpoints.Services;
 
 public abstract class BaseCompositeTorrentService(
-    MagnetUriRetriever magnetRetriever,
+    TorrentWebPageService torrentWebPageService,
     TransmissionService transmissionService,
     BackgroundTaskService backgroundTaskService)
 {
@@ -26,7 +26,7 @@ public abstract class BaseCompositeTorrentService(
         var error = string.Empty;
         try
         {
-            magnetUri = await magnetRetriever
+            magnetUri = await torrentWebPageService
                 .FindMagnetUriAsync(webPageUri, magnetRegexPattern, cancellationToken)
                 .ConfigureAwait(false);
         }
