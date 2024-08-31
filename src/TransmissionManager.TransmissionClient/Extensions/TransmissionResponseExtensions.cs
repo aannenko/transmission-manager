@@ -1,6 +1,6 @@
-﻿using TransmissionManager.Api.Transmission.Dto;
+﻿using TransmissionManager.Transmission.Dto;
 
-namespace TransmissionManager.Api.Transmission.Extensions;
+namespace TransmissionManager.Transmission.Extensions;
 
 public static class TransmissionResponseExtensions
 {

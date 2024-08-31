@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Transmission.Dto;
+﻿namespace TransmissionManager.Transmission.Dto;
 
 public interface ITransmissionResponse
 {

@@ -1,8 +1,8 @@
 ﻿using System.Net;
 
-namespace TransmissionManager.Api.Transmission.Services;
+namespace TransmissionManager.Transmission.Services;
 
-public sealed class TransmissionHeadersHandler(TransmissionHeadersService headersService)
+public sealed class TransmissionHeadersHandler(TransmissionHeadersProvider headersService)
     : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(

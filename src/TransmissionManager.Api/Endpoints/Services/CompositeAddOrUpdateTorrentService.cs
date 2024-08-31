@@ -1,18 +1,18 @@
 ﻿using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Endpoints.Dto;
 using TransmissionManager.Api.Endpoints.Extensions;
-using TransmissionManager.Api.Transmission.Services;
 using TransmissionManager.TorrentTrackers.Services;
+using TransmissionManager.Transmission.Services;
 using Result = TransmissionManager.Api.Endpoints.Dto.AddOrUpdateTorrentResult.ResultType;
 
 namespace TransmissionManager.Api.Endpoints.Services;
 
 public sealed class CompositeAddOrUpdateTorrentService(
     MagnetUriRetriever magnetRetriever,
-    TransmissionClient transmissionClient,
+    TransmissionService transmissionService,
     SchedulableTorrentService torrentService,
     BackgroundTaskService backgroundTaskService)
-    : BaseCompositeTorrentService(magnetRetriever, transmissionClient, backgroundTaskService)
+    : BaseCompositeTorrentService(magnetRetriever, transmissionService, backgroundTaskService)
 {
     public async Task<AddOrUpdateTorrentResult> AddOrUpdateTorrentAsync(
         TorrentPostRequest dto,

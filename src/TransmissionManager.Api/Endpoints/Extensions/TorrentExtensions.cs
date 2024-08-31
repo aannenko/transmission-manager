@@ -1,6 +1,6 @@
 ﻿using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Models;
-using TransmissionManager.Api.Transmission.Dto;
+using TransmissionManager.Transmission.Dto;
 
 namespace TransmissionManager.Api.Endpoints.Extensions;
 

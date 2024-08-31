@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Transmission.Options;
+﻿namespace TransmissionManager.Transmission.Options;
 
 public sealed class TransmissionClientOptions
 {

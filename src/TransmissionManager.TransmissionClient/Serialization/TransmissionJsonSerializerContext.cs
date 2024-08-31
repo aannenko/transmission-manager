@@ -1,5 +1,5 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Api.Transmission.Dto;
+using TransmissionManager.Transmission.Dto;
 
 namespace TransmissionManager.Api.Transmission.Serialization;
 
@@ -10,6 +10,6 @@ namespace TransmissionManager.Api.Transmission.Serialization;
 [JsonSerializable(typeof(TransmissionTorrentGetResponse))]
 [JsonSerializable(typeof(TransmissionTorrentAddRequest))]
 [JsonSerializable(typeof(TransmissionTorrentAddResponse))]
-public partial class TransmissionJsonSerializerContext : JsonSerializerContext
+internal partial class TransmissionJsonSerializerContext : JsonSerializerContext
 {
 }

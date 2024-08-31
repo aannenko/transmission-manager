@@ -1,26 +1,30 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Polly;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using TransmissionManager.Api.Transmission.Options;
-using TransmissionManager.Api.Transmission.Services;
+using TransmissionManager.Transmission.Options;
+using TransmissionManager.Transmission.Services;
 
-namespace TransmissionManager.Api.Transmission.Extensions;
+namespace TransmissionManager.Transmission.Extensions;
 
 public static class TransmissionClientServiceCollectionExtensions
 {
     private const string _transmissionConfigKey = "Transmission";
     private const string _resilienceKey = "Transmission-Retry-Timeout";
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Trimming tested")]
     public static IServiceCollection AddTransmissionClient(
         this IServiceCollection services,
         IConfigurationRoot configuration)
     {
         services
             .Configure<TransmissionClientOptions>(configuration.GetSection(_transmissionConfigKey))
-            .Configure<TransmissionHeadersServiceOptions>(configuration.GetSection(_transmissionConfigKey))
-            .AddSingleton<TransmissionHeadersService>()
+            .Configure<TransmissionHeadersProviderOptions>(configuration.GetSection(_transmissionConfigKey))
+            .AddSingleton<TransmissionHeadersProvider>()
             .AddScoped<TransmissionHeadersHandler>()
-            .AddHttpClient<TransmissionClient>(ConfigureHttpClient)
+            .AddHttpClient<TransmissionService>(ConfigureHttpClient)
             .AddHttpMessageHandler<TransmissionHeadersHandler>()
             .AddResilienceHandler(_resilienceKey, ConfigureResilience);
 

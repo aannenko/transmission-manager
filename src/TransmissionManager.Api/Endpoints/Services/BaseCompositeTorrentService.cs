@@ -1,15 +1,15 @@
 ﻿using System.Collections.Concurrent;
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Services;
-using TransmissionManager.Api.Transmission.Dto;
-using TransmissionManager.Api.Transmission.Services;
 using TransmissionManager.TorrentTrackers.Services;
+using TransmissionManager.Transmission.Dto;
+using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Endpoints.Services;
 
 public abstract class BaseCompositeTorrentService(
     MagnetUriRetriever magnetRetriever,
-    TransmissionClient transmissionClient,
+    TransmissionService transmissionService,
     BackgroundTaskService backgroundTaskService)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
@@ -49,7 +49,7 @@ public abstract class BaseCompositeTorrentService(
         var error = string.Empty;
         try
         {
-            transmissionResponse = await transmissionClient
+            transmissionResponse = await transmissionService
                 .AddTorrentUsingMagnetUriAsync(magnetUri, downloadDir, cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -75,7 +75,7 @@ public abstract class BaseCompositeTorrentService(
         var error = string.Empty;
         try
         {
-            transmissionResponse = await transmissionClient
+            transmissionResponse = await transmissionService
                 .GetTorrentsAsync([transmissionId], cancellationToken: cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -133,7 +133,7 @@ public abstract class BaseCompositeTorrentService(
         var (id, dto) = torrentIdAndUpdateDto;
         long[] singleTransmissionIdArray = [dto.TransmissionId!.Value];
 
-        var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
+        var transmissionClient = serviceProvider.GetRequiredService<TransmissionService>();
 
         const int numberOfRetries = 40; // make attempts to get the name for 6 hours
         for (var i = 1; i <= numberOfRetries; i++)

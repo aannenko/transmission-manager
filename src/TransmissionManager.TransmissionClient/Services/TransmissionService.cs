@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
-using TransmissionManager.Api.Transmission.Dto;
-using TransmissionManager.Api.Transmission.Extensions;
-using TransmissionManager.Api.Transmission.Options;
 using TransmissionManager.Api.Transmission.Serialization;
+using TransmissionManager.Transmission.Dto;
+using TransmissionManager.Transmission.Extensions;
+using TransmissionManager.Transmission.Options;
 
-namespace TransmissionManager.Api.Transmission.Services;
+namespace TransmissionManager.Transmission.Services;
 
-public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions> options, HttpClient httpClient)
+public sealed class TransmissionService(IOptionsMonitor<TransmissionClientOptions> options, HttpClient httpClient)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _defaultRequestFields =
         Enum.GetValues<TransmissionTorrentGetRequestFields>();

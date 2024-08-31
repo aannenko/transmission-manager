@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Api.Transmission.Serialization;
+using TransmissionManager.Transmission.Serialization;
 
-namespace TransmissionManager.Api.Transmission.Dto;
+namespace TransmissionManager.Transmission.Dto;
 
 public sealed class TransmissionTorrentGetRequest
 {

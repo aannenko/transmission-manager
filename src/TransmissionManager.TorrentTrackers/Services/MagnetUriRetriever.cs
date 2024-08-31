@@ -11,7 +11,7 @@ public sealed partial class MagnetUriRetriever(
 {
     public async Task<string?> FindMagnetUriAsync(
         string trackerWebPageUri,
-        string? regexPattern,
+        string? regexPattern = null,
         CancellationToken cancellationToken = default)
     {
         var regex = GetMagnetSearchRegexWithValidation(regexPattern);
