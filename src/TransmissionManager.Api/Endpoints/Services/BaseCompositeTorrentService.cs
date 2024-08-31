@@ -1,9 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Services;
-using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Dto;
 using TransmissionManager.Api.Transmission.Services;
+using TransmissionManager.TorrentTrackers.Services;
 
 namespace TransmissionManager.Api.Endpoints.Services;
 

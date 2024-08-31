@@ -1,8 +1,8 @@
 ﻿using TransmissionManager.Api.Database.Services;
 using TransmissionManager.Api.Endpoints.Dto;
 using TransmissionManager.Api.Endpoints.Extensions;
-using TransmissionManager.Api.Trackers.Services;
 using TransmissionManager.Api.Transmission.Services;
+using TransmissionManager.TorrentTrackers.Services;
 using Result = TransmissionManager.Api.Endpoints.Dto.RefreshTorrentResult.ResultType;
 
 namespace TransmissionManager.Api.Endpoints.Services;

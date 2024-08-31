@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Text.RegularExpressions;
 using TransmissionManager.Api.Trackers.Constants;
-using TransmissionManager.Api.Trackers.Options;
+using TransmissionManager.TorrentTrackers.Options;
 
-namespace TransmissionManager.Api.Trackers.Services;
+namespace TransmissionManager.TorrentTrackers.Services;
 
 public sealed partial class MagnetUriRetriever(
     IOptionsMonitor<MagnetUriRetrieverOptions> options,
