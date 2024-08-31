@@ -155,7 +155,9 @@ public abstract class BaseCompositeTorrentService(
 
             var newName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
             if (string.IsNullOrEmpty(newName))
+            {
                 break;
+            }
             else if (dto.Name != newName)
             {
                 dto = new(name: newName);

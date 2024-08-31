@@ -45,7 +45,14 @@ public sealed class CompositeRefreshTorrentService(
 
         var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
         if (!await torrentService.TryUpdateOneByIdAsync(torrent.Id, updateDto, cancellationToken).ConfigureAwait(false))
-            return new(Result.NotFound, string.Format(error, torrentId, "No such torrent."));
+        {
+            var formattedError = string.Format(
+                    error,
+                    torrent.WebPageUri,
+                    $"Torrent with id {torrentId} was removed before it could be updated.");
+
+            return new(Result.NotFound, string.Format(error, torrentId, formattedError));
+        }
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
             _ = StartUpdateTorrentNameTask(torrentId, updateDto);
