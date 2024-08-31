@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace TransmissionManager.Transmission.Services;
+namespace TransmissionManager.TransmissionClient.Services;
 
 public sealed class TransmissionHeadersHandler(TransmissionHeadersProvider headersService)
     : DelegatingHandler

@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Transmission.Options;
+﻿namespace TransmissionManager.TransmissionClient.Options;
 
 public sealed class TransmissionHeadersProviderOptions
 {

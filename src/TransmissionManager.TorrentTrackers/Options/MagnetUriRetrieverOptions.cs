@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Trackers.Constants;
+using TransmissionManager.TorrentTrackers.Constants;
 
 namespace TransmissionManager.TorrentTrackers.Options;
 

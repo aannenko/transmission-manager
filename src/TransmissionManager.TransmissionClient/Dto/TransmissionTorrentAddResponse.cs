@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TransmissionManager.Transmission.Dto;
+namespace TransmissionManager.TransmissionClient.Dto;
 
 public sealed class TransmissionTorrentAddResponse : ITransmissionResponse
 {

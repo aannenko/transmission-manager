@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using TransmissionManager.Api.Endpoints.Constants;
-using TransmissionManager.Api.Trackers.Constants;
+using TransmissionManager.TorrentTrackers.Constants;
 
 namespace TransmissionManager.Api.Endpoints.Dto;
 

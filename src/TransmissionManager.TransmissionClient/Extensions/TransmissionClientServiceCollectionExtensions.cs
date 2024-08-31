@@ -4,10 +4,10 @@ using Microsoft.Extensions.Options;
 using Polly;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
-using TransmissionManager.Transmission.Options;
-using TransmissionManager.Transmission.Services;
+using TransmissionManager.TransmissionClient.Options;
+using TransmissionManager.TransmissionClient.Services;
 
-namespace TransmissionManager.Transmission.Extensions;
+namespace TransmissionManager.TransmissionClient.Extensions;
 
 public static class TransmissionClientServiceCollectionExtensions
 {

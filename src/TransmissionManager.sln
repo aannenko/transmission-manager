@@ -12,9 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.TorrentTrackers", "TransmissionManager.TorrentTrackers\TransmissionManager.TorrentTrackers.csproj", "{5B1428DA-7BC1-4621-BDED-6FC58FA3DABF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TorrentTrackers", "TransmissionManager.TorrentTrackers\TransmissionManager.TorrentTrackers.csproj", "{5B1428DA-7BC1-4621-BDED-6FC58FA3DABF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Transmission", "TransmissionManager.TransmissionClient\TransmissionManager.Transmission.csproj", "{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TransmissionClient", "TransmissionManager.TransmissionClient\TransmissionManager.TransmissionClient.csproj", "{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

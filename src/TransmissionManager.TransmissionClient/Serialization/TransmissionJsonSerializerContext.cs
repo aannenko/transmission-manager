@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Transmission.Dto;
+using TransmissionManager.TransmissionClient.Dto;
 
-namespace TransmissionManager.Api.Transmission.Serialization;
+namespace TransmissionManager.TransmissionClient.Serialization;
 
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,

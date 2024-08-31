@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
-using TransmissionManager.Api.Transmission.Serialization;
-using TransmissionManager.Transmission.Dto;
-using TransmissionManager.Transmission.Extensions;
-using TransmissionManager.Transmission.Options;
+using TransmissionManager.TransmissionClient.Dto;
+using TransmissionManager.TransmissionClient.Extensions;
+using TransmissionManager.TransmissionClient.Options;
+using TransmissionManager.TransmissionClient.Serialization;
 
-namespace TransmissionManager.Transmission.Services;
+namespace TransmissionManager.TransmissionClient.Services;
 
 public sealed class TransmissionService(IOptionsMonitor<TransmissionClientOptions> options, HttpClient httpClient)
 {

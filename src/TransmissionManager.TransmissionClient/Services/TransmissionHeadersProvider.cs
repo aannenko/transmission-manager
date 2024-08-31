@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
-using TransmissionManager.Transmission.Options;
+using TransmissionManager.TransmissionClient.Options;
 
-namespace TransmissionManager.Transmission.Services;
+namespace TransmissionManager.TransmissionClient.Services;
 
 public sealed class TransmissionHeadersProvider(IOptionsMonitor<TransmissionHeadersProviderOptions> options)
 {

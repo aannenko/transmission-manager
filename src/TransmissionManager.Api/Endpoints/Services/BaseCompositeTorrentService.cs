@@ -2,8 +2,8 @@
 using TransmissionManager.Api.Database.Dto;
 using TransmissionManager.Api.Database.Services;
 using TransmissionManager.TorrentTrackers.Services;
-using TransmissionManager.Transmission.Dto;
-using TransmissionManager.Transmission.Services;
+using TransmissionManager.TransmissionClient.Dto;
+using TransmissionManager.TransmissionClient.Services;
 
 namespace TransmissionManager.Api.Endpoints.Services;
 

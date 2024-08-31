@@ -5,7 +5,7 @@ using TransmissionManager.Api.Endpoints;
 using TransmissionManager.Api.Endpoints.Services;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.TorrentTrackers.Extensions;
-using TransmissionManager.Transmission.Extensions;
+using TransmissionManager.TransmissionClient.Extensions;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
