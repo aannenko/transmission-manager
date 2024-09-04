@@ -109,10 +109,10 @@ iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json
 iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"webPageUri":"https://nnmclub.to/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
 # Can't wait for Transmission Manager to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
-iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json -Body ""
+iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json
 
 # Force-refresh all torrents which are still known to Transmission
-iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json -Body "" }
+iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json }
 
 # Re-add all torrents registered in Transmission Manager to Transmission (similar to refresh but also adds torrents back to Transmission if they were removed from there)
 iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body "{""webPageUri"":""$($_.webPageUri)"",""downloadDir"":""$($_.downloadDir)"",""cron"":""$($_.cron)""}" }
