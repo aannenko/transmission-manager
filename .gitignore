@@ -2,7 +2,6 @@
 .vs
 .vscode
 TransmissionManager.db*
-src/TransmissionManager*/bin
-src/TransmissionManager*/obj
-src/TransmissionManager*/appsettings.*.json
-/src/TransmissionManager.Api/appsettings.Development.json
+src/**/TransmissionManager*/bin
+src/**/TransmissionManager*/obj
+src/**/TransmissionManager*/appsettings.*.json

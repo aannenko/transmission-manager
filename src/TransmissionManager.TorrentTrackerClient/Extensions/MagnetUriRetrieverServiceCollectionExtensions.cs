@@ -18,7 +18,7 @@ public static class MagnetUriRetrieverServiceCollectionExtensions
         IConfigurationRoot configuration)
     {
         services
-            .Configure<MagnetUriRetrieverOptions>(configuration.GetSection(_trackersConfigKey))
+            .Configure<TorrentWebPageServiceOptions>(configuration.GetSection(_trackersConfigKey))
             .AddHttpClient<TorrentWebPageService>()
             .AddResilienceHandler(_resilienceKey, ConfigureResilience);
 

@@ -3,7 +3,7 @@ using TransmissionManager.TorrentTrackerClient.Constants;
 
 namespace TransmissionManager.TorrentTrackerClient.Options;
 
-public sealed class MagnetUriRetrieverOptions
+public sealed class TorrentWebPageServiceOptions
 {
     [Required]
     [RegularExpression(TrackersRegex.IsFindMagnet)]

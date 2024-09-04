@@ -17,6 +17,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Torrent
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TransmissionClient", "TransmissionManager.TransmissionClient\TransmissionManager.TransmissionClient.csproj", "{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5F7726A6-4944-4347-A591-ACB2FB3F7126}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.BaseTests", "Tests\TransmissionManager.BaseTests\TransmissionManager.BaseTests.csproj", "{ADCADB36-C5A4-4608-B419-2601E2BA0E93}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TorrentTrackerClient.Tests", "Tests\TransmissionManager.TorrentTrackerClient.Tests\TransmissionManager.TorrentTrackerClient.Tests.csproj", "{45506A55-300F-41CB-BF68-9A1892FA498B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,9 +41,21 @@ Global
 		{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADCADB36-C5A4-4608-B419-2601E2BA0E93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADCADB36-C5A4-4608-B419-2601E2BA0E93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADCADB36-C5A4-4608-B419-2601E2BA0E93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADCADB36-C5A4-4608-B419-2601E2BA0E93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{45506A55-300F-41CB-BF68-9A1892FA498B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{45506A55-300F-41CB-BF68-9A1892FA498B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{45506A55-300F-41CB-BF68-9A1892FA498B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{45506A55-300F-41CB-BF68-9A1892FA498B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{ADCADB36-C5A4-4608-B419-2601E2BA0E93} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
+		{45506A55-300F-41CB-BF68-9A1892FA498B} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89CF4CEF-CBC8-411C-B159-83323BE5F85C}

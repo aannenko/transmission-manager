@@ -6,7 +6,7 @@ using TransmissionManager.TorrentTrackerClient.Constants;
 namespace TransmissionManager.TorrentTrackerClient.Services;
 
 public sealed partial class TorrentWebPageService(
-    IOptionsMonitor<MagnetUriRetrieverOptions> options,
+    IOptionsMonitor<TorrentWebPageServiceOptions> options,
     HttpClient httpClient)
 {
     public async Task<string?> FindMagnetUriAsync(
