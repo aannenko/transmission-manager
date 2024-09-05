@@ -16,7 +16,7 @@ public sealed class TransmissionTorrentGetResponseArguments
 
 public sealed class TransmissionTorrentGetResponseItem
 {
-    public long? Id { get; init; }
+    public string? HashString { get; init; } // used instead of Id
 
     public string? Name { get; init; }
 

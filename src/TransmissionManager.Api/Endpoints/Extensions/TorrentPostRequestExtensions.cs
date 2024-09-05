@@ -11,7 +11,7 @@ public static class TorrentPostRequestExtensions
         TransmissionTorrentAddResponseItem transmissionTorrent)
     {
         return new(
-            transmissionId: transmissionTorrent.Id,
+            hashString: transmissionTorrent.HashString,
             name: transmissionTorrent.Name,
             webPageUri: dto.WebPageUri,
             downloadDir: dto.DownloadDir,
@@ -24,7 +24,7 @@ public static class TorrentPostRequestExtensions
         TransmissionTorrentAddResponseItem transmissionTorrent)
     {
         return new(
-            transmissionId: transmissionTorrent.Id,
+            hashString: transmissionTorrent.HashString,
             name: transmissionTorrent.Name,
             downloadDir: dto.DownloadDir,
             magnetRegexPattern: dto.MagnetRegexPattern,

@@ -7,13 +7,13 @@ using TransmissionManager.TorrentTrackerClient.Services;
 
 namespace TransmissionManager.TorrentTrackerClient.Extensions;
 
-public static class MagnetUriRetrieverServiceCollectionExtensions
+public static class TorrentTrackerClientServiceCollectionExtensions
 {
     private const string _trackersConfigKey = "TorrentTrackers";
     private const string _resilienceKey = "Trackers-Retry-Timeout";
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Trimming tested")]
-    public static IServiceCollection AddMagnetUriRetriever(
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
+    public static IServiceCollection AddTorrentWebPageService(
         this IServiceCollection services,
         IConfigurationRoot configuration)
     {

@@ -22,9 +22,7 @@ public sealed class TransmissionTorrentAddResponseArguments
 
 public sealed class TransmissionTorrentAddResponseItem
 {
-    public required long Id { get; init; }
+    public required string HashString { get; init; }
 
     public required string Name { get; init; }
-
-    public required string HashString { get; init; }
 }

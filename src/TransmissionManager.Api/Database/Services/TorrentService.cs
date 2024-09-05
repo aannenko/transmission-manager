@@ -62,8 +62,8 @@ public sealed class TorrentService(AppDbContext dbContext)
             .ExecuteUpdateAsync(
                 properties => properties
                     .SetProperty(
-                        static torrent => torrent.TransmissionId,
-                        torrent => dto.TransmissionId ?? torrent.TransmissionId)
+                        static torrent => torrent.HashString,
+                        torrent => dto.HashString ?? torrent.HashString)
                     .SetProperty(
                         static torrent => torrent.Name,
                         torrent => dto.Name ?? torrent.Name)

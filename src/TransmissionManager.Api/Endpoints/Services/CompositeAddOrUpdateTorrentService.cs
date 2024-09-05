@@ -1,5 +1,4 @@
-﻿using TransmissionManager.Api.Database.Dto;
-using TransmissionManager.Api.Endpoints.Dto;
+﻿using TransmissionManager.Api.Endpoints.Dto;
 using TransmissionManager.Api.Endpoints.Extensions;
 using TransmissionManager.TorrentTrackerClient.Services;
 using TransmissionManager.TransmissionClient.Services;
@@ -36,7 +35,6 @@ public sealed class CompositeAddOrUpdateTorrentService(
 
         var torrentId = torrents.FirstOrDefault()?.Id ?? -1;
         Result resultType;
-        TorrentUpdateDto? updateDto = null;
         if (torrentId is -1)
         {
             resultType = Result.Add;
@@ -47,7 +45,7 @@ public sealed class CompositeAddOrUpdateTorrentService(
         else
         {
             resultType = Result.Update;
-            updateDto = dto.ToTorrentUpdateDto(transmissionTorrent);
+            var updateDto = dto.ToTorrentUpdateDto(transmissionTorrent);
             if (!await torrentService.TryUpdateOneByIdAsync(torrentId, updateDto, cancellationToken)
                 .ConfigureAwait(false))
             {
@@ -61,7 +59,7 @@ public sealed class CompositeAddOrUpdateTorrentService(
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = StartUpdateTorrentNameTask(torrentId, updateDto ?? dto.ToTorrentUpdateDto(transmissionTorrent));
+            _ = StartUpdateTorrentNameTask(torrentId, transmissionTorrent.HashString);
 
         return new(resultType, torrentId, null);
     }

@@ -24,7 +24,7 @@ public sealed class CompositeRefreshTorrentService(
             return new(Result.NotFound, string.Format(error, torrentId, "No such torrent."));
 
         var (transmissionGetTorrent, transmissionGetError) =
-            await GetTorrentFromTransmissionAsync(torrent.TransmissionId, cancellationToken).ConfigureAwait(false);
+            await GetTorrentFromTransmissionAsync(torrent.HashString, cancellationToken).ConfigureAwait(false);
 
         if (transmissionGetTorrent is null)
             return new(Result.Error, string.Format(error, torrentId, transmissionGetError));
@@ -43,7 +43,7 @@ public sealed class CompositeRefreshTorrentService(
         if (transmissionAddTorrent is null)
             return new(Result.Error, string.Format(error, torrentId, transmissionAddError));
 
-        var updateDto = torrent.ToTorrentUpdateDto(transmissionAddTorrent);
+        var updateDto = transmissionAddTorrent.ToTorrentUpdateDto();
         if (!await torrentService.TryUpdateOneByIdAsync(torrent.Id, updateDto, cancellationToken).ConfigureAwait(false))
         {
             var formattedError = string.Format(
@@ -55,7 +55,7 @@ public sealed class CompositeRefreshTorrentService(
         }
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
-            _ = StartUpdateTorrentNameTask(torrentId, updateDto);
+            _ = StartUpdateTorrentNameTask(torrentId, transmissionAddTorrent.HashString);
 
         return new(Result.Success, null);
     }

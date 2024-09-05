@@ -14,7 +14,7 @@ public sealed class TransmissionService(IOptionsMonitor<TransmissionClientOption
         Enum.GetValues<TransmissionTorrentGetRequestFields>();
 
     public async Task<TransmissionTorrentGetResponse> GetTorrentsAsync(
-        long[]? ids = null,
+        string[]? hashStrings = null,
         TransmissionTorrentGetRequestFields[]? requestFields = null,
         CancellationToken cancellationToken = default)
     {
@@ -23,8 +23,8 @@ public sealed class TransmissionService(IOptionsMonitor<TransmissionClientOption
             {
                 Arguments = new()
                 {
+                    HashStrings = hashStrings,
                     Fields = requestFields ?? _defaultRequestFields,
-                    Ids = ids,
                 }
             },
             TransmissionJsonSerializerContext.Default.TransmissionTorrentGetRequest,

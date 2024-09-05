@@ -2,17 +2,17 @@
 
 namespace TransmissionManager.TransmissionClient.Services;
 
-public sealed class TransmissionHeadersHandler(TransmissionHeadersProvider headersService)
+public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider)
     : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        var headerName = headersService.SessionHeaderName;
+        var headerName = headerProvider.SessionHeaderName;
 
         if (!request.Headers.Contains(headerName))
-            request.Headers.TryAddWithoutValidation(headerName, headersService.SessionHeaderValue);
+            request.Headers.TryAddWithoutValidation(headerName, headerProvider.SessionHeaderValue);
 
         var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -21,7 +21,7 @@ public sealed class TransmissionHeadersHandler(TransmissionHeadersProvider heade
             response.Headers.TryGetValues(headerName, out var newHeaderValues) &&
             (newHeaderValue = newHeaderValues?.SingleOrDefault()) is not null)
         {
-            headersService.SessionHeaderValue = newHeaderValue;
+            headerProvider.SessionHeaderValue = newHeaderValue;
 
             request.Headers.Remove(headerName);
             request.Headers.TryAddWithoutValidation(headerName, newHeaderValue);

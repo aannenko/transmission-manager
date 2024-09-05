@@ -15,8 +15,8 @@ builder.Services.ConfigureHttpJsonOptions(
     static options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
 builder.Services.AddAppDbContext();
-builder.Services.AddMagnetUriRetriever(builder.Configuration);
-builder.Services.AddTransmissionClient(builder.Configuration);
+builder.Services.AddTorrentWebPageService(builder.Configuration);
+builder.Services.AddTransmissionService(builder.Configuration);
 
 builder.Services.AddTransient<TorrentService>();
 builder.Services.AddTransient<CompositeAddOrUpdateTorrentService>();

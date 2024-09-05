@@ -3,14 +3,14 @@
 public sealed class TorrentAddDto
 {
     public TorrentAddDto(
-        long transmissionId,
+        string hashString,
         string name,
         string webPageUri,
         string downloadDir,
         string? magnetRegexPattern = null,
         string? cron = null)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(transmissionId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(hashString);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentException.ThrowIfNullOrWhiteSpace(webPageUri);
         ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
@@ -21,7 +21,7 @@ public sealed class TorrentAddDto
         if (cron is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(cron);
 
-        TransmissionId = transmissionId;
+        HashString = hashString;
         Name = name;
         WebPageUri = webPageUri;
         DownloadDir = downloadDir;
@@ -29,7 +29,7 @@ public sealed class TorrentAddDto
         Cron = cron;
     }
 
-    public long TransmissionId { get; }
+    public string HashString { get; }
 
     public string Name { get; }
 

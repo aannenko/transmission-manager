@@ -6,10 +6,6 @@ namespace TransmissionManager.Api.Endpoints.Dto;
 
 public sealed class TorrentPatchRequest
 {
-    public long? TransmissionId { get; set; }
-
-    public string? DownloadDir { get; set; }
-
     [RegularExpression(TrackersRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)] // empty strings are considered valid
     public string? MagnetRegexPattern { get; set; }
 

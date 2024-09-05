@@ -3,7 +3,7 @@ using TransmissionManager.TransmissionClient.Options;
 
 namespace TransmissionManager.TransmissionClient.Services;
 
-public sealed class TransmissionHeadersProvider(IOptionsMonitor<TransmissionHeadersProviderOptions> options)
+public sealed class SessionHeaderProvider(IOptionsMonitor<TransmissionHeadersProviderOptions> options)
 {
     public string SessionHeaderName => options.CurrentValue.SessionHeaderName;
 

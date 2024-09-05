@@ -10,7 +10,7 @@ public static class TorrentAddDtoExtensions
         return new()
         {
             Id = default,
-            TransmissionId = dto.TransmissionId,
+            HashString = dto.HashString,
             Name = dto.Name,
             DownloadDir = dto.DownloadDir,
             WebPageUri = dto.WebPageUri,

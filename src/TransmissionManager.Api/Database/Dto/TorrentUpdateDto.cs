@@ -3,14 +3,14 @@
 public sealed class TorrentUpdateDto
 {
     public TorrentUpdateDto(
-        long? transmissionId = null,
+        string? hashString = null,
         string? name = null,
         string? downloadDir = null,
         string? magnetRegexPattern = null,
         string? cron = null)
     {
-        if (transmissionId is not null)
-            ArgumentOutOfRangeException.ThrowIfNegativeOrZero(transmissionId.Value, nameof(transmissionId));
+        if (hashString is not null)
+            ArgumentException.ThrowIfNullOrWhiteSpace(nameof(hashString));
 
         if (name is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -18,7 +18,7 @@ public sealed class TorrentUpdateDto
         if (downloadDir is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
-        TransmissionId = transmissionId;
+        HashString = hashString;
         Name = name;
         DownloadDir = downloadDir;
         MagnetRegexPattern = magnetRegexPattern;
@@ -26,7 +26,7 @@ public sealed class TorrentUpdateDto
     }
 
     // null is ignored
-    public long? TransmissionId { get; }
+    public string? HashString { get; }
 
     // null is ignored
     public string? Name { get; }

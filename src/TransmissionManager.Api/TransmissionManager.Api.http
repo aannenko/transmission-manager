@@ -33,16 +33,13 @@ Content-Type: application/json
 POST {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
-""
-
 ###
 
-# Update existing torrent's download directory, cron and magnet-finding regex
+# Update existing torrent's cron and magnet-finding regex
 PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {
-    "downloadDir": "/tvshows",
     "magnetRegexPattern": "\\\"(?<magnet>magnet:\\?xt=urn:btih:.*?)\\\"",
     "cron": "0 10,16 * * *"
 }
@@ -54,8 +51,8 @@ PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {
-    "cron": "",
-    "magnetRegexPattern": ""
+    "magnetRegexPattern": "",
+    "cron": ""
 }
 
 ###
