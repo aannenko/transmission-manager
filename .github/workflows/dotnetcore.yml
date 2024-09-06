@@ -1,4 +1,4 @@
-name: Build
+name: "Build and Test"
 
 on: [push]
 
@@ -15,5 +15,11 @@ jobs:
       with:
         dotnet-version: '8.x'
 
+    - name: Restore dependencies
+      run: dotnet restore src/TransmissionManager.sln
+
     - name: Build Web API
-      run: dotnet build src/TransmissionManager.Api --configuration Release
+      run: dotnet build src/TransmissionManager.sln --no-restore
+
+    - name: Run all tests
+      run: dotnet test src/TransmissionManager.sln --no-build --verbosity normal
