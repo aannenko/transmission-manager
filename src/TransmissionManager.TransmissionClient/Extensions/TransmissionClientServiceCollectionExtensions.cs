@@ -15,12 +15,12 @@ public static class TransmissionClientServiceCollectionExtensions
     private const string _resilienceKey = "Transmission-Retry-Timeout";
 
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
-    public static IServiceCollection AddTransmissionService(
+    public static IServiceCollection AddTransmissionClientServices(
         this IServiceCollection services,
         IConfigurationRoot configuration)
     {
         services
-            .Configure<TransmissionClientOptions>(configuration.GetSection(_transmissionConfigKey))
+            .Configure<TransmissionServiceOptions>(configuration.GetSection(_transmissionConfigKey))
             .Configure<TransmissionHeadersProviderOptions>(configuration.GetSection(_transmissionConfigKey))
             .AddSingleton<SessionHeaderProvider>()
             .AddScoped<SessionHeaderHandler>()
@@ -33,7 +33,7 @@ public static class TransmissionClientServiceCollectionExtensions
 
     private static void ConfigureHttpClient(IServiceProvider services, HttpClient client)
     {
-        var options = services.GetRequiredService<IOptionsMonitor<TransmissionClientOptions>>().CurrentValue;
+        var options = services.GetRequiredService<IOptionsMonitor<TransmissionServiceOptions>>().CurrentValue;
         client.BaseAddress = new(options.BaseAddress);
     }
 

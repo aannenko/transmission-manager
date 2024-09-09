@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TransmissionManager.Database\TransmissionManager.Database.csproj" />
     <ProjectReference Include="..\TransmissionManager.TorrentTrackerClient\TransmissionManager.TorrentTrackerClient.csproj" />
     <ProjectReference Include="..\TransmissionManager.TransmissionClient\TransmissionManager.TransmissionClient.csproj" />
   </ItemGroup>
