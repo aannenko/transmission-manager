@@ -30,6 +30,8 @@ builder.Services.AddTransient<BackgroundTaskService>();
 
 var app = builder.Build();
 
+LogStartup(app);
+
 using (var scope = app.Services.CreateScope())
 {
     await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
@@ -44,3 +46,10 @@ app.UseStatusCodePages();
 app.MapTorrentEndpoints();
 
 app.Run();
+
+static void LogStartup(WebApplication app)
+{
+    var logger = app.Logger;
+    logger.LogInformation("Starting application {AssemblyFullName}", typeof(Program).Assembly.FullName);
+    logger.LogInformation("Start time: {StartTime:o}", DateTime.Now);
+}
