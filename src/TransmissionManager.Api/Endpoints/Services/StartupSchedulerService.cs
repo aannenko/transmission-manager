@@ -15,7 +15,7 @@ public sealed class StartupSchedulerService(TorrentSchedulerService torrentSched
         {
             page = page with { AfterId = torrentPage.Last().Id };
             foreach (var torrent in torrentPage)
-                torrentScheduler.ScheduleTorrentUpdates(torrent.Id, torrent.Cron!);
+                torrentScheduler.ScheduleTorrentRefresh(torrent.Id, torrent.Cron!);
         }
     }
 }

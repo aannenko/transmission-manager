@@ -15,7 +15,7 @@ public sealed class TorrentSchedulerService
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TorrentRefreshTask))]
-    public void ScheduleTorrentUpdates(long torrentId, string cron)
+    public void ScheduleTorrentRefresh(long torrentId, string cron)
     {
         _scheduler.ScheduleWithParams<TorrentRefreshTask>(torrentId)
             .Cron(cron)
@@ -23,7 +23,7 @@ public sealed class TorrentSchedulerService
             .PreventOverlapping(torrentId.ToString());
     }
 
-    public bool TryUnscheduleTorrentUpdates(long torrentId)
+    public bool TryUnscheduleTorrentRefresh(long torrentId)
     {
         return _scheduler.TryUnschedule(torrentId.ToString());
     }

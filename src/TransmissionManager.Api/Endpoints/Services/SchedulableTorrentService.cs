@@ -23,7 +23,7 @@ public sealed class SchedulableTorrentService(TorrentService torrentService, Tor
     {
         var torrentId = await torrentService.AddOneAsync(dto, cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrEmpty(dto.Cron))
-            schedulerService.ScheduleTorrentUpdates(torrentId, dto.Cron);
+            schedulerService.ScheduleTorrentRefresh(torrentId, dto.Cron);
 
         return torrentId;
     }
@@ -33,17 +33,17 @@ public sealed class SchedulableTorrentService(TorrentService torrentService, Tor
         TorrentUpdateDto dto,
         CancellationToken cancellationToken = default)
     {
-        schedulerService.TryUnscheduleTorrentUpdates(id);
+        schedulerService.TryUnscheduleTorrentRefresh(id);
         var result = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
         if (result && !string.IsNullOrEmpty(dto.Cron))
-            schedulerService.ScheduleTorrentUpdates(id, dto.Cron);
+            schedulerService.ScheduleTorrentRefresh(id, dto.Cron);
 
         return result;
     }
 
     public Task<bool> TryDeleteOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        schedulerService.TryUnscheduleTorrentUpdates(id);
+        schedulerService.TryUnscheduleTorrentRefresh(id);
         return torrentService.TryDeleteOneByIdAsync(id, cancellationToken);
     }
 }
