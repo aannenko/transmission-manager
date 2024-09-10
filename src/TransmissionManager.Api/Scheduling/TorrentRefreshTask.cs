@@ -1,6 +1,7 @@
 ﻿using Coravel.Invocable;
+using TransmissionManager.Api.Services;
 
-namespace TransmissionManager.Api.Services;
+namespace TransmissionManager.Api.Scheduling;
 
 public sealed class TorrentRefreshTask(
     ILogger<TorrentRefreshTask> logger,

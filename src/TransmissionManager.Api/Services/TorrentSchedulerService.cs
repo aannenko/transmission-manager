@@ -1,6 +1,7 @@
 ﻿using Coravel.Scheduling.Schedule;
 using Coravel.Scheduling.Schedule.Interfaces;
 using System.Diagnostics.CodeAnalysis;
+using TransmissionManager.Api.Scheduling;
 
 namespace TransmissionManager.Api.Services;
 
