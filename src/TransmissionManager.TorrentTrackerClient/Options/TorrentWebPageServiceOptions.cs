@@ -7,9 +7,9 @@ public sealed class TorrentWebPageServiceOptions
 {
     [Required]
     [RegularExpression(TrackersRegex.IsFindMagnet)]
-    public required string DefaultRegexPattern { get; set; }
+    public required string DefaultMagnetRegexPattern { get; set; }
 
     [Required]
-    [Range(50, 1000)]
+    [Range(10, 500)]
     public required int RegexMatchTimeoutMilliseconds { get; set; }
 }

@@ -45,7 +45,7 @@ public sealed class TorrentWebPageServiceTests
     private static readonly MockOptionsMonitor<TorrentWebPageServiceOptions> _options = new(new()
     {
         // language=regex
-        DefaultRegexPattern = @"\""(?<magnet>magnet:\?.*?)\""",
+        DefaultMagnetRegexPattern = @"\""(?<magnet>magnet:\?.*?)\""",
         RegexMatchTimeoutMilliseconds = 100,
     });
 

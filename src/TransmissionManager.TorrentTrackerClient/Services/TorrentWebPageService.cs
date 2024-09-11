@@ -35,11 +35,11 @@ public sealed partial class TorrentWebPageService(
         string finalRegexPattern;
         if (regexPattern is null)
         {
-            finalRegexPattern = options.CurrentValue.DefaultRegexPattern;
+            finalRegexPattern = options.CurrentValue.DefaultMagnetRegexPattern;
             if (finalRegexPattern is null || !TrackersRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
             {
                 throw new InvalidOperationException(
-                    $"Invalid {nameof(options.CurrentValue.DefaultRegexPattern)} config value. " +
+                    $"Invalid {nameof(options.CurrentValue.DefaultMagnetRegexPattern)} config value. " +
                     $"The value must match '{TrackersRegex.IsFindMagnet}'.");
             }
         }
