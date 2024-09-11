@@ -5,6 +5,7 @@ using Polly;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using TransmissionManager.TransmissionClient.Options;
+using TransmissionManager.TransmissionClient.Options.Validation;
 using TransmissionManager.TransmissionClient.Services;
 
 namespace TransmissionManager.TransmissionClient.Extensions;
@@ -22,6 +23,8 @@ public static class TransmissionClientServiceCollectionExtensions
         services
             .Configure<TransmissionServiceOptions>(configuration.GetSection(_transmissionConfigKey))
             .Configure<TransmissionHeadersProviderOptions>(configuration.GetSection(_transmissionConfigKey))
+            .AddSingleton<IValidateOptions<TransmissionServiceOptions>, ValidateTransmissionServiceOptions>()
+            .AddSingleton<IValidateOptions<TransmissionHeadersProviderOptions>, ValidateTransmissionHeadersProviderOptions>()
             .AddSingleton<SessionHeaderProvider>()
             .AddScoped<SessionHeaderHandler>()
             .AddHttpClient<TransmissionService>(ConfigureHttpClient)
