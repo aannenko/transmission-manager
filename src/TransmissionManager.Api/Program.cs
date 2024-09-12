@@ -22,7 +22,7 @@ builder.Services.AddScheduler();
 builder.Services.AddTransient<BackgroundTaskService>();
 builder.Services.AddTransient<TorrentSchedulerService>();
 builder.Services.AddTransient<StartupSchedulerService>();
-builder.Services.AddTransient<SchedulableTorrentService>();
+builder.Services.AddTransient<SchedulableTorrentCommandService>();
 builder.Services.AddTransient<CompositeAddOrUpdateTorrentService>();
 builder.Services.AddTransient<CompositeRefreshTorrentService>();
 

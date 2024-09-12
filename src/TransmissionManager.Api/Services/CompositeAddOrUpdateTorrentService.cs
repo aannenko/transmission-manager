@@ -1,5 +1,6 @@
 ﻿using TransmissionManager.Api.Dto;
 using TransmissionManager.Api.Extensions;
+using TransmissionManager.Database.Services;
 using TransmissionManager.TorrentTrackerClient.Services;
 using TransmissionManager.TransmissionClient.Services;
 using Result = TransmissionManager.Api.Dto.AddOrUpdateTorrentResult.ResultType;
@@ -9,7 +10,8 @@ namespace TransmissionManager.Api.Services;
 public sealed class CompositeAddOrUpdateTorrentService(
     TorrentWebPageService torrentWebPageService,
     TransmissionService transmissionService,
-    SchedulableTorrentService torrentService,
+    TorrentQueryService queryService,
+    SchedulableTorrentCommandService commandService,
     BackgroundTaskService backgroundTaskService)
     : BaseCompositeTorrentService(torrentWebPageService, transmissionService, backgroundTaskService)
 {
@@ -30,7 +32,7 @@ public sealed class CompositeAddOrUpdateTorrentService(
         if (transmissionTorrent is null)
             return new(Result.Error, -1, string.Format(error, dto.WebPageUri, transmissionError));
 
-        var torrents = await torrentService.FindPageAsync(new(1, 0), new(dto.WebPageUri), cancellationToken)
+        var torrents = await queryService.FindPageAsync(new(1, 0), new(dto.WebPageUri), cancellationToken)
             .ConfigureAwait(false);
 
         var torrentId = torrents.FirstOrDefault()?.Id ?? -1;
@@ -39,22 +41,20 @@ public sealed class CompositeAddOrUpdateTorrentService(
         {
             resultType = Result.Add;
             var addDto = dto.ToTorrentAddDto(transmissionTorrent);
-            torrentId = await torrentService.AddOneAsync(addDto, cancellationToken)
+            torrentId = await commandService.AddOneAsync(addDto, cancellationToken)
                 .ConfigureAwait(false);
         }
         else
         {
             resultType = Result.Update;
             var updateDto = dto.ToTorrentUpdateDto(transmissionTorrent);
-            if (!await torrentService.TryUpdateOneByIdAsync(torrentId, updateDto, cancellationToken)
-                .ConfigureAwait(false))
-            {
-                var formattedError = string.Format(
-                    error,
-                    dto.WebPageUri,
-                    $"Torrent with id {torrentId} was removed before it could be updated.");
+            var isUpdated = await commandService.TryUpdateOneByIdAsync(torrentId, updateDto, cancellationToken)
+                .ConfigureAwait(false);
 
-                return new(Result.Error, torrentId, formattedError);
+            if (!isUpdated)
+            {
+                var message = $"Torrent with id {torrentId} was removed before it could be updated.";
+                return new(Result.Error, torrentId, string.Format(error, dto.WebPageUri, message));
             }
         }
 

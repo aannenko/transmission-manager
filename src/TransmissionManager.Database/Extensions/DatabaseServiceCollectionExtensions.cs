@@ -11,9 +11,10 @@ public static class DatabaseServiceCollectionExtensions
 
     public static IServiceCollection AddDatabaseServices(this IServiceCollection services)
     {
-        services.AddDbContext<AppDbContext>(ConfigureDbContextOptions);
-        services.AddTransient<TorrentService>();
-        return services;
+        return services
+            .AddDbContext<AppDbContext>(ConfigureDbContextOptions)
+            .AddTransient<TorrentQueryService>()
+            .AddTransient<TorrentCommandService>();
     }
 
     private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options)

@@ -156,7 +156,7 @@ public abstract class BaseCompositeTorrentService(
                 break;
             else if (newName != hashString)
             {
-                var torrentService = serviceProvider.GetRequiredService<TorrentService>();
+                var torrentService = serviceProvider.GetRequiredService<TorrentCommandService>();
                 var dto = new TorrentUpdateDto(name: newName);
                 await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;

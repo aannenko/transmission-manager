@@ -4,18 +4,18 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Services;
 
-public sealed class StartupSchedulerService(TorrentSchedulerService torrentScheduler, TorrentService torrentService)
+public sealed class StartupSchedulerService(TorrentQueryService queryService, TorrentSchedulerService scheduler)
 {
     public async Task ScheduleUpdatesForAllTorrentsAsync()
     {
         Torrent[] torrentPage;
         var page = new PageDescriptor(50, 0);
         var filter = new TorrentFilter(CronExists: true);
-        while ((torrentPage = await torrentService.FindPageAsync(page, filter).ConfigureAwait(false)).Length > 0)
+        while ((torrentPage = await queryService.FindPageAsync(page, filter).ConfigureAwait(false)).Length > 0)
         {
             page = page with { AfterId = torrentPage.Last().Id };
             foreach (var torrent in torrentPage)
-                torrentScheduler.ScheduleTorrentRefresh(torrent.Id, torrent.Cron!);
+                scheduler.ScheduleTorrentRefresh(torrent.Id, torrent.Cron!);
         }
     }
 }

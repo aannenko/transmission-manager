@@ -31,7 +31,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Torrent[]> FindPageAsync(
-        [FromServices] TorrentService service,
+        [FromServices] TorrentQueryService service,
         [AsParameters] TorrentFindPageParameters parameters,
         CancellationToken cancellationToken)
     {
@@ -41,7 +41,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Results<Ok<Torrent>, NotFound<string>>> FindOneByIdAsync(
-        [FromServices] TorrentService service,
+        [FromServices] TorrentQueryService service,
         long id,
         CancellationToken cancellationToken)
     {
@@ -87,7 +87,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Results<NoContent, NotFound<string>, ValidationProblem>> UpdateOneByIdAsync(
-        [FromServices] SchedulableTorrentService service,
+        [FromServices] SchedulableTorrentCommandService service,
         long id,
         TorrentPatchRequest dto,
         CancellationToken cancellationToken)
@@ -102,7 +102,7 @@ public static class TorrentEndpoints
     }
 
     private static async Task<Results<NoContent, NotFound<string>>> RemoveOneByIdAsync(
-        [FromServices] SchedulableTorrentService service,
+        [FromServices] SchedulableTorrentCommandService service,
         long id,
         CancellationToken cancellationToken)
     {

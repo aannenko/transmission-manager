@@ -10,7 +10,8 @@ namespace TransmissionManager.Api.Services;
 public sealed class CompositeRefreshTorrentService(
     TorrentWebPageService torrentWebPageService,
     TransmissionService transmissionService,
-    TorrentService torrentService,
+    TorrentQueryService queryService,
+    TorrentCommandService commandService,
     BackgroundTaskService backgroundTaskService)
     : BaseCompositeTorrentService(torrentWebPageService, transmissionService, backgroundTaskService)
 {
@@ -19,7 +20,7 @@ public sealed class CompositeRefreshTorrentService(
         CancellationToken cancellationToken = default)
     {
         const string error = "Refresh of the torrent with id '{0}' has failed: '{1}'.";
-        var torrent = await torrentService.FindOneByIdAsync(torrentId, cancellationToken).ConfigureAwait(false);
+        var torrent = await queryService.FindOneByIdAsync(torrentId, cancellationToken).ConfigureAwait(false);
         if (torrent is null)
             return new(Result.NotFound, string.Format(error, torrentId, "No such torrent."));
 
@@ -44,14 +45,13 @@ public sealed class CompositeRefreshTorrentService(
             return new(Result.Error, string.Format(error, torrentId, transmissionAddError));
 
         var updateDto = transmissionAddTorrent.ToTorrentUpdateDto();
-        if (!await torrentService.TryUpdateOneByIdAsync(torrent.Id, updateDto, cancellationToken).ConfigureAwait(false))
-        {
-            var formattedError = string.Format(
-                    error,
-                    torrent.WebPageUri,
-                    $"Torrent with id {torrentId} was removed before it could be updated.");
+        var isUpdated = await commandService.TryUpdateOneByIdAsync(torrent.Id, updateDto, cancellationToken)
+            .ConfigureAwait(false);
 
-            return new(Result.NotFound, string.Format(error, torrentId, formattedError));
+        if (!isUpdated)
+        {
+            var message = $"Torrent with id {torrentId} was removed before it could be updated.";
+            return new(Result.Error, string.Format(error, torrentId, message));
         }
 
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
