@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
+# 17
 VisualStudioVersion = 17.10.35027.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Api", "TransmissionManager.Api\TransmissionManager.Api.csproj", "{00361C06-557B-4D74-8365-897DD011AB30}"
@@ -13,17 +13,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TorrentTrackerClient", "TransmissionManager.TorrentTrackerClient\TransmissionManager.TorrentTrackerClient.csproj", "{5B1428DA-7BC1-4621-BDED-6FC58FA3DABF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TorrentWebPages", "TransmissionManager.TorrentWebPages\TransmissionManager.TorrentWebPages.csproj", "{5B1428DA-7BC1-4621-BDED-6FC58FA3DABF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TransmissionClient", "TransmissionManager.TransmissionClient\TransmissionManager.TransmissionClient.csproj", "{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Transmission", "TransmissionManager.Transmission\TransmissionManager.Transmission.csproj", "{4663CB43-A15B-4E0A-84DE-99AEDC2A7255}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{5F7726A6-4944-4347-A591-ACB2FB3F7126}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.BaseTests", "Tests\TransmissionManager.BaseTests\TransmissionManager.BaseTests.csproj", "{ADCADB36-C5A4-4608-B419-2601E2BA0E93}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TorrentTrackerClient.Tests", "Tests\TransmissionManager.TorrentTrackerClient.Tests\TransmissionManager.TorrentTrackerClient.Tests.csproj", "{45506A55-300F-41CB-BF68-9A1892FA498B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.TorrentWebPages.Tests", "Tests\TransmissionManager.TorrentWebPages.Tests\TransmissionManager.TorrentWebPages.Tests.csproj", "{45506A55-300F-41CB-BF68-9A1892FA498B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Database", "TransmissionManager.Database\TransmissionManager.Database.csproj", "{C3B1BAC1-F19E-4DBB-8520-058CBB7AEB17}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Database", "TransmissionManager.Database\TransmissionManager.Database.csproj", "{C3B1BAC1-F19E-4DBB-8520-058CBB7AEB17}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

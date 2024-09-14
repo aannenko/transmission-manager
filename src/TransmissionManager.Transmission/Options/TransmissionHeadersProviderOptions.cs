@@ -1,0 +1,9 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace TransmissionManager.Transmission.Options;
+
+public sealed class TransmissionHeadersProviderOptions
+{
+    [Required]
+    public required string SessionHeaderName { get; set; }
+}

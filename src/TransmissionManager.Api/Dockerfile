@@ -7,8 +7,8 @@ WORKDIR /source
 # Copy everything and publish the app
 COPY Directory.Packages.props .
 COPY TransmissionManager.Database/. TransmissionManager.Database/
-COPY TransmissionManager.TorrentTrackerClient/. TransmissionManager.TorrentTrackerClient/
-COPY TransmissionManager.TransmissionClient/. TransmissionManager.TransmissionClient/
+COPY TransmissionManager.TorrentWebPages/. TransmissionManager.TorrentWebPages/
+COPY TransmissionManager.Transmission/. TransmissionManager.Transmission/
 COPY TransmissionManager.Api/. TransmissionManager.Api/
 RUN (echo "$BINARY_VERSION" | grep -Eq "^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$") && \
     dotnet publish TransmissionManager.Api -a $TARGETARCH -o /app -p:Version=$BINARY_VERSION || \
