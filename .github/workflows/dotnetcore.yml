@@ -18,7 +18,7 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore src/TransmissionManager.sln
 
-    - name: Build Web API
+    - name: Build solution
       run: dotnet build src/TransmissionManager.sln --no-restore
 
     - name: Run all tests
