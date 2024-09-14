@@ -1,4 +1,4 @@
-@TransmissionManager_Web_HostAddress = http://pitv:9092/api/v1/torrents
+@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
 
 # Get a page of torrents
 GET {{TransmissionManager_Web_HostAddress}}/
@@ -40,7 +40,8 @@ PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {
-    "cron": "17 14 * * *"
+    "magnetRegexPattern": "\\\"(?<magnet>magnet:\\?xt=urn:btih:.*?)\\\"",
+    "cron": "0 10,16 * * *"
 }
 
 ###
@@ -57,6 +58,6 @@ Content-Type: application/json
 ###
 
 # Remove a torrent from Transmission Manager by id
-DELETE {{TransmissionManager_Web_HostAddress}}/15
+DELETE {{TransmissionManager_Web_HostAddress}}/1
 
 ###
