@@ -21,7 +21,7 @@ public sealed class RefreshTorrentByIdHandler(
         if (torrent is null)
             return new(Result.NotFound, string.Format(error, torrentId, "No such torrent."));
 
-        var (transmissionGetTorrent, transmissionGetError) = await transmissionService.GetTorrentFromTransmissionAsync(
+        var (transmissionGetTorrent, transmissionGetError) = await transmissionService.GetTorrentAsync(
             torrent.HashString,
             cancellationToken)
             .ConfigureAwait(false);
@@ -38,7 +38,7 @@ public sealed class RefreshTorrentByIdHandler(
         if (string.IsNullOrEmpty(magnetUri))
             return new(Result.Error, string.Format(error, torrentId, getMagnetError));
 
-        var (transmissionAddTorrent, transmissionAddError) = await transmissionService.SendMagnetToTransmissionAsync(
+        var (transmissionAddTorrent, transmissionAddError) = await transmissionService.AddTorrentUsingMagnetAsync(
             magnetUri,
             torrent.DownloadDir,
             cancellationToken)

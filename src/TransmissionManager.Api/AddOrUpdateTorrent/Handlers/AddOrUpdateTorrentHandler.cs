@@ -27,7 +27,7 @@ public sealed class AddOrUpdateTorrentHandler(
         if (string.IsNullOrEmpty(magnetUri))
             return new(Result.Error, -1, string.Format(error, dto.WebPageUri, getMagnetError));
 
-        var (transmissionTorrent, transmissionError) = await transmissionService.SendMagnetToTransmissionAsync(
+        var (transmissionTorrent, transmissionError) = await transmissionService.AddTorrentUsingMagnetAsync(
             magnetUri,
             dto.DownloadDir,
             cancellationToken)

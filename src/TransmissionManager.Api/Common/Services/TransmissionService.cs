@@ -5,7 +5,7 @@ namespace TransmissionManager.Api.Common.Services;
 
 public sealed class TransmissionService(TransmissionClient transmissionClient)
 {
-    public async Task<(TransmissionTorrentAddResponseItem? Torrent, string? Error)> SendMagnetToTransmissionAsync(
+    public async Task<(TransmissionTorrentAddResponseItem? Torrent, string? Error)> AddTorrentUsingMagnetAsync(
         string magnetUri,
         string downloadDir,
         CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ public sealed class TransmissionService(TransmissionClient transmissionClient)
         return (transmissionTorrent, error);
     }
 
-    public async Task<(TransmissionTorrentGetResponseItem? Torrent, string? Error)> GetTorrentFromTransmissionAsync(
+    public async Task<(TransmissionTorrentGetResponseItem? Torrent, string? Error)> GetTorrentAsync(
         string hashString,
         CancellationToken cancellationToken)
     {
