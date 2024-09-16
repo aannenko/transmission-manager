@@ -7,40 +7,9 @@ using TransmissionManager.TorrentWebPages.Services;
 namespace TransmissionManager.TorrentWebPages.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class TorrentWebPageServiceTests
+public sealed class TorrentWebPageClientTests
 {
     private const string _webPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
-    private const string _magnetUri = "magnet:?xt=urn:btih:EXAMPLEHASH&dn=Example+Name";
-    private const string _webPageContentWithMagnet = $"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Magnet Link Example</title>
-        </head>
-        <body>
-            <h1>Magnet Link Example</h1>
-            <p>Click the link below to open the Magnet URI:</p>
-            <a href="{_magnetUri}">Download via Magnet</a>
-        </body>
-        </html>
-        """;
-
-    private const string _webPageContentWithoutMagnet = $"""
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Magnet Link Example</title>
-        </head>
-        <body>
-            <h1>Magnet Link Example</h1>
-            <p>No Magnet URI for you today :(</p>
-        </body>
-        </html>
-        """;
 
     private static readonly FakeOptionsMonitor<TorrentWebPageServiceOptions> _options = new(new()
     {
@@ -52,6 +21,23 @@ public sealed class TorrentWebPageServiceTests
     [Test]
     public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenProperWebPage()
     {
+        const string _magnetUri = "magnet:?xt=urn:btih:EXAMPLEHASH&dn=Example+Name";
+        const string _webPageContentWithMagnet = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Magnet Link Example</title>
+            </head>
+            <body>
+                <h1>Magnet Link Example</h1>
+                <p>Click the link below to open the Magnet URI:</p>
+                <a href="{_magnetUri}">Download via Magnet</a>
+            </body>
+            </html>
+            """;
+
         var service = CreateClient(
             new(HttpMethod.Get, new(_webPageUri)),
             new(HttpStatusCode.OK, Content: _webPageContentWithMagnet));
@@ -64,6 +50,21 @@ public sealed class TorrentWebPageServiceTests
     [Test]
     public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenWebPageWithoutMagnet()
     {
+        const string _webPageContentWithoutMagnet = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Magnet Link Example</title>
+            </head>
+            <body>
+                <h1>Magnet Link Example</h1>
+                <p>No Magnet URI for you today :(</p>
+            </body>
+            </html>
+            """;
+
         var service = CreateClient(
             new(HttpMethod.Get, new(_webPageUri)),
             new(HttpStatusCode.OK, Content: _webPageContentWithoutMagnet));
