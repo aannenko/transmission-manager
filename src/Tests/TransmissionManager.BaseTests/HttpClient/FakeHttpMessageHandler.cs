@@ -3,10 +3,10 @@ using System.Net.Http.Headers;
 
 namespace TransmissionManager.BaseTests.HttpClient;
 
-public sealed class MockHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap)
+public sealed class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap)
     : HttpMessageHandler
 {
-    public MockHttpMessageHandler(TestRequest testRequest, TestResponse testResponse)
+    public FakeHttpMessageHandler(TestRequest testRequest, TestResponse testResponse)
         : this(new Dictionary<TestRequest, TestResponse> { [testRequest] = testResponse })
     {
     }
@@ -35,7 +35,7 @@ public sealed class MockHttpMessageHandler(IReadOnlyDictionary<TestRequest, Test
             return response;
         }
 
-        return new HttpResponseMessage { StatusCode = HttpStatusCode.BadRequest };
+        return new HttpResponseMessage { StatusCode = (HttpStatusCode)418 };
     }
 
     private static bool AreHeadersEqual(Dictionary<string, string>? expected, HttpRequestHeaders actual)

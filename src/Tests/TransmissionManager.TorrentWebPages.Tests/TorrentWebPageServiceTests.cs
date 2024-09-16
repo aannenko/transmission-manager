@@ -97,5 +97,5 @@ public sealed class TorrentWebPageServiceTests
         new(_options, new HttpClient());
 
     private static TorrentWebPageClient CreateClient(TestRequest request, TestResponse response) =>
-        new(_options, new HttpClient(new MockHttpMessageHandler(request, response)));
+        new(_options, new HttpClient(new FakeHttpMessageHandler(request, response)));
 }

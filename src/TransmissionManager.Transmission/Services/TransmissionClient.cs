@@ -8,7 +8,7 @@ using TransmissionManager.Transmission.Serialization;
 
 namespace TransmissionManager.Transmission.Services;
 
-public sealed class TransmissionClient(IOptionsMonitor<TransmissionServiceOptions> options, HttpClient httpClient)
+public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions> options, HttpClient httpClient)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _defaultRequestFields =
         Enum.GetValues<TransmissionTorrentGetRequestFields>();

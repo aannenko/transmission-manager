@@ -3,7 +3,7 @@
 namespace TransmissionManager.Transmission.Options.Validation;
 
 [OptionsValidator]
-public sealed partial class ValidateTransmissionServiceOptions
-    : IValidateOptions<TransmissionServiceOptions>
+public sealed partial class ValidateTransmissionClientOptions
+    : IValidateOptions<TransmissionClientOptions>
 {
 }

@@ -21,10 +21,10 @@ public static class TransmissionServiceCollectionExtensions
         IConfigurationRoot configuration)
     {
         services
-            .Configure<TransmissionServiceOptions>(configuration.GetSection(_transmissionConfigKey))
-            .Configure<TransmissionHeadersProviderOptions>(configuration.GetSection(_transmissionConfigKey))
-            .AddSingleton<IValidateOptions<TransmissionServiceOptions>, ValidateTransmissionServiceOptions>()
-            .AddSingleton<IValidateOptions<TransmissionHeadersProviderOptions>, ValidateTransmissionHeadersProviderOptions>()
+            .Configure<TransmissionClientOptions>(configuration.GetSection(_transmissionConfigKey))
+            .Configure<SessionHeaderProviderOptions>(configuration.GetSection(_transmissionConfigKey))
+            .AddSingleton<IValidateOptions<TransmissionClientOptions>, ValidateTransmissionClientOptions>()
+            .AddSingleton<IValidateOptions<SessionHeaderProviderOptions>, ValidateSessionHeaderProviderOptions>()
             .AddSingleton<SessionHeaderProvider>()
             .AddScoped<SessionHeaderHandler>()
             .AddHttpClient<TransmissionClient>(ConfigureHttpClient)
@@ -36,7 +36,7 @@ public static class TransmissionServiceCollectionExtensions
 
     private static void ConfigureHttpClient(IServiceProvider services, HttpClient client)
     {
-        var options = services.GetRequiredService<IOptionsMonitor<TransmissionServiceOptions>>().CurrentValue;
+        var options = services.GetRequiredService<IOptionsMonitor<TransmissionClientOptions>>().CurrentValue;
         client.BaseAddress = new(options.BaseAddress);
     }
 

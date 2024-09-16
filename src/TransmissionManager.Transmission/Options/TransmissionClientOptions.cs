@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.Transmission.Options;
 
-public sealed class TransmissionServiceOptions
+public sealed class TransmissionClientOptions
 {
     [Required]
     [RegularExpression(@"^http(s?)://[\w-.]+:\d{1,5}$")]
