@@ -19,7 +19,7 @@ public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider)
         string? newHeaderValue;
         if (response.StatusCode is HttpStatusCode.Conflict &&
             response.Headers.TryGetValues(headerName, out var newHeaderValues) &&
-            (newHeaderValue = newHeaderValues?.SingleOrDefault()) is not null)
+            (newHeaderValue = newHeaderValues?.FirstOrDefault()) is not null)
         {
             headerProvider.SessionHeaderValue = newHeaderValue;
 
