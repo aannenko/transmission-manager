@@ -20,8 +20,8 @@ public static class TorrentWebPagesServiceCollectionExtensions
         IConfigurationRoot configuration)
     {
         services
-            .Configure<TorrentWebPageServiceOptions>(configuration.GetSection(_torrentWebPagesConfigKey))
-            .AddSingleton<IValidateOptions<TorrentWebPageServiceOptions>, ValidateTorrentWebPageServiceOptions>()
+            .Configure<TorrentWebPageClientOptions>(configuration.GetSection(_torrentWebPagesConfigKey))
+            .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()
             .AddHttpClient<TorrentWebPageClient>()
             .AddResilienceHandler(_resilienceKey, ConfigureResilience);
 

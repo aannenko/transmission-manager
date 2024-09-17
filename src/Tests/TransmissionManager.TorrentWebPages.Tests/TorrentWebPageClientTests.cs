@@ -11,7 +11,7 @@ public sealed class TorrentWebPageClientTests
 {
     private const string _webPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
 
-    private static readonly FakeOptionsMonitor<TorrentWebPageServiceOptions> _options = new(new()
+    private static readonly FakeOptionsMonitor<TorrentWebPageClientOptions> _options = new(new()
     {
         // language=regex
         DefaultMagnetRegexPattern = @"\""(?<magnet>magnet:\?.*?)\""",
@@ -38,11 +38,11 @@ public sealed class TorrentWebPageClientTests
             </html>
             """;
 
-        var service = CreateClient(
+        var client = CreateClient(
             new(HttpMethod.Get, new(_webPageUri)),
             new(HttpStatusCode.OK, Content: _webPageContentWithMagnet));
 
-        var result = await service.FindMagnetUriAsync(_webPageUri);
+        var result = await client.FindMagnetUriAsync(_webPageUri);
 
         Assert.That(result, Is.EqualTo(_magnetUri));
     }
@@ -65,11 +65,11 @@ public sealed class TorrentWebPageClientTests
             </html>
             """;
 
-        var service = CreateClient(
+        var client = CreateClient(
             new(HttpMethod.Get, new(_webPageUri)),
             new(HttpStatusCode.OK, Content: _webPageContentWithoutMagnet));
 
-        var result = await service.FindMagnetUriAsync(_webPageUri);
+        var result = await client.FindMagnetUriAsync(_webPageUri);
 
         Assert.That(result, Is.Null);
     }
@@ -77,20 +77,20 @@ public sealed class TorrentWebPageClientTests
     [Test]
     public void FindMagnetUriAsync_ThrowsHttpRequestException_IfGivenNonExistentWebPage()
     {
-        var service = CreateClient();
+        var client = CreateClient();
 
         Assert.That(
-            async () => await service.FindMagnetUriAsync("https://seemingly.valid.though.non.existent.page"),
+            async () => await client.FindMagnetUriAsync("https://seemingly.valid.though.non.existent.page"),
             Throws.TypeOf<HttpRequestException>());
     }
 
     [Test]
     public void FindMagnetUriAsync_ThrowsInvalidOperationException_IfGivenMalformedUri()
     {
-        var service = CreateClient();
+        var client = CreateClient();
 
         Assert.That(
-            async () => await service.FindMagnetUriAsync("Oops! Bad URI."),
+            async () => await client.FindMagnetUriAsync("Oops! Bad URI."),
             Throws.TypeOf<InvalidOperationException>());
     }
 

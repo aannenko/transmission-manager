@@ -3,7 +3,7 @@
 namespace TransmissionManager.TorrentWebPages.Options.Validation;
 
 [OptionsValidator]
-public sealed partial class ValidateTorrentWebPageServiceOptions
-    : IValidateOptions<TorrentWebPageServiceOptions>
+public sealed partial class ValidateTorrentWebPageClientOptions
+    : IValidateOptions<TorrentWebPageClientOptions>
 {
 }

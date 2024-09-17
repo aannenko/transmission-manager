@@ -3,7 +3,7 @@ using TransmissionManager.TorrentWebPages.Constants;
 
 namespace TransmissionManager.TorrentWebPages.Options;
 
-public sealed class TorrentWebPageServiceOptions
+public sealed class TorrentWebPageClientOptions
 {
     [Required]
     [RegularExpression(TorrentRegex.IsFindMagnet)]
