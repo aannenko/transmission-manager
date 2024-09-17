@@ -2,8 +2,7 @@
 
 namespace TransmissionManager.Transmission.Services;
 
-public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider)
-    : DelegatingHandler
+public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,

@@ -21,8 +21,8 @@ public sealed class TorrentWebPageClientTests
     [Test]
     public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenProperWebPage()
     {
-        const string _magnetUri = "magnet:?xt=urn:btih:EXAMPLEHASH&dn=Example+Name";
-        const string _webPageContentWithMagnet = $"""
+        const string magnetUri = "magnet:?xt=urn:btih:EXAMPLEHASH&dn=Example+Name";
+        const string webPageContentWithMagnet = $"""
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -33,24 +33,24 @@ public sealed class TorrentWebPageClientTests
             <body>
                 <h1>Magnet Link Example</h1>
                 <p>Click the link below to open the Magnet URI:</p>
-                <a href="{_magnetUri}">Download via Magnet</a>
+                <a href="{magnetUri}">Download via Magnet</a>
             </body>
             </html>
             """;
 
         var client = CreateClient(
             new(HttpMethod.Get, new(_webPageUri)),
-            new(HttpStatusCode.OK, Content: _webPageContentWithMagnet));
+            new(HttpStatusCode.OK, Content: webPageContentWithMagnet));
 
         var result = await client.FindMagnetUriAsync(_webPageUri);
 
-        Assert.That(result, Is.EqualTo(_magnetUri));
+        Assert.That(result, Is.EqualTo(magnetUri));
     }
 
     [Test]
     public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenWebPageWithoutMagnet()
     {
-        const string _webPageContentWithoutMagnet = $"""
+        const string webPageContentWithoutMagnet = """
             <!DOCTYPE html>
             <html lang="en">
             <head>
@@ -67,7 +67,7 @@ public sealed class TorrentWebPageClientTests
 
         var client = CreateClient(
             new(HttpMethod.Get, new(_webPageUri)),
-            new(HttpStatusCode.OK, Content: _webPageContentWithoutMagnet));
+            new(HttpStatusCode.OK, Content: webPageContentWithoutMagnet));
 
         var result = await client.FindMagnetUriAsync(_webPageUri);
 
