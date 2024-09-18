@@ -3,7 +3,7 @@
 public sealed record TestRequest(
     HttpMethod Method,
     Uri? RequestUri,
-    Dictionary<string, string>? Headers = null,
+    IReadOnlyDictionary<string, string>? Headers = null,
     string? Content = null)
 {
     public bool Equals(TestRequest? other)

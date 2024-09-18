@@ -2,12 +2,12 @@
 
 internal static class HttpRequestMessageExtensions
 {
-    public static TestRequest ToTestRequest(this HttpRequestMessage requestMessage)
+    public static async Task<TestRequest> ToTestRequestAsync(this HttpRequestMessage request)
     {
-        return new TestRequest(
-            requestMessage.Method,
-            requestMessage.RequestUri,
-            requestMessage.Headers.ToDictionary(static pair => pair.Key, static pair => pair.Value.Single()),
-            requestMessage.Content?.ReadAsStringAsync().GetAwaiter().GetResult());
+        return new(
+            request.Method,
+            request.RequestUri,
+            request.Headers.ToDictionary(static pair => pair.Key, static pair => pair.Value.Single()),
+            request.Content is null ? null : await request.Content.ReadAsStringAsync().ConfigureAwait(false));
     }
 }

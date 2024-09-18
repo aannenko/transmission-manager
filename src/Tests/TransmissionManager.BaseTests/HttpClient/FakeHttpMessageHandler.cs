@@ -10,11 +10,21 @@ public sealed class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, Test
     {
     }
 
-    protected override Task<HttpResponseMessage> SendAsync(
+    protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        return SendInternal(request.ToTestRequestAsync().GetAwaiter().GetResult());
+    }
+
+    protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
-        if (requestToResponseMap.TryGetValue(request.ToTestRequest(), out var testResponse))
+        return SendInternal(await request.ToTestRequestAsync().ConfigureAwait(false));
+    }
+
+    private HttpResponseMessage SendInternal(TestRequest testRequest)
+    {
+        if (requestToResponseMap.TryGetValue(testRequest, out var testResponse))
         {
             var response = new HttpResponseMessage
             {
@@ -26,9 +36,11 @@ public sealed class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, Test
                 foreach (var (name, value) in testResponse.Headers)
                     response.Headers.TryAddWithoutValidation(name, value);
 
-            return Task.FromResult(response);
+            return response;
         }
 
-        return Task.FromResult(new HttpResponseMessage { StatusCode = (HttpStatusCode)418 });
+        // My hope here is that none of the faked endpoints are expected to return "418 I'm a teapot".
+        // This is done in order not to occupy an exception type which could be asserted in the tests.
+        return new() { StatusCode = (HttpStatusCode)418 };
     }
 }
