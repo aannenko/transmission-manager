@@ -21,7 +21,7 @@ public sealed class TorrentWebPageClientTests
     [Test]
     public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenProperWebPage()
     {
-        const string magnetUri = "magnet:?xt=urn:btih:EXAMPLEHASH&dn=Example+Name";
+        const string magnetUri = "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name";
         const string webPageContentWithMagnet = $"""
             <!DOCTYPE html>
             <html lang="en">

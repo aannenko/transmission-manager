@@ -39,8 +39,8 @@ public sealed class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, Test
             return response;
         }
 
-        // My hope here is that none of the faked endpoints are expected to return "418 I'm a teapot".
-        // This is done in order not to occupy an exception type which could be asserted in the tests.
+        // My hope here is that none of the faked endpoints is expected to return "418 I'm a teapot".
+        // We could throw instead, but it would occupy an exception type which could be asserted in the tests.
         return new() { StatusCode = (HttpStatusCode)418 };
     }
 }
