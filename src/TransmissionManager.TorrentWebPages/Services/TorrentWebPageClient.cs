@@ -5,9 +5,7 @@ using TransmissionManager.TorrentWebPages.Options;
 
 namespace TransmissionManager.TorrentWebPages.Services;
 
-public sealed partial class TorrentWebPageClient(
-    IOptionsMonitor<TorrentWebPageClientOptions> options,
-    HttpClient httpClient)
+public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
 {
     public async Task<string?> FindMagnetUriAsync(
         string torrentWebPageUri,
@@ -34,31 +32,24 @@ public sealed partial class TorrentWebPageClient(
 
     private Regex GetMagnetSearchRegexWithValidation(string? regexPattern)
     {
-        string finalRegexPattern;
         if (regexPattern is null)
-        {
-            finalRegexPattern = options.CurrentValue.DefaultMagnetRegexPattern;
-            if (finalRegexPattern is null || !TorrentRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
-            {
-                throw new InvalidOperationException(
-                    $"Invalid {nameof(options.CurrentValue.DefaultMagnetRegexPattern)} config value. " +
-                    $"The value must match '{TorrentRegex.IsFindMagnet}'.");
-            }
-        }
-        else
-        {
-            finalRegexPattern = regexPattern;
-            if (!TorrentRegex.IsFindMagnetRegex().IsMatch(finalRegexPattern))
-            {
-                throw new ArgumentException(
-                    $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
-                    nameof(regexPattern));
-            }
-        }
+            return GetMagnetSearchRegex(
+                options.CurrentValue.DefaultMagnetRegexPattern,
+                options.CurrentValue.RegexMatchTimeoutMilliseconds);
 
+        if (!TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
+            throw new ArgumentException(
+                $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
+                nameof(regexPattern));
+
+        return GetMagnetSearchRegex(regexPattern, options.CurrentValue.RegexMatchTimeoutMilliseconds);
+    }
+
+    private static Regex GetMagnetSearchRegex(string regexPattern, int timeoutMilliseconds)
+    {
         return new(
-            finalRegexPattern,
+            regexPattern,
             RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture,
-            TimeSpan.FromMilliseconds(options.CurrentValue.RegexMatchTimeoutMilliseconds));
+            TimeSpan.FromMilliseconds(timeoutMilliseconds));
     }
 }
