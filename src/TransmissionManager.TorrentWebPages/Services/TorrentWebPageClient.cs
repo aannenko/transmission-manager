@@ -19,9 +19,11 @@ public sealed partial class TorrentWebPageClient(
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
         using var reader = new StreamReader(stream);
 
+        var nextLineTask = reader.ReadLineAsync(cancellationToken);
         string? line;
-        while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) is not null)
+        while ((line = await nextLineTask.ConfigureAwait(false)) is not null)
         {
+            nextLineTask = reader.ReadLineAsync(cancellationToken);
             var match = regex.Match(line);
             if (match.Success && match.Groups.TryGetValue(TorrentRegex.MagnetGroup, out var group))
                 return group.Value;
