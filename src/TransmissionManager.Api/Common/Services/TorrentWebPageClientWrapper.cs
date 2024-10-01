@@ -2,10 +2,12 @@
 
 namespace TransmissionManager.Api.Common.Services;
 
-public sealed class TorrentWebPageService(TorrentWebPageClient torrentWebPageClient)
+public sealed class TorrentWebPageClientWrapper(TorrentWebPageClient torrentWebPageClient)
 {
-    public async Task<(string? Magnet, string? Error)> GetMagnetUriAsync(
-        string webPageUri,
+    public readonly record struct TorrentWebPageGetMagnetResponse(string? MagnetUri, string? Error);
+
+    public async Task<TorrentWebPageGetMagnetResponse> GetMagnetUriAsync(
+        Uri webPageUri,
         string? magnetRegexPattern,
         CancellationToken cancellationToken)
     {
@@ -23,7 +25,7 @@ public sealed class TorrentWebPageService(TorrentWebPageClient torrentWebPageCli
         }
 
         return magnetUri is null
-            ? (null, $"Could not retrieve a magnet link from '{webPageUri}'{error}.")
-            : (magnetUri, null);
+            ? new(null, $"Could not retrieve a magnet link from '{webPageUri}'{error}.")
+            : new(magnetUri, null);
     }
 }

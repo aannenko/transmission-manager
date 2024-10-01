@@ -54,7 +54,7 @@ public sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTas
 
         var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
 
-        const int maxRetries = 40; // make attempts to get the name for 6 hours
+        const int maxRetries = 40; // make attempts to get the name for approximately 6 hours
         for (var retry = 1; retry <= maxRetries; retry++)
         {
             await Task.Delay(TimeSpan.FromSeconds(retry * retry), cancellationToken).ConfigureAwait(false);

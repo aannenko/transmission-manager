@@ -107,7 +107,7 @@ public sealed class TransmissionClientTests
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: twoTorrentsTwoFieldsResponse));
 
-        var response = await client.GetTorrentsAsync(requestFields: [ TorrentFields.HashString, TorrentFields.Name ]);
+        var response = await client.GetTorrentsAsync(requestFields: [TorrentFields.HashString, TorrentFields.Name]);
 
         AssertUponTransmissionTorrentGetResponse(response, twoTorrentsTwoFieldsResponse);
     }

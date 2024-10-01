@@ -1,14 +1,12 @@
 using Coravel;
-using TransmissionManager.Api.AddOrUpdateTorrent.Endpoints;
-using TransmissionManager.Api.AddOrUpdateTorrent.Handlers;
+using TransmissionManager.Api.AddTorrent;
 using TransmissionManager.Api.Common.Serialization;
 using TransmissionManager.Api.Common.Services;
-using TransmissionManager.Api.DeleteTorrentById.Endpoints;
-using TransmissionManager.Api.FindTorrentById.Endpoints;
-using TransmissionManager.Api.FindTorrentPage.Endpoints;
-using TransmissionManager.Api.RefreshTorrentById.Endpoints;
-using TransmissionManager.Api.RefreshTorrentById.Handlers;
-using TransmissionManager.Api.UpdateTorrentById.Endpoints;
+using TransmissionManager.Api.DeleteTorrentById;
+using TransmissionManager.Api.FindTorrentById;
+using TransmissionManager.Api.FindTorrentPage;
+using TransmissionManager.Api.RefreshTorrentById;
+using TransmissionManager.Api.UpdateTorrentById;
 using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Services;
 using TransmissionManager.TorrentWebPages.Extensions;
@@ -27,15 +25,17 @@ builder.Services.AddTransmissionServices(builder.Configuration);
 
 builder.Services.AddScheduler();
 builder.Services.AddTransient<TorrentSchedulerService>();
-builder.Services.AddTransient<StartupSchedulerService>();
-builder.Services.AddTransient<SchedulableTorrentCommandService>();
+builder.Services.AddTransient<StartupTorrentSchedulerService>();
 
 builder.Services.AddTransient<BackgroundTaskService>();
-builder.Services.AddTransient<TorrentWebPageService>();
-builder.Services.AddTransient<TransmissionService>();
+builder.Services.AddTransient<TorrentWebPageClientWrapper>();
+builder.Services.AddTransient<TransmissionClientWrapper>();
 builder.Services.AddSingleton<TorrentNameUpdateService>();
-builder.Services.AddTransient<AddOrUpdateTorrentHandler>();
+
+builder.Services.AddTransient<AddTorrentHandler>();
 builder.Services.AddTransient<RefreshTorrentByIdHandler>();
+builder.Services.AddTransient<UpdateTorrentByIdHandler>();
+builder.Services.AddTransient<DeleteTorrentByIdHandler>();
 
 var app = builder.Build();
 
@@ -43,8 +43,9 @@ LogStartup(app.Logger);
 
 using (var scope = app.Services.CreateScope())
 {
-    await scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
-    await scope.ServiceProvider.GetRequiredService<StartupSchedulerService>().ScheduleUpdatesForAllTorrentsAsync();
+    var provider = scope.ServiceProvider;
+    await provider.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
+    await provider.GetRequiredService<StartupTorrentSchedulerService>().ScheduleUpdatesForAllTorrentsAsync();
 }
 
 if (!app.Environment.IsDevelopment())

@@ -25,11 +25,14 @@ public sealed class TorrentQueryService(AppDbContext dbContext)
 
         var query = dbContext.Torrents.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(filter.NameStartsWith))
-            query = query.Where(torrent => torrent.Name.StartsWith(filter.NameStartsWith));
+        if (!string.IsNullOrEmpty(filter.HashString))
+            query = query.Where(torrent => torrent.HashString == filter.HashString);
 
         if (!string.IsNullOrEmpty(filter.WebPageUri))
             query = query.Where(torrent => torrent.WebPageUri == filter.WebPageUri);
+
+        if (!string.IsNullOrEmpty(filter.NameStartsWith))
+            query = query.Where(torrent => torrent.Name.StartsWith(filter.NameStartsWith));
 
         if (filter.CronExists is not null)
             query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);

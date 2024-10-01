@@ -1,15 +1,17 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 using TransmissionManager.TorrentWebPages.Constants;
 using TransmissionManager.TorrentWebPages.Options;
+using TransmissionManager.TorrentWebPages.Utils;
 
 namespace TransmissionManager.TorrentWebPages.Services;
 
 public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
 {
     public async Task<string?> FindMagnetUriAsync(
-        string torrentWebPageUri,
-        string? regexPattern = null,
+        Uri torrentWebPageUri,
+        [StringSyntax(StringSyntaxAttribute.Regex)] string? regexPattern = null,
         CancellationToken cancellationToken = default)
     {
         var regex = GetMagnetSearchRegexWithValidation(regexPattern);
@@ -33,23 +35,15 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
     private Regex GetMagnetSearchRegexWithValidation(string? regexPattern)
     {
         if (regexPattern is null)
-            return GetMagnetSearchRegex(
-                options.CurrentValue.DefaultMagnetRegexPattern,
-                options.CurrentValue.RegexMatchTimeoutMilliseconds);
+            return options.CurrentValue.DefaultMagnetRegex.Value;
 
         if (!TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
             throw new ArgumentException(
                 $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
                 nameof(regexPattern));
 
-        return GetMagnetSearchRegex(regexPattern, options.CurrentValue.RegexMatchTimeoutMilliseconds);
-    }
-
-    private static Regex GetMagnetSearchRegex(string regexPattern, int timeoutMilliseconds)
-    {
-        return new(
+        return RegexUtils.CreateRegex(
             regexPattern,
-            RegexOptions.Compiled | RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture,
-            TimeSpan.FromMilliseconds(timeoutMilliseconds));
+            TimeSpan.FromMilliseconds(options.CurrentValue.RegexMatchTimeoutMilliseconds));
     }
 }

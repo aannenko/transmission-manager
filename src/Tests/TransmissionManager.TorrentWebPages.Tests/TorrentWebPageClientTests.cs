@@ -9,7 +9,9 @@ namespace TransmissionManager.TorrentWebPages.Tests;
 [Parallelizable(ParallelScope.Self)]
 public sealed class TorrentWebPageClientTests
 {
-    private const string _webPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
+    private const string _webPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
+
+    private static readonly Uri _webPageUri = new(_webPageAddress);
 
     private static readonly FakeOptionsMonitor<TorrentWebPageClientOptions> _options = new(new()
     {
@@ -39,7 +41,7 @@ public sealed class TorrentWebPageClientTests
             """;
 
         var client = CreateClient(
-            new(HttpMethod.Get, new(_webPageUri)),
+            new(HttpMethod.Get, _webPageUri),
             new(HttpStatusCode.OK, Content: webPageContentWithMagnet));
 
         var result = await client.FindMagnetUriAsync(_webPageUri);
@@ -66,7 +68,7 @@ public sealed class TorrentWebPageClientTests
             """;
 
         var client = CreateClient(
-            new(HttpMethod.Get, new(_webPageUri)),
+            new(HttpMethod.Get, _webPageUri),
             new(HttpStatusCode.OK, Content: webPageContentWithoutMagnet));
 
         var result = await client.FindMagnetUriAsync(_webPageUri);
@@ -80,18 +82,8 @@ public sealed class TorrentWebPageClientTests
         var client = CreateClient();
 
         Assert.That(
-            async () => await client.FindMagnetUriAsync("https://seemingly.valid.though.non.existent.page"),
+            async () => await client.FindMagnetUriAsync(new("https://seemingly.valid.though.non.existent.page")),
             Throws.TypeOf<HttpRequestException>());
-    }
-
-    [Test]
-    public void FindMagnetUriAsync_ThrowsInvalidOperationException_IfGivenMalformedUri()
-    {
-        var client = CreateClient();
-
-        Assert.That(
-            async () => await client.FindMagnetUriAsync("Oops! Bad URI."),
-            Throws.TypeOf<InvalidOperationException>());
     }
 
     private static TorrentWebPageClient CreateClient() =>
