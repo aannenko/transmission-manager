@@ -24,7 +24,7 @@ public static class RefreshTorrentByIdEndpoint
         {
             return TypedResults.ValidationProblem(new Dictionary<string, string[]>
             {
-                [nameof(id)] = [string.Format(EndpointMessages.MustBeGreaterThanZero, nameof(id))]
+                [nameof(id)] = [EndpointMessages.ValueMustBeGreaterThanZero]
             });
         }
 

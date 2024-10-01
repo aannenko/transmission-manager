@@ -27,7 +27,7 @@ public static class UpdateTorrentByIdEndpoint
             areThereErrors = true;
             errors = new Dictionary<string, string[]>(errors)
             {
-                [nameof(id)] = [string.Format(EndpointMessages.MustBeGreaterThanZero, nameof(id))]
+                [nameof(id)] = [EndpointMessages.ValueMustBeGreaterThanZero]
             };
         }
 
