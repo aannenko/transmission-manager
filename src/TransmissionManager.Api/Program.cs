@@ -55,7 +55,7 @@ app.UseStatusCodePages();
 
 app.MapFindTorrentByIdEndpoint();
 app.MapFindTorrentPageEndpoint();
-app.MapAddOrUpdateTorrentEndpoint();
+app.MapAddTorrentEndpoint();
 app.MapRefreshTorrentByIdEndpoint();
 app.MapUpdateTorrentByIdEndpoint();
 app.MapDeleteTorrentByIdEndpoint();

@@ -14,7 +14,7 @@ public sealed class AddTorrentHandler(
 {
     public enum Result
     {
-        Success,
+        TorrentAdded,
         TorrentExists,
         DependencyFailed
     }
@@ -55,12 +55,13 @@ public sealed class AddTorrentHandler(
         }
         catch (DbUpdateException)
         {
-            return new(Result.TorrentExists, null, transmissionResult, "Torrent already exists.");
+            var torrentExistsError = string.Format(error, dto.WebPageUri, "Torrent already exists.");
+            return new(Result.TorrentExists, null, transmissionResult, torrentExistsError);
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
             _ = torrentNameUpdateService.StartUpdateTorrentNameTask(torrentId, transmissionTorrent.HashString);
 
-        return new(Result.Success, torrentId, transmissionResult, null);
+        return new(Result.TorrentAdded, torrentId, transmissionResult, null);
     }
 }

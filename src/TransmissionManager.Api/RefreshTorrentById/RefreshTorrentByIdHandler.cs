@@ -13,7 +13,7 @@ public sealed class RefreshTorrentByIdHandler(
 {
     public enum Result
     {
-        Success,
+        TorrentRefreshed,
         NotFoundLocally,
         NotFoundInTransmission,
         Removed,
@@ -67,6 +67,6 @@ public sealed class RefreshTorrentByIdHandler(
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
             _ = torrentNameUpdateService.StartUpdateTorrentNameTask(torrentId, transmissionAddTorrent.HashString);
 
-        return new(Result.Success, transmissionAddResult, null);
+        return new(Result.TorrentRefreshed, transmissionAddResult, null);
     }
 }

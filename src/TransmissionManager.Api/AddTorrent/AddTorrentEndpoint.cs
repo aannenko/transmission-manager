@@ -7,7 +7,7 @@ namespace TransmissionManager.Api.AddTorrent;
 
 public static class AddTorrentEndpoint
 {
-    public static IEndpointRouteBuilder MapAddOrUpdateTorrentEndpoint(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapAddTorrentEndpoint(this IEndpointRouteBuilder builder)
     {
         builder.MapPost($"{EndpointAddresses.TorrentsApi}/", AddTorrentAsync)
             .WithName(EndpointNames.AddTorrent);
@@ -31,16 +31,19 @@ public static class AddTorrentEndpoint
 
         return result switch
         {
-            AddTorrentHandler.Result.Success =>
+            AddTorrentHandler.Result.TorrentAdded =>
                 TypedResults.Created(GetTorrentUri(linker, id), new AddTorrentResponse(transmissionResult!.Value)),
             AddTorrentHandler.Result.TorrentExists =>
-                TypedResults.Problem(error, statusCode: StatusCodes.Status409Conflict),
+                TypedResults.Problem(
+                    error,
+                    statusCode: StatusCodes.Status409Conflict,
+                    extensions: new Dictionary<string, object?> { [nameof(transmissionResult)] = transmissionResult }),
             AddTorrentHandler.Result.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException()
         };
     }
 
-    private static string? GetTorrentUri(LinkGenerator linkGenerator, long? id) =>
-        linkGenerator.GetPathByName(EndpointNames.FindTorrentById, new() { [nameof(id)] = id });
+    private static string? GetTorrentUri(LinkGenerator linker, long? id) =>
+        linker.GetPathByName(EndpointNames.FindTorrentById, new() { [nameof(id)] = id });
 }
