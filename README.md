@@ -1,3 +1,5 @@
+[![Build and Test](https://github.com/aannenko/transmission-manager/actions/workflows/dotnetcore.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/dotnetcore.yml) [![Docker](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish.yml) [![CodeQL](https://github.com/aannenko/transmission-manager/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/codeql-analysis.yml)
+
 # Transmission Manager
 Do more with [Transmission](https://transmissionbt.com/)!<br>
 - Add torrents by their web page
