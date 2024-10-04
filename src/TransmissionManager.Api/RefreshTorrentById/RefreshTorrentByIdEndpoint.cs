@@ -20,14 +20,6 @@ public static class RefreshTorrentByIdEndpoint
             long id,
             CancellationToken cancellationToken)
     {
-        if (id < 1)
-        {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
-            {
-                [nameof(id)] = [EndpointMessages.ValueMustBeGreaterThanZero]
-            });
-        }
-
         var (result, transmissionResult, error) = await handler
             .RefreshTorrentByIdAsync(id, cancellationToken)
             .ConfigureAwait(false);

@@ -19,14 +19,6 @@ public static class DeleteTorrentByIdEndpoint
         long id,
         CancellationToken cancellationToken)
     {
-        if (id < 1)
-        {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
-            {
-                [nameof(id)] = [EndpointMessages.ValueMustBeGreaterThanZero]
-            });
-        }
-
         return await service.TryDeleteTorrentByIdAsync(id, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.Problem(

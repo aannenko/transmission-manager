@@ -8,8 +8,6 @@ public sealed class TorrentQueryService(AppDbContext dbContext)
 {
     public async Task<Torrent?> FindOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
-
         return await dbContext.Torrents.AsNoTracking()
             .FirstOrDefaultAsync(torrent => torrent.Id == id, cancellationToken)
             .ConfigureAwait(false);
@@ -21,7 +19,6 @@ public sealed class TorrentQueryService(AppDbContext dbContext)
         CancellationToken cancellationToken = default)
     {
         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageDescriptor.Take);
-        ArgumentOutOfRangeException.ThrowIfNegative(pageDescriptor.AfterId);
 
         var query = dbContext.Torrents.AsNoTracking();
 

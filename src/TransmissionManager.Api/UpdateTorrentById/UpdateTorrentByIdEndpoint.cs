@@ -21,17 +21,7 @@ public static class UpdateTorrentByIdEndpoint
         UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken)
     {
-        bool areThereErrors = !MiniValidator.TryValidate(request, out var errors);
-        if (id < 1)
-        {
-            areThereErrors = true;
-            errors = new Dictionary<string, string[]>(errors)
-            {
-                [nameof(id)] = [EndpointMessages.ValueMustBeGreaterThanZero]
-            };
-        }
-
-        if (areThereErrors)
+        if (!MiniValidator.TryValidate(request, out var errors))
             return TypedResults.ValidationProblem(errors);
 
         var updateDto = request.ToTorrentUpdateDto();

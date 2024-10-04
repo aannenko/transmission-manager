@@ -19,8 +19,6 @@ public sealed class TorrentCommandService(AppDbContext dbContext)
         TorrentUpdateDto dto,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
-
         var updatedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
             .ExecuteUpdateAsync(
@@ -52,8 +50,6 @@ public sealed class TorrentCommandService(AppDbContext dbContext)
 
     public async Task<bool> TryDeleteOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
-
         var deletedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
             .ExecuteDeleteAsync(cancellationToken)

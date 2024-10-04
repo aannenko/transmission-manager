@@ -21,14 +21,6 @@ public static class FindTorrentByIdEndpoint
         long id,
         CancellationToken cancellationToken)
     {
-        if (id < 1)
-        {
-            return TypedResults.ValidationProblem(new Dictionary<string, string[]>
-            {
-                [nameof(id)] = [EndpointMessages.ValueMustBeGreaterThanZero]
-            });
-        }
-
         var torrent = await service.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         return torrent is not null
             ? TypedResults.Ok(torrent)
