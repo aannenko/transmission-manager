@@ -112,7 +112,7 @@ iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType applicat
 iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json
 
 # Force-refresh all torrents which are still known to Transmission
-iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json }
+(iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json).torrents | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json }
 
 # Unregister torrent #5 from Transmission Manager but do not touch it in Transmission
 iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
