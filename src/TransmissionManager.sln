@@ -25,7 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Torrent
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Database", "TransmissionManager.Database\TransmissionManager.Database.csproj", "{C3B1BAC1-F19E-4DBB-8520-058CBB7AEB17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Transmission.Tests", "Tests\TransmissionManager.Transmission.Tests\TransmissionManager.Transmission.Tests.csproj", "{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Transmission.Tests", "Tests\TransmissionManager.Transmission.Tests\TransmissionManager.Transmission.Tests.csproj", "{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Database.Tests", "Tests\TransmissionManager.Database.Tests\TransmissionManager.Database.Tests.csproj", "{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -69,6 +75,7 @@ Global
 		{ADCADB36-C5A4-4608-B419-2601E2BA0E93} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 		{45506A55-300F-41CB-BF68-9A1892FA498B} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 		{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
+		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89CF4CEF-CBC8-411C-B159-83323BE5F85C}
