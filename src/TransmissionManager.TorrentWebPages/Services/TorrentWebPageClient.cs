@@ -42,8 +42,6 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
                 nameof(regexPattern));
 
-        return RegexUtils.CreateRegex(
-            regexPattern,
-            TimeSpan.FromMilliseconds(options.CurrentValue.RegexMatchTimeoutMilliseconds));
+        return RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
     }
 }

@@ -15,9 +15,8 @@ public sealed class TorrentWebPageClientTests
 
     private static readonly FakeOptionsMonitor<TorrentWebPageClientOptions> _options = new(new()
     {
-        // language=regex
         DefaultMagnetRegexPattern = @"\""(?<magnet>magnet:\?.*?)\""",
-        RegexMatchTimeoutMilliseconds = 100,
+        RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
     });
 
     [Test]
