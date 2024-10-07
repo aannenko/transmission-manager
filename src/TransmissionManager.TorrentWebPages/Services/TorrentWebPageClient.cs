@@ -35,7 +35,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
     private Regex GetMagnetSearchRegexWithValidation(string? regexPattern)
     {
         if (regexPattern is null)
-            return options.CurrentValue.DefaultMagnetRegex.Value;
+            return options.CurrentValue.DefaultMagnetRegex;
 
         if (!TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
             throw new ArgumentException(

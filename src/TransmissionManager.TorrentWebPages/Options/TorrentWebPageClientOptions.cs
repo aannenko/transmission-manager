@@ -8,10 +8,10 @@ namespace TransmissionManager.TorrentWebPages.Options;
 
 public sealed class TorrentWebPageClientOptions
 {
-    public TorrentWebPageClientOptions()
-    {
-        DefaultMagnetRegex = new(() => RegexUtils.CreateRegex(DefaultMagnetRegexPattern!, RegexMatchTimeout));
-    }
+    private readonly Lazy<Regex> _lazyDefaultMagnetRegex;
+
+    public TorrentWebPageClientOptions() =>
+        _lazyDefaultMagnetRegex = new(() => RegexUtils.CreateRegex(DefaultMagnetRegexPattern!, RegexMatchTimeout));
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
     [Required]
@@ -23,5 +23,5 @@ public sealed class TorrentWebPageClientOptions
     [Range(typeof(TimeSpan), "00:00:00.01", "00:00:00.5")]
     public required TimeSpan RegexMatchTimeout { get; set; }
 
-    public Lazy<Regex> DefaultMagnetRegex { get; }
+    public Regex DefaultMagnetRegex => _lazyDefaultMagnetRegex.Value;
 }
