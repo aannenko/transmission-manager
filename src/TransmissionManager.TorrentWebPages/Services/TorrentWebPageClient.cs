@@ -24,9 +24,8 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         while ((line = await nextLineTask.ConfigureAwait(false)) is not null)
         {
             nextLineTask = reader.ReadLineAsync(cancellationToken);
-            var match = regex.Match(line);
-            if (match.Success && match.Groups.TryGetValue(TorrentRegex.MagnetGroup, out var group))
-                return group.Value;
+            if (TryGetMagnetUri(regex, line, out var magnet))
+                return magnet;
         }
 
         return null;
@@ -43,5 +42,18 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 nameof(regexPattern));
 
         return RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
+    }
+
+    private static bool TryGetMagnetUri(Regex regex, ReadOnlySpan<char> line, [NotNullWhen(true)] out string? magnet)
+    {
+        foreach (var match in regex.EnumerateMatches(line))
+        {
+            // if found, the first match is expected to contain the required magnet uri, so we return it
+            magnet = line.Slice(match.Index, match.Length).ToString();
+            return true;
+        }
+
+        magnet = null;
+        return false;
     }
 }

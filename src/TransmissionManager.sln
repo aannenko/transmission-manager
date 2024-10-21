@@ -27,7 +27,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Databas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Transmission.Tests", "Tests\TransmissionManager.Transmission.Tests\TransmissionManager.Transmission.Tests.csproj", "{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Database.Tests", "Tests\TransmissionManager.Database.Tests\TransmissionManager.Database.Tests.csproj", "{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Database.Tests", "Tests\TransmissionManager.Database.Tests\TransmissionManager.Database.Tests.csproj", "{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

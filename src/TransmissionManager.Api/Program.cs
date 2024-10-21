@@ -67,3 +67,5 @@ static void LogStartup(ILogger logger)
     logger.LogInformation("Starting application {AssemblyFullName}", typeof(Program).Assembly.FullName);
     logger.LogInformation("Start time: {StartTime:o}", DateTime.Now);
 }
+
+public sealed partial class Program;

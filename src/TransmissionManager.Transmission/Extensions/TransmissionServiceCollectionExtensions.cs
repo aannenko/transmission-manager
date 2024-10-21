@@ -45,11 +45,11 @@ public static class TransmissionServiceCollectionExtensions
         builder
             .AddRetry(new()
             {
-                ShouldHandle = new PredicateBuilder<HttpResponseMessage>().HandleResult(IsRetriableResponse)
+                ShouldHandle = new PredicateBuilder<HttpResponseMessage>().HandleResult(IsRetryRequired)
             })
             .AddTimeout(TimeSpan.FromSeconds(3));
 
-        static bool IsRetriableResponse(HttpResponseMessage response) =>
+        static bool IsRetryRequired(HttpResponseMessage response) =>
             response is { IsSuccessStatusCode: false, StatusCode: not HttpStatusCode.Conflict };
     }
 }

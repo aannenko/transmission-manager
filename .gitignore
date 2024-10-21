@@ -4,4 +4,3 @@
 TransmissionManager.db*
 src/**/TransmissionManager*/bin
 src/**/TransmissionManager*/obj
-src/**/TransmissionManager*/appsettings.*.json

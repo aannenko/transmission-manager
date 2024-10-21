@@ -9,10 +9,10 @@ public sealed class TorrentSchedulerService
 {
     private readonly Scheduler _scheduler;
 
-    public TorrentSchedulerService(ILogger<IScheduler> logger, IScheduler scheduler)
+    public TorrentSchedulerService(IScheduler scheduler)
     {
         _scheduler = (Scheduler)scheduler;
-        _scheduler.LogScheduledTaskProgress(logger);
+        _scheduler.LogScheduledTaskProgress();
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TorrentRefreshTask))]
