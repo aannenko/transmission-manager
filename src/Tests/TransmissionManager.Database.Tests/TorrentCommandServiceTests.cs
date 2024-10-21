@@ -4,7 +4,7 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Database.Tests;
 
-[Parallelizable(ParallelScope.All)]
+[Parallelizable(ParallelScope.Self)]
 public sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
 {
     [Test]

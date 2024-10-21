@@ -1,11 +1,9 @@
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Database.Tests;
 
-[Parallelizable(ParallelScope.All)]
+[Parallelizable(ParallelScope.Self)]
 public sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
 {
     [Test]

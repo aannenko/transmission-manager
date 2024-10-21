@@ -182,7 +182,7 @@ public sealed class TransmissionClientTests
             {
                 "arguments": {
                     "torrent-added": {
-                        "hashString": "3A81AAA70E75439D332C146ABDE899E546356BE2",
+                        "hashString": "3a81aaa70e75439d332c146abde899e546356be2",
                         "id": 1,
                         "name": "Example Name"
                     }

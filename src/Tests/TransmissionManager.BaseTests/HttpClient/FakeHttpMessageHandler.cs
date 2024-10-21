@@ -1,8 +1,6 @@
-﻿using System.Net;
+﻿namespace TransmissionManager.BaseTests.HttpClient;
 
-namespace TransmissionManager.BaseTests.HttpClient;
-
-public sealed class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap)
+public class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap)
     : HttpMessageHandler
 {
     public FakeHttpMessageHandler(TestRequest testRequest, TestResponse testResponse)
@@ -24,23 +22,18 @@ public sealed class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, Test
 
     private HttpResponseMessage SendInternal(TestRequest testRequest)
     {
-        if (requestToResponseMap.TryGetValue(testRequest, out var testResponse))
+        if (!requestToResponseMap.TryGetValue(testRequest, out var testResponse))
+            throw new UnexpectedTestRequestException(testRequest);
+
+        var response = new HttpResponseMessage(testResponse.StatusCode)
         {
-            var response = new HttpResponseMessage
-            {
-                StatusCode = testResponse.StatusCode,
-                Content = testResponse.Content is null ? null : new StringContent(testResponse.Content)
-            };
+            Content = testResponse.Content is null ? null : new StringContent(testResponse.Content)
+        };
 
-            if (testResponse.Headers?.Count > 0)
-                foreach (var (name, value) in testResponse.Headers)
-                    response.Headers.TryAddWithoutValidation(name, value);
+        if (testResponse.Headers?.Count > 0)
+            foreach (var (name, value) in testResponse.Headers)
+                response.Headers.TryAddWithoutValidation(name, value);
 
-            return response;
-        }
-
-        // My hope here is that none of the faked endpoints is expected to return "418 I'm a teapot".
-        // We could throw instead, but it would occupy an exception type which could be asserted in the tests.
-        return new() { StatusCode = (HttpStatusCode)418 };
+        return response;
     }
 }
