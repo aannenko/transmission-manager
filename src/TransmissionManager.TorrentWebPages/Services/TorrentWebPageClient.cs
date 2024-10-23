@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 using System.Text.RegularExpressions;
 using TransmissionManager.TorrentWebPages.Constants;
 using TransmissionManager.TorrentWebPages.Options;
@@ -9,6 +11,9 @@ namespace TransmissionManager.TorrentWebPages.Services;
 
 public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
 {
+    private const int _bufferSize = 2048;
+    private const int _keepFromLastBuffer = _bufferSize / 16;
+
     public async Task<string?> FindMagnetUriAsync(
         Uri torrentWebPageUri,
         [StringSyntax(StringSyntaxAttribute.Regex)] string? regexPattern = null,
@@ -17,15 +22,37 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         var regex = GetMagnetSearchRegexWithValidation(regexPattern);
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
-        using var reader = new StreamReader(stream);
 
-        var nextLineTask = reader.ReadLineAsync(cancellationToken);
-        string? line;
-        while ((line = await nextLineTask.ConfigureAwait(false)) is not null)
+        using var bytesOwner = MemoryPool<byte>.Shared.Rent(_bufferSize);
+        int read = 0;
+        while ((read = await stream.ReadAsync(bytesOwner.Memory[_keepFromLastBuffer..], cancellationToken)) > 0)
         {
-            nextLineTask = reader.ReadLineAsync(cancellationToken);
-            if (TryGetMagnetUri(regex, line, out var magnet))
-                return magnet;
+            var bytes = bytesOwner.Memory[..(_keepFromLastBuffer + read)];
+            var indexOfMagnet = IndexOfStartOf(bytes.Span, "magnet:?"u8);
+            if (indexOfMagnet is -1)
+            {
+                bytes[^_keepFromLastBuffer..].CopyTo(bytes);
+                continue;
+            }
+
+            if (indexOfMagnet > _keepFromLastBuffer * 2)
+            {
+                var fromMagnetTillEnd = bytes[indexOfMagnet..];
+                var fromLastBufferTillEnd = bytes[_keepFromLastBuffer..];
+                fromMagnetTillEnd.CopyTo(fromLastBufferTillEnd);
+                var toFill = fromLastBufferTillEnd[fromMagnetTillEnd.Length..];
+                await stream.ReadAsync(toFill, cancellationToken);
+            }
+
+            using var charsOwner = MemoryPool<char>.Shared.Rent(_bufferSize);
+            var chars = charsOwner.Memory;
+            if (Encoding.UTF8.TryGetChars(bytes.Span, chars.Span, out var charsWritten) &&
+                TryGetFirstRegexMatch(regex, chars.Span[..charsWritten], out var magnetRange))
+            {
+                return chars[magnetRange].ToString();
+            }
+
+            bytes[^_keepFromLastBuffer..].CopyTo(bytes);
         }
 
         return null;
@@ -44,16 +71,31 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         return RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
     }
 
-    private static bool TryGetMagnetUri(Regex regex, ReadOnlySpan<char> line, [NotNullWhen(true)] out string? magnet)
+    private static int IndexOfStartOf(ReadOnlySpan<byte> span, ReadOnlySpan<byte> value)
     {
-        foreach (var match in regex.EnumerateMatches(line))
+        var index = span.IndexOf(value);
+        if (index is not -1)
+            return index;
+
+        for (int i = 1; i < value.Length; i++)
         {
-            // if found, the first match is expected to contain the required magnet uri, so we return it
-            magnet = line.Slice(match.Index, match.Length).ToString();
+            var valueStart = value[..^i];
+            if (span.EndsWith(valueStart))
+                return span.Length - valueStart.Length;
+        }
+
+        return -1;
+    }
+
+    private static bool TryGetFirstRegexMatch(Regex regex, ReadOnlySpan<char> span, out Range matchRange)
+    {
+        foreach (var match in regex.EnumerateMatches(span))
+        {
+            matchRange = new(match.Index, match.Index + match.Length);
             return true;
         }
 
-        magnet = null;
+        matchRange = Range.EndAt(0);
         return false;
     }
 }

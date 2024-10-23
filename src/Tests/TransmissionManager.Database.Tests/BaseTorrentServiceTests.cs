@@ -25,7 +25,7 @@ public abstract class BaseTorrentServiceTests
             Name = "Movie name",
             WebPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234568",
             DownloadDir = "/movies",
-            MagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]*",
+            MagnetRegexPattern = @"magnet:\?xt=urn:[^""]*",
         },
         new Torrent
         {
@@ -35,7 +35,7 @@ public abstract class BaseTorrentServiceTests
             WebPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234569",
             DownloadDir = "/videos",
             Cron = "0 10,18 * * *",
-            MagnetRegexPattern = @"magnet:\?xt=urn:[^""]*",
+            MagnetRegexPattern = @"magnet:\?xt[^""]*",
         }
     ];
 
