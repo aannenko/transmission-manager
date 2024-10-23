@@ -35,13 +35,13 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 continue;
             }
 
-            if (indexOfMagnet > _keepFromLastBuffer * 2)
+            if (indexOfMagnet >= _keepFromLastBuffer * 2)
             {
-                var fromMagnetTillEnd = bytes[indexOfMagnet..];
-                var fromLastBufferTillEnd = bytes[_keepFromLastBuffer..];
-                fromMagnetTillEnd.CopyTo(fromLastBufferTillEnd);
-                var toFill = fromLastBufferTillEnd[fromMagnetTillEnd.Length..];
-                await stream.ReadAsync(toFill, cancellationToken);
+                var toShiftToStart = bytes[(indexOfMagnet - _keepFromLastBuffer)..];
+                toShiftToStart.CopyTo(bytes);
+                var toFill = bytesOwner.Memory[toShiftToStart.Length..];
+                read = await stream.ReadAsync(toFill, cancellationToken);
+                bytes = bytesOwner.Memory[..(toShiftToStart.Length + read)];
             }
 
             using var charsOwner = MemoryPool<char>.Shared.Rent(_bufferSize);
