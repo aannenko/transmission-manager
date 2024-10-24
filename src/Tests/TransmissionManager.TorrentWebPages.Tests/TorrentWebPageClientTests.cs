@@ -15,7 +15,7 @@ public sealed class TorrentWebPageClientTests
 
     private static readonly FakeOptionsMonitor<TorrentWebPageClientOptions> _options = new(new()
     {
-        DefaultMagnetRegexPattern = @"magnet:\?[^""]*",
+        DefaultMagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]*",
         RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
     });
 
