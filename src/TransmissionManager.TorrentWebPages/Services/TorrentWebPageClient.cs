@@ -35,7 +35,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 continue;
             }
 
-            if (indexOfMagnet >= _keepFromLastBuffer * 2)
+            if (indexOfMagnet >= _keepFromLastBuffer * 4)
             {
                 var toShiftToStart = bytes[(indexOfMagnet - _keepFromLastBuffer)..];
                 toShiftToStart.CopyTo(bytes);
