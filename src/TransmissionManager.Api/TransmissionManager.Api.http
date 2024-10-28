@@ -40,7 +40,7 @@ PATCH {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 
 {
-    "magnetRegexPattern": "\\\"(?<magnet>magnet:\\?xt=urn:btih:.*?)\\\"",
+    "magnetRegexPattern": "magnet:\\?xt=urn:[^\"]+",
     "cron": "0 10,16 * * *"
 }
 
