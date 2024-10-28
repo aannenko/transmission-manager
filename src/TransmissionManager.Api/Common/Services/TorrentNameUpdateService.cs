@@ -13,7 +13,7 @@ public sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTas
 
     private readonly ConcurrentDictionary<long, CancellationTokenSource> _runningNameUpdates = [];
 
-    public async Task StartUpdateTorrentNameTask(long id, string hashString)
+    public async Task UpdateTorrentNameAsync(long id, string hashString)
     {
         static CancellationTokenSource AddCts(long _) => new();
 
@@ -76,9 +76,9 @@ public sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTas
                 if (string.IsNullOrEmpty(torrentName))
                     break;
 
-                var torrentService = serviceProvider.GetRequiredService<TorrentCommandService>();
+                var torrentCommandService = serviceProvider.GetRequiredService<TorrentCommandService>();
                 var dto = new TorrentUpdateDto(name: torrentName);
-                await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
+                await torrentCommandService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;
             }
         }

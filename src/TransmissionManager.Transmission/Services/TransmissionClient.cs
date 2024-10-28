@@ -65,9 +65,7 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
             .PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
             .ConfigureAwait(false);
 
-        response.EnsureSuccessStatusCode();
-
-        var responseObject = await response.Content
+        var responseObject = await response.EnsureSuccessStatusCode().Content
             .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
             .ConfigureAwait(false);
 

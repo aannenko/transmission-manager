@@ -17,8 +17,6 @@ public static class DatabaseServiceCollectionExtensions
             .AddTransient<TorrentCommandService>();
     }
 
-    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options)
-    {
+    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options) =>
         options.UseSqlite(services.GetRequiredService<IConfiguration>().GetConnectionString(_appDbConfigKey));
-    }
 }

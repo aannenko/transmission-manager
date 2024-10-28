@@ -45,7 +45,7 @@ public abstract class BaseTorrentServiceTests
     [OneTimeSetUp]
     public void Setup()
     {
-        _connection = new SqliteConnection("Filename=:memory:");
+        _connection = new SqliteConnection("Data Source=:memory:");
         _connection.Open();
 
         _contextOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite(_connection).Options;
@@ -58,10 +58,7 @@ public abstract class BaseTorrentServiceTests
     }
 
     [OneTimeTearDown]
-    public void TearDown()
-    {
-        _connection.Dispose();
-    }
+    public void TearDown() => _connection.Dispose();
 
     private protected AppDbContext CreateContext() => new(_contextOptions);
 }

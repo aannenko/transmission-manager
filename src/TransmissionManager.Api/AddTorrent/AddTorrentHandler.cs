@@ -60,7 +60,7 @@ public sealed class AddTorrentHandler(
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = torrentNameUpdateService.StartUpdateTorrentNameTask(torrentId, transmissionTorrent.HashString);
+            _ = torrentNameUpdateService.UpdateTorrentNameAsync(torrentId, transmissionTorrent.HashString);
 
         return new(Result.TorrentAdded, torrentId, transmissionResult, null);
     }

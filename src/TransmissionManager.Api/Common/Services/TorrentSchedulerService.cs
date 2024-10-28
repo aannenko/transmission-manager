@@ -24,8 +24,6 @@ public sealed class TorrentSchedulerService
             .PreventOverlapping(torrentId.ToString());
     }
 
-    public bool TryUnscheduleTorrentRefresh(long torrentId)
-    {
-        return _scheduler.TryUnschedule(torrentId.ToString());
-    }
+    public bool TryUnscheduleTorrentRefresh(long torrentId) =>
+        _scheduler.TryUnschedule(torrentId.ToString());
 }

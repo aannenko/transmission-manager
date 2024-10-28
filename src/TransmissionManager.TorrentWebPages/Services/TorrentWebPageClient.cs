@@ -24,7 +24,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
 
         using var bytesOwner = MemoryPool<byte>.Shared.Rent(_bufferSize);
-        int read = 0;
+        var read = 0;
         while ((read = await stream.ReadAsync(bytesOwner.Memory[_keepFromLastBuffer..], cancellationToken)) > 0)
         {
             var bytes = bytesOwner.Memory[..(_keepFromLastBuffer + read)];

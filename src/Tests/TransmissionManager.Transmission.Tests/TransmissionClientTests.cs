@@ -14,8 +14,7 @@ namespace TransmissionManager.Transmission.Tests;
 public sealed class TransmissionClientTests
 {
     private const string _transmissionRpcUri = "http://transmission:9091/transmission/rpc";
-
-    const string _twoTorrentsAllFieldsResponse = """
+    private const string _twoTorrentsAllFieldsResponse = """
         {
             "arguments": {
                 "torrents": [
@@ -39,7 +38,7 @@ public sealed class TransmissionClientTests
         }
         """;
 
-    const string _twoTorrentsWithNoFieldsResponse = """{"arguments":{"torrents":[{},{}]},"result":"success"}""";
+    private const string _twoTorrentsWithNoFieldsResponse = """{"arguments":{"torrents":[{},{}]},"result":"success"}""";
 
     private static readonly FakeOptionsMonitor<TransmissionClientOptions> _options = new(new()
     {
@@ -176,7 +175,7 @@ public sealed class TransmissionClientTests
     public async Task AddTorrentsAsync_ReturnsTorrentAdded_WhenNewMagnetAndDownloadDirProvided()
     {
         const string expectedRequest =
-            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2\u0026dn=Example%20Name","download-dir":"/tvshows"}}""";
+            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example%20Name","download-dir":"/tvshows"}}""";
 
         const string torrentAddedResponse = """
             {
@@ -204,7 +203,7 @@ public sealed class TransmissionClientTests
     public async Task AddTorrentsAsync_ReturnsTorrentDuplicate_WhenExistingMagnetProvided()
     {
         const string expectedRequest =
-            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2\u0026dn=Example%20Name","download-dir":"/tvshows"}}""";
+            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example%20Name","download-dir":"/tvshows"}}""";
 
         const string torrentDuplicateResponse = """
             {
@@ -251,7 +250,7 @@ public sealed class TransmissionClientTests
     public void AddTorrentsAsync_ThrowsHttpRequestException_WhenInvalidDownloadDirProvided()
     {
         const string expectedRequest =
-            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2","download-dir":"^\u0026*("}}""";
+            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2","download-dir":"^&*("}}""";
 
         const string unrecognizedInfoResponse = """{"arguments":{},"result":"download directory path is not absolute"}""";
 

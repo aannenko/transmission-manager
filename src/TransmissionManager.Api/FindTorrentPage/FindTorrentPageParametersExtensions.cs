@@ -27,8 +27,8 @@ public static class FindTorrentPageParametersExtensions
         if (currentPage.Length is 0 || parameters.WebPageUri is not null || parameters.HashString is not null)
             return null;
 
-        var (take, afterId, hashString, webPageUri, nameStartsWith, cronExists) = parameters;
-
+        var (take, _, _, _, nameStartsWith, cronExists) = parameters;
+        long afterId;
         return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={currentPage.Last().Id}" +
             $"{(string.IsNullOrEmpty(nameStartsWith) ? string.Empty : $"&{nameof(nameStartsWith)}={nameStartsWith}")}" +
             $"{(cronExists is null ? string.Empty : $"&{nameof(cronExists)}={cronExists}")}";

@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Transmi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Database.Tests", "Tests\TransmissionManager.Database.Tests\TransmissionManager.Database.Tests.csproj", "{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Api.IntegrationTests", "Tests\TransmissionManager.Api.IntegrationTests\TransmissionManager.Api.IntegrationTests.csproj", "{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,6 +69,10 @@ Global
 		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -76,6 +82,7 @@ Global
 		{45506A55-300F-41CB-BF68-9A1892FA498B} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 		{2B3AD0E6-45F1-46CA-966A-FAEF03D285AA} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 		{F300CE8F-C0A4-4AC1-B9A3-277AA884A816} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
+		{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83} = {5F7726A6-4944-4347-A591-ACB2FB3F7126}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89CF4CEF-CBC8-411C-B159-83323BE5F85C}
