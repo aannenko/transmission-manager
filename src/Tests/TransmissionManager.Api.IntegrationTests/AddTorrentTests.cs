@@ -152,7 +152,6 @@ public sealed class AddTorrentTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
 
         Assert.That(problemDetails, Is.Not.Null);
-
         Assert.Multiple(() =>
         {
             const string error = "Addition of a torrent from the web page '{0}' has failed: 'Torrent already exists.'.";
