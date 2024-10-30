@@ -95,6 +95,17 @@ public sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     }
 
     [Test]
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenDowncasedHashStringFilterIsUsed()
+    {
+        using var context = CreateContext();
+        var service = new TorrentQueryService(context);
+
+        var torrents = await service.FindPageAsync(new(2, 0), new(HashString: _initialTorrents[1].HashString.ToLowerInvariant()));
+
+        AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
+    }
+
+    [Test]
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
@@ -106,12 +117,34 @@ public sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     }
 
     [Test]
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenDowncasedWebPageUriFilterIsUsed()
+    {
+        using var context = CreateContext();
+        var service = new TorrentQueryService(context);
+
+        var torrents = await service.FindPageAsync(new(2, 0), new(WebPageUri: _initialTorrents[1].WebPageUri.ToLowerInvariant()));
+
+        AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
+    }
+
+    [Test]
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenNameFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0), new(NameStartsWith: "M"));
+
+        AssertMultipleTorrents(torrents, _initialTorrents[1..], [2, 3]);
+    }
+
+    [Test]
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenDowncasedNameFilterIsUsed()
+    {
+        using var context = CreateContext();
+        var service = new TorrentQueryService(context);
+
+        var torrents = await service.FindPageAsync(new(5, 0), new(NameStartsWith: "m"));
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..], [2, 3]);
     }
