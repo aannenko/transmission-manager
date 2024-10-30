@@ -1,16 +1,15 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http.Json;
 using System.Net;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
-using TransmissionManager.Api.UpdateTorrentById;
-using Microsoft.AspNetCore.Mvc;
 
 namespace TransmissionManager.Api.IntegrationTests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class UpdateTorrentByIdTests
+public sealed class DeleteTorrentByIdTests
 {
-    private static readonly Torrent[] _torrents = TestData.Database.CreateInitialTorrents();
+    private static readonly Torrent[] _torrents = [TestData.Database.CreateInitialTorrents()[0]];
 
     private TestWebAppliationFactory<Program> _factory;
     private HttpClient _client;
@@ -30,42 +29,28 @@ public sealed class UpdateTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenGivenExistingIdAndValidData_UpdatesTorrent()
+    public async Task DeleteTorrentByIdAsync_WhenGivenExistingId_DeletesTorrent()
     {
-        var dto = new UpdateTorrentByIdRequest
-        {
-            DownloadDir = "/videos",
-            MagnetRegexPattern = "magnet:\\?xt=urn:[^\"]",
-            Cron = "30 7,19 * * 3"
-        };
-
         const string torrentAddress = $"{TestData.Endpoints.Torrents}/1";
 
-        var response = await _client.PatchAsJsonAsync(torrentAddress, dto);
+        var response = await _client.DeleteAsync(torrentAddress);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
         response = await _client.GetAsync(torrentAddress);
 
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var torrent = await response.Content.ReadFromJsonAsync<Torrent>();
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
 
-        Assert.That(torrent, Is.Not.Null);
-        Assert.Multiple(() =>
-        {
-            Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));
-            Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
-            Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));
-        });
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id 1 was not found."));
     }
 
     [Test]
     public async Task UpdateTorrentByIdAsync_WhenGivenNonExistingId_ReturnsNotFound()
     {
-        var dto = new UpdateTorrentByIdRequest { DownloadDir = "/videos" };
-
-        var response = await _client.PatchAsJsonAsync($"{TestData.Endpoints.Torrents}/-1", dto);
+        var response = await _client.DeleteAsync($"{TestData.Endpoints.Torrents}/-1");
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
