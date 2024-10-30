@@ -31,8 +31,8 @@ public sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenCorrectPageDescriptor_ReturnsMatchingTorrents()
     {
-        const string query = $"{TestData.Endpoints.Torrents}?take=5&afterId=1";
-        var response = await _client.GetAsync(query);
+        var parameters = new FindTorrentPageParameters(Take: 5, AfterId: 1);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -42,8 +42,8 @@ public sealed class FindTorrentPageTests
         Assert.Multiple(() =>
         {
             Assert.That(page.Torrents, Has.Length.EqualTo(2));
-            const string nextPageQuery = $"{TestData.Endpoints.Torrents}?take=5&afterId=3";
-            Assert.That(page.NextPageAddress, Is.EqualTo(nextPageQuery));
+            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
+            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
 
         TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
@@ -53,8 +53,8 @@ public sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenCorrectNameAndCronFilters_ReturnsMatchingTorrents()
     {
-        const string query = $"{TestData.Endpoints.Torrents}?nameStartsWith=TV+Show&cronExists=True";
-        var response = await _client.GetAsync(query);
+        var parameters = new FindTorrentPageParameters(NameStartsWith: "TV Show", CronExists: true);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -64,10 +64,8 @@ public sealed class FindTorrentPageTests
         Assert.Multiple(() =>
         {
             Assert.That(page.Torrents, Has.Length.EqualTo(2));
-            const string nextPageQuery = TestData.Endpoints.Torrents +
-                "?take=20&afterId=3&nameStartsWith=TV+Show&cronExists=True";
-
-            Assert.That(page.NextPageAddress, Is.EqualTo(nextPageQuery));
+            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
+            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
 
         TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
@@ -77,11 +75,11 @@ public sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenCorrectUriAndHashStringFilters_ReturnsMatchingTorrent()
     {
-        var query = TestData.Endpoints.Torrents +
-            $"?webPageUri={WebUtility.UrlEncode(TestData.Database.SecondTorrentWebPageUri)}" +
-            $"&hashString={TestData.Database.SecondTorrentHashString}";
+        var parameters = new FindTorrentPageParameters(
+            WebPageUri: new(TestData.Database.SecondTorrentWebPageUri),
+            HashString: TestData.Database.SecondTorrentHashString);
 
-        var response = await _client.GetAsync(query);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -91,7 +89,8 @@ public sealed class FindTorrentPageTests
         Assert.Multiple(() =>
         {
             Assert.That(page.Torrents, Has.Length.EqualTo(1));
-            Assert.That(page.NextPageAddress, Is.EqualTo(null));
+            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
+            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
 
         TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
@@ -100,15 +99,15 @@ public sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenNonExistingFilterValues_ReturnsEmptyTorrentPage()
     {
-        const string query = TestData.Endpoints.Torrents +
-            "?take=5" +
-            "&afterId=100" +
-            "&nameStartsWith=NoSuchName" +
-            "&webPageUri=https%3A%2F%2FtorrentTracker.com%2Fi-do-not-exist" +
-            "&hashString=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" +
-            "&cronExists=True";
+        var parameters = new FindTorrentPageParameters(
+            Take: 5,
+            AfterId: 100,
+            NameStartsWith: "NoSuchName",
+            WebPageUri: new("https://torrentTracker.com/i-do-not-exist"),
+            HashString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            CronExists: true);
 
-        var response = await _client.GetAsync(query);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -118,7 +117,8 @@ public sealed class FindTorrentPageTests
         Assert.Multiple(() =>
         {
             Assert.That(page.Torrents, Has.Length.EqualTo(0));
-            Assert.That(page.NextPageAddress, Is.EqualTo(null));
+            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
+            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
     }
 }

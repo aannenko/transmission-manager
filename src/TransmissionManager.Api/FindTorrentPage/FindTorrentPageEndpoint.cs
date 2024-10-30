@@ -28,6 +28,7 @@ public static class FindTorrentPageEndpoint
             .FindPageAsync(parameters.ToPageDescriptor(), parameters.ToTorrentFilter(), cancellationToken)
             .ConfigureAwait(false);
 
-        return TypedResults.Ok(new FindTorrentPageResponse(torrents, parameters.GetNextPageAddress(torrents)));
+        var nextPage = parameters.ToNextPageParameters(torrents)?.ToPathAndQueryString();
+        return TypedResults.Ok(new FindTorrentPageResponse(torrents, nextPage));
     }
 }
