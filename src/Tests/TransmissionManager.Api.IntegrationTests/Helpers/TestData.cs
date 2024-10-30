@@ -79,16 +79,16 @@ internal static class TestData
             """;
 
         public const string FirstPageMagnetExisting =
-            "magnet:?xt=urn:btih:0BDA511316A069E86DD8EE8A3610475D2013A7FA&dn=TV%20Show%201";
+            "magnet:?xt=urn:btih:0BDA511316A069E86DD8EE8A3610475D2013A7FA&dn=TV+Show+1";
 
         public const string SecondPageMagnetUpdated =
-            "magnet:?xt=urn:btih:9EBC251E08FB1AECB7B24D26385341875473919A&dn=TV%20Show%202";
+            "magnet:?xt=urn:btih:9EBC251E08FB1AECB7B24D26385341875473919A&dn=TV+Show+2";
 
         public const string ThirdPageMagnetRemovedFromTransmission =
-            "magnet:?xt=urn:btih:10824F01CCCD5D4088D8FA04F3D46B7D319744B2&dn=TV%20Show%203";
+            "magnet:?xt=urn:btih:10824F01CCCD5D4088D8FA04F3D46B7D319744B2&dn=TV+Show+3";
 
         public const string FourthPageMagnetNew =
-            "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=TV%20Show%204";
+            "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=TV+Show+4";
 
         public static readonly Uri FirstPageUriExistingMagnet =
             new(Database.FirstTorrentWebPageUri);

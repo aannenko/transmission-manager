@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Transmi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Database.Tests", "Tests\TransmissionManager.Database.Tests\TransmissionManager.Database.Tests.csproj", "{F300CE8F-C0A4-4AC1-B9A3-277AA884A816}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TransmissionManager.Api.IntegrationTests", "Tests\TransmissionManager.Api.IntegrationTests\TransmissionManager.Api.IntegrationTests.csproj", "{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TransmissionManager.Api.IntegrationTests", "Tests\TransmissionManager.Api.IntegrationTests\TransmissionManager.Api.IntegrationTests.csproj", "{07B0B8A3-15D5-44AC-9737-B8D75E8E9D83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

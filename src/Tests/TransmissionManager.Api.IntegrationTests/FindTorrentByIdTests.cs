@@ -39,16 +39,7 @@ public sealed class FindTorrentByIdTests
         var expected = _torrents[0];
 
         Assert.That(torrent, Is.Not.Null);
-        Assert.Multiple(() =>
-        {
-            Assert.That(torrent.Id, Is.EqualTo(1));
-            Assert.That(torrent.HashString, Is.EqualTo(expected.HashString));
-            Assert.That(torrent.Name, Is.EqualTo(expected.Name));
-            Assert.That(torrent.WebPageUri, Is.EqualTo(expected.WebPageUri));
-            Assert.That(torrent.DownloadDir, Is.EqualTo(expected.DownloadDir));
-            Assert.That(torrent.Cron, Is.EqualTo(expected.Cron));
-            Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
-        });
+        TorrentAssertions.AssertEqual(torrent, 1, expected);
     }
 
     [Test]
