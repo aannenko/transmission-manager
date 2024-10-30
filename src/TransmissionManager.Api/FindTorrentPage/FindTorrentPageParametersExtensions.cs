@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Api.Common.Constants;
+﻿using System.Net;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
@@ -30,7 +31,11 @@ public static class FindTorrentPageParametersExtensions
         var (take, _, _, _, nameStartsWith, cronExists) = parameters;
         long afterId;
         return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={currentPage.Last().Id}" +
-            $"{(string.IsNullOrEmpty(nameStartsWith) ? string.Empty : $"&{nameof(nameStartsWith)}={nameStartsWith}")}" +
-            $"{(cronExists is null ? string.Empty : $"&{nameof(cronExists)}={cronExists}")}";
+            $"{(string.IsNullOrEmpty(nameStartsWith)
+                ? string.Empty
+                : $"&{nameof(nameStartsWith)}={WebUtility.UrlEncode(nameStartsWith)}")}" +
+            $"{(cronExists is null
+                ? string.Empty
+                : $"&{nameof(cronExists)}={cronExists}")}";
     }
 }
