@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using MiniValidation;
 using TransmissionManager.Api.Common.Constants;
 
 namespace TransmissionManager.Api.AddTorrent;
@@ -9,7 +8,8 @@ public static class AddTorrentEndpoint
 {
     public static IEndpointRouteBuilder MapAddTorrentEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost($"{EndpointAddresses.TorrentsApi}/", AddTorrentAsync)
+        builder.MapPost("/", AddTorrentAsync)
+            .WithParameterValidation()
             .WithName(EndpointNames.AddTorrent);
 
         return builder;
@@ -22,9 +22,6 @@ public static class AddTorrentEndpoint
             AddTorrentRequest dto,
             CancellationToken cancellationToken)
     {
-        if (!MiniValidator.TryValidate(dto, out var errors))
-            return TypedResults.ValidationProblem(errors);
-
         var (result, id, transmissionResult, error) = await handler
             .AddTorrentAsync(dto, cancellationToken)
             .ConfigureAwait(false);

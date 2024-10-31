@@ -8,7 +8,7 @@ public static class DeleteTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapDeleteTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapDelete($"{EndpointAddresses.TorrentsApi}/{{id}}", DeleteTorrentByIdAsync)
+        builder.MapDelete("/{id}", DeleteTorrentByIdAsync)
             .WithName(EndpointNames.DeleteTorrentById);
 
         return builder;

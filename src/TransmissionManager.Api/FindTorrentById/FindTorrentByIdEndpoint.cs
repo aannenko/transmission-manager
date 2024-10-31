@@ -10,7 +10,7 @@ public static class FindTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapFindTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet($"{EndpointAddresses.TorrentsApi}/{{id}}", FindTorrentByIdAsync)
+        builder.MapGet("/{id}", FindTorrentByIdAsync)
             .WithName(EndpointNames.FindTorrentById);
 
         return builder;

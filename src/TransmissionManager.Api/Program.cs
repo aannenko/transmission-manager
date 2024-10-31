@@ -1,5 +1,6 @@
 using Coravel;
 using TransmissionManager.Api.AddTorrent;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Serialization;
 using TransmissionManager.Api.Common.Services;
 using TransmissionManager.Api.DeleteTorrentById;
@@ -53,12 +54,13 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePages();
 
-app.MapFindTorrentByIdEndpoint();
-app.MapFindTorrentPageEndpoint();
-app.MapAddTorrentEndpoint();
-app.MapRefreshTorrentByIdEndpoint();
-app.MapUpdateTorrentByIdEndpoint();
-app.MapDeleteTorrentByIdEndpoint();
+app.MapGroup(EndpointAddresses.TorrentsApi)
+    .MapFindTorrentByIdEndpoint()
+    .MapFindTorrentPageEndpoint()
+    .MapAddTorrentEndpoint()
+    .MapRefreshTorrentByIdEndpoint()
+    .MapUpdateTorrentByIdEndpoint()
+    .MapDeleteTorrentByIdEndpoint();
 
 app.Run();
 

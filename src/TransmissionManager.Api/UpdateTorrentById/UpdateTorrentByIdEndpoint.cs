@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using MiniValidation;
 using TransmissionManager.Api.Common.Constants;
 
 namespace TransmissionManager.Api.UpdateTorrentById;
@@ -9,7 +8,8 @@ public static class UpdateTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapUpdateTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapPatch($"{EndpointAddresses.TorrentsApi}/{{id}}", UpdateTorrentByIdAsync)
+        builder.MapPatch("/{id}", UpdateTorrentByIdAsync)
+            .WithParameterValidation()
             .WithName(EndpointNames.UpdateTorrentById);
 
         return builder;
@@ -21,9 +21,6 @@ public static class UpdateTorrentByIdEndpoint
         UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken)
     {
-        if (!MiniValidator.TryValidate(request, out var errors))
-            return TypedResults.ValidationProblem(errors);
-
         var updateDto = request.ToTorrentUpdateDto();
         return await service.TryUpdateTorrentByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()

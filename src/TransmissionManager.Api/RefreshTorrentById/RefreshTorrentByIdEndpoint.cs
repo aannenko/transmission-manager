@@ -8,7 +8,7 @@ public static class RefreshTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapRefreshTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost($"{EndpointAddresses.TorrentsApi}/{{id}}", RefreshTorrentByIdAsync)
+        builder.MapPost("/{id}", RefreshTorrentByIdAsync)
             .WithName(EndpointNames.RefreshTorrentById);
 
         return builder;
