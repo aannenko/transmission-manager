@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using TransmissionManager.TorrentWebPages.Constants;
+using TransmissionManager.TorrentWebPages.Extensions;
 using TransmissionManager.TorrentWebPages.Options;
 using TransmissionManager.TorrentWebPages.Utils;
 
@@ -19,7 +20,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         [StringSyntax(StringSyntaxAttribute.Regex)] string? regexPattern = null,
         CancellationToken cancellationToken = default)
     {
-        var regex = GetMagnetSearchRegexWithValidation(regexPattern);
+        var regex = GetMagnetRegex(regexPattern);
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
 
@@ -28,7 +29,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         while ((read = await stream.ReadAsync(bytesOwner.Memory[_keepFromLastBuffer..], cancellationToken)) > 0)
         {
             var bytes = bytesOwner.Memory[..(_keepFromLastBuffer + read)];
-            var indexOfMagnet = IndexOfStartOf(bytes.Span, "magnet:?"u8);
+            var indexOfMagnet = ((ReadOnlySpan<byte>)bytes.Span).IndexOfStartOf("magnet:?"u8);
             if (indexOfMagnet is -1)
             {
                 bytes[^_keepFromLastBuffer..].CopyTo(bytes);
@@ -47,7 +48,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
             using var charsOwner = MemoryPool<char>.Shared.Rent(_bufferSize);
             var chars = charsOwner.Memory;
             if (Encoding.UTF8.TryGetChars(bytes.Span, chars.Span, out var charsWritten) &&
-                TryGetFirstRegexMatch(regex, chars.Span[..charsWritten], out var magnetRange))
+                regex.TryGetFirstMatch(chars.Span[..charsWritten], out var magnetRange))
             {
                 return chars[magnetRange].ToString();
             }
@@ -58,7 +59,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         return null;
     }
 
-    private Regex GetMagnetSearchRegexWithValidation(string? regexPattern)
+    private Regex GetMagnetRegex(string? regexPattern)
     {
         if (regexPattern is null)
             return options.CurrentValue.DefaultMagnetRegex;
@@ -69,33 +70,5 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 nameof(regexPattern));
 
         return RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
-    }
-
-    private static int IndexOfStartOf(ReadOnlySpan<byte> span, ReadOnlySpan<byte> value)
-    {
-        var index = span.IndexOf(value);
-        if (index is not -1)
-            return index;
-
-        for (int i = 1; i < value.Length; i++)
-        {
-            var valueStart = value[..^i];
-            if (span.EndsWith(valueStart))
-                return span.Length - valueStart.Length;
-        }
-
-        return -1;
-    }
-
-    private static bool TryGetFirstRegexMatch(Regex regex, ReadOnlySpan<char> span, out Range matchRange)
-    {
-        foreach (var match in regex.EnumerateMatches(span))
-        {
-            matchRange = new(match.Index, match.Index + match.Length);
-            return true;
-        }
-
-        matchRange = Range.EndAt(0);
-        return false;
     }
 }
