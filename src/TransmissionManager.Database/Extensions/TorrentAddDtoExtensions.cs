@@ -7,6 +7,8 @@ public static class TorrentAddDtoExtensions
 {
     public static Torrent ToTorrent(this TorrentAddDto dto)
     {
+        ArgumentNullException.ThrowIfNull(dto);
+
         return new()
         {
             Id = default,

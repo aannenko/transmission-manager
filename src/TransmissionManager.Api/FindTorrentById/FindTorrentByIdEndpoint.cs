@@ -25,7 +25,7 @@ public static class FindTorrentByIdEndpoint
         return torrent is not null
             ? TypedResults.Ok(torrent)
             : TypedResults.Problem(
-                string.Format(EndpointMessages.IdNotFound, id),
+                string.Format(null, EndpointMessages.IdNotFoundFormat, id),
                 statusCode: StatusCodes.Status404NotFound);
     }
 }

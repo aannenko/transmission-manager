@@ -1,9 +1,13 @@
 using Coravel;
 using TransmissionManager.Api.AddTorrent;
 using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Common.Scheduling;
 using TransmissionManager.Api.Common.Serialization;
 using TransmissionManager.Api.Common.Services;
+using TransmissionManager.Api.Common.TorrentWebPage;
+using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Api.DeleteTorrentById;
+using TransmissionManager.Api.Extensions;
 using TransmissionManager.Api.FindTorrentById;
 using TransmissionManager.Api.FindTorrentPage;
 using TransmissionManager.Api.RefreshTorrentById;
@@ -40,13 +44,19 @@ builder.Services.AddTransient<DeleteTorrentByIdHandler>();
 
 var app = builder.Build();
 
-LogStartup(app.Logger);
+app.Logger.LogStartup();
 
 using (var scope = app.Services.CreateScope())
 {
     var provider = scope.ServiceProvider;
-    await provider.GetRequiredService<AppDbContext>().Database.EnsureCreatedAsync();
-    await provider.GetRequiredService<StartupTorrentSchedulerService>().ScheduleUpdatesForAllTorrentsAsync();
+
+    await provider.GetRequiredService<AppDbContext>()
+        .Database.EnsureCreatedAsync()
+        .ConfigureAwait(false);
+
+    await provider.GetRequiredService<StartupTorrentSchedulerService>()
+        .ScheduleUpdatesForAllTorrentsAsync()
+        .ConfigureAwait(false);
 }
 
 if (!app.Environment.IsDevelopment())
@@ -62,12 +72,6 @@ app.MapGroup(EndpointAddresses.TorrentsApi)
     .MapUpdateTorrentByIdEndpoint()
     .MapDeleteTorrentByIdEndpoint();
 
-app.Run();
-
-static void LogStartup(ILogger logger)
-{
-    logger.LogInformation("Starting application {AssemblyFullName}", typeof(Program).Assembly.FullName);
-    logger.LogInformation("Start time: {StartTime:o}", DateTime.Now);
-}
+await app.RunAsync().ConfigureAwait(false);
 
 public sealed partial class Program;

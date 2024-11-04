@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Polly;
-using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using TransmissionManager.Transmission.Options;
 using TransmissionManager.Transmission.Options.Validation;
@@ -15,11 +14,12 @@ public static class TransmissionServiceCollectionExtensions
     private const string _transmissionConfigKey = "Transmission";
     private const string _resilienceKey = "Transmission-Retry-Timeout";
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
     public static IServiceCollection AddTransmissionServices(
         this IServiceCollection services,
         IConfigurationRoot configuration)
     {
+        ArgumentNullException.ThrowIfNull(configuration);
+
         services
             .Configure<TransmissionClientOptions>(configuration.GetSection(_transmissionConfigKey))
             .Configure<SessionHeaderProviderOptions>(configuration.GetSection(_transmissionConfigKey))

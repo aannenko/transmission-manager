@@ -13,7 +13,7 @@ public sealed class Torrent
 
     public required string Name { get; set; }
 
-    public required string WebPageUri { get; set; }
+    public required Uri WebPageUri { get; set; }
 
     public required string DownloadDir { get; set; }
 

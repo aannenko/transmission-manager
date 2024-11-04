@@ -31,11 +31,11 @@ public sealed class FindTorrentByIdTests
     [Test]
     public async Task FindTorrentByIdAsync_WhenGivenExistingTorrentId_ReturnsTorrent()
     {
-        var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/1");
+        var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/1").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var torrent = await response.Content.ReadFromJsonAsync<Torrent>();
+        var torrent = await response.Content.ReadFromJsonAsync<Torrent>().ConfigureAwait(false);
         var expected = _torrents[0];
 
         Assert.That(torrent, Is.Not.Null);
@@ -45,13 +45,13 @@ public sealed class FindTorrentByIdTests
     [Test]
     public async Task FindTorrentByIdAsync_WhenGivenNonExistingTorrentId_ReturnsNotFound()
     {
-        var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/999");
+        var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/999").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Detail, Is.EqualTo(string.Format(TestData.EndpointMessages.IdNotFound, 999)));
+        Assert.That(problem.Detail, Is.EqualTo(string.Format(null, TestData.EndpointMessages.IdNotFoundFormat, 999)));
     }
 }

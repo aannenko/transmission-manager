@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
 
@@ -34,7 +35,7 @@ internal static class TestData
                     Id = default,
                     HashString = FirstTorrentHashString,
                     Name = FirstTorrentName,
-                    WebPageUri = FirstTorrentWebPageUri,
+                    WebPageUri = new(FirstTorrentWebPageUri),
                     DownloadDir = FirstTorrentDownloadDir,
                     Cron = FirstTorrentCron,
                 },
@@ -43,7 +44,7 @@ internal static class TestData
                     Id = default,
                     HashString = SecondTorrentHashString,
                     Name = SecondTorrentName,
-                    WebPageUri = SecondTorrentWebPageUri,
+                    WebPageUri = new(SecondTorrentWebPageUri),
                     DownloadDir = SecondTorrentDownloadDir,
                     MagnetRegexPattern = SecondTorrentMagnetRegexPattern,
                 },
@@ -52,7 +53,7 @@ internal static class TestData
                     Id = default,
                     HashString = ThirdTorrentHashString,
                     Name = ThirdTorrentName,
-                    WebPageUri = ThirdTorrentWebPageUri,
+                    WebPageUri = new(ThirdTorrentWebPageUri),
                     DownloadDir = ThirdTorrentDownloadDir,
                     MagnetRegexPattern = ThirdTorrentMagnetRegexPattern,
                     Cron = ThirdTorrentCron,
@@ -90,6 +91,8 @@ internal static class TestData
         public const string FourthPageMagnetNew =
             "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=TV+Show+4";
 
+        public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
+
         public static readonly Uri FirstPageUriExistingMagnet =
             new(Database.FirstTorrentWebPageUri);
 
@@ -105,16 +108,16 @@ internal static class TestData
         public static readonly Dictionary<TestRequest, TestResponse> RequestResponseMap = new()
         {
             [new(HttpMethod.Get, FirstPageUriExistingMagnet)] =
-                new(HttpStatusCode.OK, Content: string.Format(WebPageHtml, FirstPageMagnetExisting)),
+                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FirstPageMagnetExisting)),
 
             [new(HttpMethod.Get, SecondPageUriUpdatedMagnet)] =
-                new(HttpStatusCode.OK, Content: string.Format(WebPageHtml, SecondPageMagnetUpdated)),
+                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, SecondPageMagnetUpdated)),
 
             [new(HttpMethod.Get, ThirdPageUriRemovedFromTransmission)] =
-                new(HttpStatusCode.OK, Content: string.Format(WebPageHtml, ThirdPageMagnetRemovedFromTransmission)),
+                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, ThirdPageMagnetRemovedFromTransmission)),
 
             [new(HttpMethod.Get, FourthPageUriNew)] =
-                new(HttpStatusCode.OK, Content: string.Format(WebPageHtml, FourthPageMagnetNew)),
+                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FourthPageMagnetNew)),
         };
     }
 
@@ -144,6 +147,21 @@ internal static class TestData
         public const string ConflictResponseBody = $"""
             <h1>409: Conflict</h1><p>Your request had an invalid session-id header.</p><p>To fix this, follow these steps:<ol><li> When reading a response, get its X-Transmission-Session-Id header and remember it<li> Add the updated header to your outgoing requests<li> When you get this 409 error message, resend your request with the updated header</ol></p><p>This requirement has been added to help prevent <a href="https://en.wikipedia.org/wiki/Cross-site_request_forgery">CSRF</a> attacks.</p><p><code>{SessionHeaderName}: {SessionHeaderValue}</code></p>
             """;
+
+        public static readonly CompositeFormat GetOneTorrentRequestBodyFormat =
+            CompositeFormat.Parse(GetOneTorrentRequestBody);
+
+        public static readonly CompositeFormat GetOneTorrentResponseBodyFormat =
+            CompositeFormat.Parse(GetOneTorrentResponseBody);
+
+        public static readonly CompositeFormat AddTorrentRequestBodyFormat =
+            CompositeFormat.Parse(AddTorrentRequestBody);
+
+        public static readonly CompositeFormat AddTorrentAddedResponseBodyFormat =
+            CompositeFormat.Parse(AddTorrentAddedResponseBody);
+
+        public static readonly CompositeFormat AddTorrentDuplicateResponseBodyFormat =
+            CompositeFormat.Parse(AddTorrentDuplicateResponseBody);
 
         public static readonly Uri ApiUri = new("http://transmission:9091/transmission/rpc");
 
@@ -182,5 +200,8 @@ internal static class TestData
     public static class EndpointMessages
     {
         public const string IdNotFound = "Torrent with id {0} was not found.";
+
+        public static readonly CompositeFormat IdNotFoundFormat = CompositeFormat.Parse(IdNotFound);
+
     }
 }

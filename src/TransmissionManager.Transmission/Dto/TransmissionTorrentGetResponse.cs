@@ -11,7 +11,7 @@ public sealed class TransmissionTorrentGetResponse : ITransmissionResponse
 
 public sealed class TransmissionTorrentGetResponseArguments
 {
-    public TransmissionTorrentGetResponseItem[]? Torrents { get; init; }
+    public IReadOnlyList<TransmissionTorrentGetResponseItem>? Torrents { get; init; }
 }
 
 public sealed class TransmissionTorrentGetResponseItem

@@ -34,12 +34,12 @@ public sealed class TorrentCommandService(AppDbContext dbContext)
                         torrent => dto.DownloadDir ?? torrent.DownloadDir)
                     .SetProperty(
                         static torrent => torrent.MagnetRegexPattern,
-                        torrent => dto.MagnetRegexPattern == string.Empty
+                        torrent => dto.MagnetRegexPattern != null && dto.MagnetRegexPattern.Length == 0
                             ? null
                             : dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
                     .SetProperty(
                         static torrent => torrent.Cron,
-                        torrent => dto.Cron == string.Empty
+                        torrent => dto.Cron != null && dto.Cron.Length == 0
                             ? null
                             : dto.Cron ?? torrent.Cron),
                 cancellationToken)

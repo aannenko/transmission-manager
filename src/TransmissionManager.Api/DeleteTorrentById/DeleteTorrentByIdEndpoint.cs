@@ -22,7 +22,7 @@ public static class DeleteTorrentByIdEndpoint
         return await service.TryDeleteTorrentByIdAsync(id, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.Problem(
-                string.Format(EndpointMessages.IdNotFound, id),
+                string.Format(null, EndpointMessages.IdNotFoundFormat, id),
                 statusCode: StatusCodes.Status404NotFound);
     }
 }

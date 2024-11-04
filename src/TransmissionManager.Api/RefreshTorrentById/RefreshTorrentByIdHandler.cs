@@ -1,6 +1,8 @@
 ﻿using TransmissionManager.Api.Common.Services;
+using TransmissionManager.Api.Common.TorrentWebPage;
+using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Database.Services;
-using static TransmissionManager.Api.Common.Services.TransmissionClientWrapper;
+using Result = TransmissionManager.Api.RefreshTorrentById.RefreshTorrentByIdResult;
 
 namespace TransmissionManager.Api.RefreshTorrentById;
 
@@ -11,21 +13,7 @@ public sealed class RefreshTorrentByIdHandler(
     TorrentCommandService commandService,
     TorrentNameUpdateService torrentNameUpdateService)
 {
-    public enum Result
-    {
-        TorrentRefreshed,
-        NotFoundLocally,
-        NotFoundInTransmission,
-        Removed,
-        DependencyFailed,
-    }
-
-    public readonly record struct Response(
-        Result Result,
-        TransmissionAddResult? TransmissionResult,
-        string? Error);
-
-    public async Task<Response> RefreshTorrentByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<RefreshTorrentByIdOutcome> RefreshTorrentByIdAsync(long id, CancellationToken cancellationToken)
     {
         const string error = "Refresh of the torrent with id {0} has failed: '{1}'.";
 
@@ -41,10 +29,10 @@ public sealed class RefreshTorrentByIdHandler(
             return new(Result.NotFoundInTransmission, null, string.Format(error, id, transmissionGetError));
 
         var (magnetUri, getMagnetError) = await torrentWebPageService
-            .GetMagnetUriAsync(new(torrent.WebPageUri), torrent.MagnetRegexPattern, cancellationToken)
+            .GetMagnetUriAsync(torrent.WebPageUri, torrent.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
-        if (string.IsNullOrEmpty(magnetUri))
+        if (magnetUri is null)
             return new(Result.DependencyFailed, null, string.Format(error, id, getMagnetError));
 
         var (transmissionAddResult, transmissionAddTorrent, transmissionAddError) = await transmissionService

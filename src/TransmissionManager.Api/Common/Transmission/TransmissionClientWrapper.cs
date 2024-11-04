@@ -1,29 +1,11 @@
-﻿using System.Text.Json.Serialization;
-using TransmissionManager.Transmission.Dto;
-using TransmissionManager.Transmission.Services;
+﻿using TransmissionManager.Transmission.Services;
 
-namespace TransmissionManager.Api.Common.Services;
+namespace TransmissionManager.Api.Common.Transmission;
 
 public sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {
-    [JsonConverter(typeof(JsonStringEnumConverter<TransmissionAddResult>))]
-    public enum TransmissionAddResult
-    {
-        Added,
-        Duplicate
-    }
-
-    public readonly record struct TransmissionAddResponse(
-        TransmissionAddResult? Result,
-        TransmissionTorrentAddResponseItem? Torrent,
-        string? Error);
-
-    public readonly record struct TransmissionGetResponse(
-        TransmissionTorrentGetResponseItem? Torrent,
-        string? Error);
-
     public async Task<TransmissionAddResponse> AddTorrentUsingMagnetAsync(
-        string magnetUri,
+        Uri magnetUri,
         string downloadDir,
         CancellationToken cancellationToken)
     {

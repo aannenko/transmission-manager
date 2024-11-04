@@ -25,7 +25,7 @@ public static class UpdateTorrentByIdEndpoint
         return await service.TryUpdateTorrentByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.Problem(
-                string.Format(EndpointMessages.IdNotFound, id),
+                string.Format(null, EndpointMessages.IdNotFoundFormat, id),
                 statusCode: StatusCodes.Status404NotFound);
     }
 }

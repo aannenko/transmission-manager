@@ -1,17 +1,15 @@
 ﻿using TransmissionManager.TorrentWebPages.Services;
 
-namespace TransmissionManager.Api.Common.Services;
+namespace TransmissionManager.Api.Common.TorrentWebPage;
 
 public sealed class TorrentWebPageClientWrapper(TorrentWebPageClient torrentWebPageClient)
 {
-    public readonly record struct TorrentWebPageGetMagnetResponse(string? MagnetUri, string? Error);
-
     public async Task<TorrentWebPageGetMagnetResponse> GetMagnetUriAsync(
         Uri webPageUri,
         string? magnetRegexPattern,
         CancellationToken cancellationToken)
     {
-        string? magnetUri = null;
+        Uri? magnetUri = null;
         var error = string.Empty;
         try
         {

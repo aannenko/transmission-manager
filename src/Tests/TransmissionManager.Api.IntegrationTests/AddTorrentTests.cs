@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.AddTorrent;
@@ -25,7 +26,8 @@ public sealed class AddTorrentTests
     // Add New Torrent
 
     private static readonly string _addNewTorrentRequestBody = string.Format(
-        TestData.Transmission.AddTorrentRequestBody,
+        null,
+        TestData.Transmission.AddTorrentRequestBodyFormat,
         TestData.WebPages.FourthPageMagnetNew,
         _initialTorrents[0].DownloadDir);
 
@@ -42,7 +44,8 @@ public sealed class AddTorrentTests
         _addNewTorrentRequestBody);
 
     private static readonly string _addNewTorrentResponseBody = string.Format(
-        TestData.Transmission.AddTorrentAddedResponseBody,
+        null,
+        TestData.Transmission.AddTorrentAddedResponseBodyFormat,
         "3A81AAA70E75439D332C146ABDE899E546356BE2",
         26,
         "TV Show 4");
@@ -55,12 +58,14 @@ public sealed class AddTorrentTests
     // Add Existing Torrent
 
     private static readonly string _addExistingTorrentRequestBody = string.Format(
-        TestData.Transmission.AddTorrentRequestBody,
+        null,
+        TestData.Transmission.AddTorrentRequestBodyFormat,
         TestData.WebPages.FirstPageMagnetExisting,
         _initialTorrents[0].DownloadDir);
 
     private static readonly string _addExistingTorrentResponseBody = string.Format(
-        TestData.Transmission.AddTorrentDuplicateResponseBody,
+        null,
+        TestData.Transmission.AddTorrentDuplicateResponseBodyFormat,
         _initialTorrents[0].HashString,
         25,
         _initialTorrents[0].Name);
@@ -125,7 +130,7 @@ public sealed class AddTorrentTests
             Cron = "0 9,17 * * *"
         };
 
-        var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto);
+        var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto).ConfigureAwait(false);
 
         Assert.Multiple(() =>
         {
@@ -140,22 +145,22 @@ public sealed class AddTorrentTests
     {
         var dto = new AddTorrentRequest
         {
-            WebPageUri = new(_initialTorrents[0].WebPageUri),
+            WebPageUri = _initialTorrents[0].WebPageUri,
             DownloadDir = _initialTorrents[0].DownloadDir,
             Cron = _initialTorrents[0].Cron,
         };
 
-        var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto);
+        var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
         Assert.Multiple(() =>
         {
             const string error = "Addition of a torrent from the web page '{0}' has failed: 'Torrent already exists.'.";
-            Assert.That(problemDetails.Detail, Is.EqualTo(string.Format(error, dto.WebPageUri)));
+            Assert.That(problemDetails.Detail, Is.EqualTo(string.Format(CultureInfo.InvariantCulture, error, dto.WebPageUri)));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
         });

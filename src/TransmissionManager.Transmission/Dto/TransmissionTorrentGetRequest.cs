@@ -5,8 +5,7 @@ namespace TransmissionManager.Transmission.Dto;
 
 public sealed class TransmissionTorrentGetRequest
 {
-#pragma warning disable CA1822 // Mark members as static
-    // should not be static for System.Text.Json.JsonSerializer to serialize it
+#pragma warning disable CA1822 // Mark members as static - should not be static for System.Text.Json.JsonSerializer to serialize it
     public string Method => "torrent-get";
 #pragma warning restore CA1822 // Mark members as static
 
@@ -17,10 +16,10 @@ public sealed class TransmissionTorrentGetRequest
 
 public sealed class TransmissionTorrentGetRequestArguments
 {
-    public required TransmissionTorrentGetRequestFields[] Fields { get; init; }
+    public required IReadOnlyList<TransmissionTorrentGetRequestFields> Fields { get; init; }
 
     [JsonPropertyName("ids")]
-    public string[]? HashStrings { get; init; }
+    public IReadOnlyList<string>? HashStrings { get; init; }
 }
 
 [JsonConverter(typeof(CamelCaseJsonStringEnumConverter<TransmissionTorrentGetRequestFields>))]

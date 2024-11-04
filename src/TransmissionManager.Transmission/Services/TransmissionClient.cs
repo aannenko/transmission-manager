@@ -34,16 +34,18 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
     }
 
     public async Task<TransmissionTorrentAddResponse> AddTorrentUsingMagnetUriAsync(
-        string magnetUri,
+        Uri magnetUri,
         string downloadDir,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(magnetUri);
+
         return await GetResultWithValidationAsync(
             new TransmissionTorrentAddRequest
             {
                 Arguments = new()
                 {
-                    Filename = magnetUri,
+                    Filename = magnetUri.OriginalString,
                     DownloadDir = downloadDir,
                 }
             },

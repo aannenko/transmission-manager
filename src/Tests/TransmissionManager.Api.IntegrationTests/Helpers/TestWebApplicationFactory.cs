@@ -28,12 +28,14 @@ public sealed class TestWebAppliationFactory<TProgram>(
     private readonly IReadOnlyDictionary<TestRequest, TestResponse> _transmissionRequestResponseMap =
         transmissionRequestResponseMap ?? _emptyRequestResponseMap;
 
-    private bool _disposed = false;
+    private bool _disposed;
 
-    private SqliteConnection? _connection = null;
+    private SqliteConnection? _connection;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        ArgumentNullException.ThrowIfNull(builder);
+
         ObjectDisposedException.ThrowIf(_disposed, this);
 
         base.ConfigureWebHost(builder);

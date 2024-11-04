@@ -2,4 +2,4 @@
 
 namespace TransmissionManager.Api.FindTorrentPage;
 
-public readonly record struct FindTorrentPageResponse(Torrent[] Torrents, string? NextPageAddress);
+public readonly record struct FindTorrentPageResponse(IReadOnlyList<Torrent> Torrents, string? NextPageAddress);

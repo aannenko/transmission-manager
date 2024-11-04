@@ -39,13 +39,16 @@ public sealed class TorrentWebPageClientTests
             </html>
             """;
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Get, _webPageUri),
             new(HttpStatusCode.OK, Content: webPageContentWithMagnet));
 
-        var result = await client.FindMagnetUriAsync(_webPageUri);
+        using var httpClient = new HttpClient(handler);
+        var client = new TorrentWebPageClient(_options, httpClient);
 
-        Assert.That(result, Is.EqualTo(magnetUri));
+        var result = await client.FindMagnetUriAsync(_webPageUri).ConfigureAwait(false);
+
+        Assert.That(result, Is.EqualTo(new Uri(magnetUri)));
     }
 
     [Test]
@@ -66,11 +69,14 @@ public sealed class TorrentWebPageClientTests
             </html>
             """;
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Get, _webPageUri),
             new(HttpStatusCode.OK, Content: webPageContentWithoutMagnet));
 
-        var result = await client.FindMagnetUriAsync(_webPageUri);
+        using var httpClient = new HttpClient(handler);
+        var client = new TorrentWebPageClient(_options, httpClient);
+
+        var result = await client.FindMagnetUriAsync(_webPageUri).ConfigureAwait(false);
 
         Assert.That(result, Is.Null);
     }
@@ -78,16 +84,13 @@ public sealed class TorrentWebPageClientTests
     [Test]
     public void FindMagnetUriAsync_ThrowsHttpRequestException_IfGivenNonExistentWebPage()
     {
-        var client = CreateClient();
+        var nonExistingAddress = new Uri("https://seemingly.valid.though.non.existent.page");
+
+        using var httpClient = new HttpClient();
+        var client = new TorrentWebPageClient(_options, httpClient);
 
         Assert.That(
-            async () => await client.FindMagnetUriAsync(new("https://seemingly.valid.though.non.existent.page")),
+            async () => await client.FindMagnetUriAsync(nonExistingAddress).ConfigureAwait(false),
             Throws.TypeOf<HttpRequestException>());
     }
-
-    private static TorrentWebPageClient CreateClient() =>
-        new(_options, new HttpClient());
-
-    private static TorrentWebPageClient CreateClient(TestRequest request, TestResponse response) =>
-        new(_options, new HttpClient(new FakeHttpMessageHandler(request, response)));
 }

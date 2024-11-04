@@ -52,11 +52,14 @@ public sealed class TransmissionClientTests
         const string expectedRequest =
             """{"method":"torrent-get","arguments":{"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"]}}""";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: _twoTorrentsAllFieldsResponse));
 
-        var response = await client.GetTorrentsAsync();
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client.GetTorrentsAsync().ConfigureAwait(false);
 
         AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsAllFieldsResponse);
     }
@@ -67,15 +70,18 @@ public sealed class TransmissionClientTests
         const string expectedRequest =
             """{"method":"torrent-get","arguments":{"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"],"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa","738c60cbd44f0e9457ba2afdad9e9231d76243fe"]}}""";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: _twoTorrentsAllFieldsResponse));
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
 
         var response = await client.GetTorrentsAsync(
             [
                 "0bda511316a069e86dd8ee8a3610475d2013a7fa",
                 "738c60cbd44f0e9457ba2afdad9e9231d76243fe"
-            ]);
+            ]).ConfigureAwait(false);
 
         AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsAllFieldsResponse);
     }
@@ -102,11 +108,16 @@ public sealed class TransmissionClientTests
             }
             """;
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: twoTorrentsTwoFieldsResponse));
 
-        var response = await client.GetTorrentsAsync(requestFields: [TorrentFields.HashString, TorrentFields.Name]);
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client
+            .GetTorrentsAsync(requestFields: [TorrentFields.HashString, TorrentFields.Name])
+            .ConfigureAwait(false);
 
         AssertUponTransmissionTorrentGetResponse(response, twoTorrentsTwoFieldsResponse);
     }
@@ -116,11 +127,16 @@ public sealed class TransmissionClientTests
     {
         const string expectedRequest = """{"method":"torrent-get","arguments":{"fields":[998,999]}}""";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: _twoTorrentsWithNoFieldsResponse));
 
-        var response = await client.GetTorrentsAsync(requestFields: [(TorrentFields)998, (TorrentFields)999]);
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client
+            .GetTorrentsAsync(requestFields: [(TorrentFields)998, (TorrentFields)999])
+            .ConfigureAwait(false);
 
         AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsWithNoFieldsResponse);
     }
@@ -130,11 +146,14 @@ public sealed class TransmissionClientTests
     {
         const string expectedRequest = """{"method":"torrent-get","arguments":{"fields":[]}}""";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: _twoTorrentsWithNoFieldsResponse));
 
-        var response = await client.GetTorrentsAsync(requestFields: []);
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client.GetTorrentsAsync(requestFields: []).ConfigureAwait(false);
 
         AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsWithNoFieldsResponse);
     }
@@ -147,11 +166,16 @@ public sealed class TransmissionClientTests
 
         const string noTorrentsResponse = """{"arguments":{"torrents":[]},"result":"success"}""";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: noTorrentsResponse));
 
-        var response = await client.GetTorrentsAsync(["0bda511316a069e86dd8ee8a3610475d2013a7fb"], []);
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client
+            .GetTorrentsAsync(["0bda511316a069e86dd8ee8a3610475d2013a7fb"], [])
+            .ConfigureAwait(false);
 
         AssertUponTransmissionTorrentGetResponse(response, noTorrentsResponse);
     }
@@ -162,20 +186,23 @@ public sealed class TransmissionClientTests
         const string expectedRequest =
             """{"method":"torrent-get","arguments":{"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"]}}""";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK));
 
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
         var task = client.GetTorrentsAsync(cancellationToken: new(true));
 
-        Assert.That(async () => await task, Throws.TypeOf<TaskCanceledException>());
+        Assert.That(async () => await task.ConfigureAwait(false), Throws.TypeOf<TaskCanceledException>());
     }
 
     [Test]
     public async Task AddTorrentsAsync_ReturnsTorrentAdded_WhenNewMagnetAndDownloadDirProvided()
     {
         const string expectedRequest =
-            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example%20Name","download-dir":"/tvshows"}}""";
+            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name","download-dir":"/tvshows"}}""";
 
         const string torrentAddedResponse = """
             {
@@ -190,11 +217,16 @@ public sealed class TransmissionClientTests
             }
             """;
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: torrentAddedResponse));
 
-        var response = await client.AddTorrentUsingMagnetUriAsync("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example%20Name", "/tvshows");
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client
+            .AddTorrentUsingMagnetUriAsync(new("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name"), "/tvshows")
+            .ConfigureAwait(false);
 
         AssertUponTransmissionTorrentAddResponse(response, torrentAddedResponse);
     }
@@ -203,7 +235,7 @@ public sealed class TransmissionClientTests
     public async Task AddTorrentsAsync_ReturnsTorrentDuplicate_WhenExistingMagnetProvided()
     {
         const string expectedRequest =
-            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example%20Name","download-dir":"/tvshows"}}""";
+            """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name","download-dir":"/tvshows"}}""";
 
         const string torrentDuplicateResponse = """
             {
@@ -218,11 +250,16 @@ public sealed class TransmissionClientTests
             }
             """;
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: torrentDuplicateResponse));
 
-        var response = await client.AddTorrentUsingMagnetUriAsync("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example%20Name", "/tvshows");
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client
+            .AddTorrentUsingMagnetUriAsync(new("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name"), "/tvshows")
+            .ConfigureAwait(false);
 
         AssertUponTransmissionTorrentAddResponse(response, torrentDuplicateResponse);
     }
@@ -237,11 +274,16 @@ public sealed class TransmissionClientTests
 
         const string error = "Response from Transmission does not indicate success: 'unrecognized info'";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: unrecognizedInfoResponse));
 
-        var task = client.AddTorrentUsingMagnetUriAsync("magnet:?xt=urn:btih:INVALIDMAGNET", "/tvshows");
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var task = client
+            .AddTorrentUsingMagnetUriAsync(new("magnet:?xt=urn:btih:INVALIDMAGNET"), "/tvshows")
+            .ConfigureAwait(false);
 
         Assert.That(async () => await task, Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(error));
     }
@@ -256,11 +298,16 @@ public sealed class TransmissionClientTests
 
         const string error = "Response from Transmission does not indicate success: 'download directory path is not absolute'";
 
-        var client = CreateClient(
+        using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
             new(HttpStatusCode.OK, Content: unrecognizedInfoResponse));
 
-        var task = client.AddTorrentUsingMagnetUriAsync("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2", "^&*(");
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var task = client
+            .AddTorrentUsingMagnetUriAsync(new("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2"), "^&*(")
+            .ConfigureAwait(false);
 
         Assert.That(async () => await task, Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(error));
     }
@@ -288,10 +335,10 @@ public sealed class TransmissionClientTests
 
         if (deserialized.Arguments?.Torrents is not null)
         {
-            Assert.That(actual.Arguments.Torrents, Has.Length.EqualTo(deserialized.Arguments.Torrents.Length));
+            Assert.That(actual.Arguments.Torrents, Has.Count.EqualTo(deserialized.Arguments.Torrents.Count));
             Assert.Multiple(() =>
             {
-                for (int i = 0; i < actual.Arguments.Torrents.Length; i++)
+                for (int i = 0; i < actual.Arguments.Torrents.Count; i++)
                 {
                     var actualTorrent = actual.Arguments.Torrents[i];
                     var expectedTorrent = deserialized.Arguments.Torrents[i];
@@ -305,9 +352,7 @@ public sealed class TransmissionClientTests
         }
     }
 
-    private static void AssertUponTransmissionTorrentAddResponse(
-        TransmissionTorrentAddResponse actual,
-        string expected)
+    private static void AssertUponTransmissionTorrentAddResponse(TransmissionTorrentAddResponse actual, string expected)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expected);
 
@@ -351,15 +396,5 @@ public sealed class TransmissionClientTests
                 });
             }
         }
-    }
-
-    private static TransmissionClient CreateClient(TestRequest request, TestResponse response)
-    {
-        var httpClient = new HttpClient(new FakeHttpMessageHandler(request, response))
-        {
-            BaseAddress = new(_options.CurrentValue.BaseAddress)
-        };
-
-        return new(_options, httpClient);
     }
 }

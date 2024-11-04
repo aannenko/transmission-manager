@@ -37,25 +37,19 @@ public sealed class SessionHeaderHandlerTests
             [new(HttpMethod.Get, new(_requestUri), _filledHeaders)] = new(HttpStatusCode.OK)
         };
 
-        var (client, provider) = CreateClientProviderPair(requestToResponseMap);
+        var provider = new SessionHeaderProvider(_options);
+        using var fakeMessageHandler = new FakeHttpMessageHandler(requestToResponseMap);
+        using var sessionHandler = new SessionHeaderHandler(provider) { InnerHandler = fakeMessageHandler };
+        using var client = new HttpClient(sessionHandler);
 
         Assert.That(provider.SessionHeaderValue, Is.Empty);
 
-        var result = await client.GetAsync(_requestUri);
+        var result = await client.GetAsync(new Uri(_requestUri)).ConfigureAwait(false);
 
         Assert.Multiple(() =>
         {
             Assert.That(result.IsSuccessStatusCode);
             Assert.That(provider.SessionHeaderValue, Is.EqualTo(_sessionHeaderValue));
         });
-    }
-
-    private static (HttpClient client, SessionHeaderProvider provider) CreateClientProviderPair(
-        IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap)
-    {
-        var provider = new SessionHeaderProvider(_options);
-        var fakeMessageHandler = new FakeHttpMessageHandler(requestToResponseMap);
-        var sessionHandler = new SessionHeaderHandler(provider) { InnerHandler = fakeMessageHandler };
-        return (new(sessionHandler), provider);
     }
 }

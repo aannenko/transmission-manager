@@ -22,7 +22,7 @@ public static class FindTorrentPageParametersExtensions
 
         return new(
             HashString: parameters.HashString,
-            WebPageUri: parameters.WebPageUri?.AbsoluteUri,
+            WebPageUri: parameters.WebPageUri,
             NameStartsWith: parameters.NameStartsWith,
             CronExists: parameters.CronExists);
     }
@@ -42,14 +42,14 @@ public static class FindTorrentPageParametersExtensions
 
     public static FindTorrentPageParameters? ToNextPageParameters(
         this FindTorrentPageParameters parameters,
-        Torrent[] currentPage)
+        IReadOnlyList<Torrent> currentPage)
     {
         ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(currentPage);
 
-        if (currentPage.Length is 0 || parameters.WebPageUri is not null || parameters.HashString is not null)
+        if (currentPage.Count is 0 || parameters.WebPageUri is not null || parameters.HashString is not null)
             return null;
 
-        return parameters with { AfterId = currentPage.Last().Id };
+        return parameters with { AfterId = currentPage[^1].Id };
     }
 }

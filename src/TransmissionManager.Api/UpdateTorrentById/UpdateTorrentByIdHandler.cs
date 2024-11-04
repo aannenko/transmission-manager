@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Common.Services;
+﻿using TransmissionManager.Api.Common.Scheduling;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 
@@ -11,6 +11,8 @@ public sealed class UpdateTorrentByIdHandler(TorrentCommandService commandServic
         TorrentUpdateDto dto,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(dto);
+
         scheduler.TryUnscheduleTorrentRefresh(id);
         var result = await commandService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
         if (result && !string.IsNullOrEmpty(dto.Cron))

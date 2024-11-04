@@ -26,13 +26,13 @@ public static class RefreshTorrentByIdEndpoint
 
         return result switch
         {
-            RefreshTorrentByIdHandler.Result.TorrentRefreshed =>
+            RefreshTorrentByIdResult.TorrentRefreshed =>
                 TypedResults.Ok(new RefreshTorrentByIdResponse(transmissionResult!.Value)),
-            RefreshTorrentByIdHandler.Result.NotFoundLocally or RefreshTorrentByIdHandler.Result.Removed =>
+            RefreshTorrentByIdResult.NotFoundLocally or RefreshTorrentByIdResult.Removed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
-            RefreshTorrentByIdHandler.Result.NotFoundInTransmission =>
+            RefreshTorrentByIdResult.NotFoundInTransmission =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status422UnprocessableEntity),
-            RefreshTorrentByIdHandler.Result.DependencyFailed =>
+            RefreshTorrentByIdResult.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException(),
         };

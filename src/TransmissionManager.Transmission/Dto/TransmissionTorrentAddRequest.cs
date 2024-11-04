@@ -4,8 +4,7 @@ namespace TransmissionManager.Transmission.Dto;
 
 public sealed class TransmissionTorrentAddRequest
 {
-#pragma warning disable CA1822 // Mark members as static
-    // should not be static for System.Text.Json.JsonSerializer to serialize it
+#pragma warning disable CA1822 // Mark members as static - should not be static for System.Text.Json.JsonSerializer to serialize it
     public string Method => "torrent-add";
 #pragma warning restore CA1822 // Mark members as static
 

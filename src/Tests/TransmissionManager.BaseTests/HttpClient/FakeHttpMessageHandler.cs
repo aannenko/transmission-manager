@@ -10,6 +10,8 @@ public class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestRespons
 
     protected override HttpResponseMessage Send(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         return SendInternal(request.ToTestRequestAsync().GetAwaiter().GetResult());
     }
 
@@ -17,6 +19,8 @@ public class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestRespons
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         return SendInternal(await request.ToTestRequestAsync().ConfigureAwait(false));
     }
 

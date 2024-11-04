@@ -2,6 +2,6 @@
 
 public readonly record struct TorrentFilter(
     string? HashString = null,
-    string? WebPageUri = null,
+    Uri? WebPageUri = null,
     string? NameStartsWith = null,
     bool? CronExists = null);

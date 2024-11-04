@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Common.Services;
+﻿using TransmissionManager.Api.Common.Scheduling;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.DeleteTorrentById;

@@ -1,39 +1,31 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TransmissionManager.Api.Common.Scheduling;
 using TransmissionManager.Api.Common.Services;
+using TransmissionManager.Api.Common.TorrentWebPage;
+using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Database.Services;
-using static TransmissionManager.Api.Common.Services.TransmissionClientWrapper;
+using Result = TransmissionManager.Api.AddTorrent.AddTorrentResult;
 
 namespace TransmissionManager.Api.AddTorrent;
 
-public sealed class AddTorrentHandler(
+public sealed partial class AddTorrentHandler(
     TorrentWebPageClientWrapper torrentWebPageService,
     TransmissionClientWrapper transmissionService,
     TorrentCommandService torrentCommandService,
     TorrentSchedulerService schedulerService,
     TorrentNameUpdateService torrentNameUpdateService)
 {
-    public enum Result
+    public async Task<AddTorrentOutcome> AddTorrentAsync(AddTorrentRequest dto, CancellationToken cancellationToken)
     {
-        TorrentAdded,
-        TorrentExists,
-        DependencyFailed
-    }
+        ArgumentNullException.ThrowIfNull(dto);
 
-    public readonly record struct Response(
-        Result Result,
-        long? Id,
-        TransmissionAddResult? TransmissionResult,
-        string? Error);
-
-    public async Task<Response> AddTorrentAsync(AddTorrentRequest dto, CancellationToken cancellationToken = default)
-    {
         const string error = "Addition of a torrent from the web page '{0}' has failed: '{1}'.";
 
         var (magnetUri, getMagnetError) = await torrentWebPageService
             .GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
-        if (string.IsNullOrEmpty(magnetUri))
+        if (magnetUri is null)
             return new(Result.DependencyFailed, null, null, string.Format(error, dto.WebPageUri, getMagnetError));
 
         var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService

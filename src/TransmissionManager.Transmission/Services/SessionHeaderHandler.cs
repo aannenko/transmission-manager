@@ -8,6 +8,8 @@ public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider) :
         HttpRequestMessage request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
         var headerName = headerProvider.SessionHeaderName;
 
         if (!request.Headers.Contains(headerName))

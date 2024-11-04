@@ -14,6 +14,6 @@ namespace TransmissionManager.Api.Common.Serialization;
 [JsonSerializable(typeof(AddTorrentResponse))]
 [JsonSerializable(typeof(RefreshTorrentByIdResponse))]
 [JsonSerializable(typeof(HttpValidationProblemDetails))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext
+internal sealed partial class AppJsonSerializerContext : JsonSerializerContext
 {
 }

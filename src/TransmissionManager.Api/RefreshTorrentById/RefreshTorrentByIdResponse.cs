@@ -1,4 +1,4 @@
-﻿using static TransmissionManager.Api.Common.Services.TransmissionClientWrapper;
+﻿using TransmissionManager.Api.Common.Transmission;
 
 namespace TransmissionManager.Api.RefreshTorrentById;
 

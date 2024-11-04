@@ -28,14 +28,14 @@ public static class AddTorrentEndpoint
 
         return result switch
         {
-            AddTorrentHandler.Result.TorrentAdded =>
+            AddTorrentResult.TorrentAdded =>
                 TypedResults.Created(GetTorrentUri(linker, id), new AddTorrentResponse(transmissionResult!.Value)),
-            AddTorrentHandler.Result.TorrentExists =>
+            AddTorrentResult.TorrentExists =>
                 TypedResults.Problem(
                     error,
                     statusCode: StatusCodes.Status409Conflict,
                     extensions: new Dictionary<string, object?> { [nameof(transmissionResult)] = transmissionResult }),
-            AddTorrentHandler.Result.DependencyFailed =>
+            AddTorrentResult.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException()
         };

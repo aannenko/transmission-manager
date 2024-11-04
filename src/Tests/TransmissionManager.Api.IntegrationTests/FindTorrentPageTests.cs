@@ -32,16 +32,16 @@ public sealed class FindTorrentPageTests
     public async Task FindTorrentPageAsync_WhenGivenCorrectPageDescriptor_ReturnsMatchingTorrents()
     {
         var parameters = new FindTorrentPageParameters(Take: 5, AfterId: 1);
-        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>();
+        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
         Assert.That(page, Is.Not.Default);
         Assert.Multiple(() =>
         {
-            Assert.That(page.Torrents, Has.Length.EqualTo(2));
+            Assert.That(page.Torrents, Has.Count.EqualTo(2));
             var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
             Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
@@ -54,16 +54,16 @@ public sealed class FindTorrentPageTests
     public async Task FindTorrentPageAsync_WhenGivenCorrectNameAndCronFilters_ReturnsMatchingTorrents()
     {
         var parameters = new FindTorrentPageParameters(NameStartsWith: "TV Show", CronExists: true);
-        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>();
+        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
         Assert.That(page, Is.Not.Default);
         Assert.Multiple(() =>
         {
-            Assert.That(page.Torrents, Has.Length.EqualTo(2));
+            Assert.That(page.Torrents, Has.Count.EqualTo(2));
             var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
             Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
@@ -79,16 +79,16 @@ public sealed class FindTorrentPageTests
             WebPageUri: new(TestData.Database.SecondTorrentWebPageUri),
             HashString: TestData.Database.SecondTorrentHashString);
 
-        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>();
+        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
         Assert.That(page, Is.Not.Default);
         Assert.Multiple(() =>
         {
-            Assert.That(page.Torrents, Has.Length.EqualTo(1));
+            Assert.That(page.Torrents, Has.Count.EqualTo(1));
             var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
             Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
@@ -107,16 +107,16 @@ public sealed class FindTorrentPageTests
             HashString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
             CronExists: true);
 
-        var response = await _client.GetAsync(parameters.ToPathAndQueryString());
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>();
+        var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
         Assert.That(page, Is.Not.Default);
         Assert.Multiple(() =>
         {
-            Assert.That(page.Torrents, Has.Length.EqualTo(0));
+            Assert.That(page.Torrents, Has.Count.EqualTo(0));
             var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
             Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });

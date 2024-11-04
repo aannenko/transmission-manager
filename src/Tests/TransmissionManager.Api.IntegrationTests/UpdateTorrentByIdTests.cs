@@ -1,9 +1,9 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Net.Http.Json;
 using TransmissionManager.Api.IntegrationTests.Helpers;
-using TransmissionManager.Database.Models;
 using TransmissionManager.Api.UpdateTorrentById;
-using Microsoft.AspNetCore.Mvc;
+using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.IntegrationTests;
 
@@ -41,15 +41,15 @@ public sealed class UpdateTorrentByIdTests
 
         const string torrentAddress = $"{TestData.Endpoints.Torrents}/1";
 
-        var response = await _client.PatchAsJsonAsync(torrentAddress, dto);
+        var response = await _client.PatchAsJsonAsync(torrentAddress, dto).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
-        response = await _client.GetAsync(torrentAddress);
+        response = await _client.GetAsync(torrentAddress).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var torrent = await response.Content.ReadFromJsonAsync<Torrent>();
+        var torrent = await response.Content.ReadFromJsonAsync<Torrent>().ConfigureAwait(false);
 
         Assert.That(torrent, Is.Not.Null);
         Assert.Multiple(() =>
@@ -65,11 +65,11 @@ public sealed class UpdateTorrentByIdTests
     {
         var dto = new UpdateTorrentByIdRequest { DownloadDir = "/videos" };
 
-        var response = await _client.PatchAsJsonAsync($"{TestData.Endpoints.Torrents}/-1", dto);
+        var response = await _client.PatchAsJsonAsync($"{TestData.Endpoints.Torrents}/-1", dto).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>();
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id -1 was not found."));

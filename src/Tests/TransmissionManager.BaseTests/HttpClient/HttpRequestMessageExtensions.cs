@@ -17,14 +17,14 @@ internal static class HttpRequestMessageExtensions
     public static async Task<TestRequest> ToTestRequestAsync(this HttpRequestMessage request)
     {
         return new(
-            request.Method,
-            request.RequestUri,
-            request.Headers.ToDictionary(static pair => pair.Key, static pair => pair.Value.Single()),
-            request.Content switch
+            Method: request.Method,
+            RequestUri: request.RequestUri,
+            Headers: request.Headers.ToDictionary(static pair => pair.Key, static pair => pair.Value.Single()),
+            Content: request.Content switch
             {
                 null => null,
                 JsonContent content => JsonSerializer.Serialize(content.Value, content.ObjectType, _serializerOptions),
-                _ => await request.Content.ReadAsStringAsync()
+                _ => await request.Content.ReadAsStringAsync().ConfigureAwait(false),
             });
     }
 }
