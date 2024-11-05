@@ -38,14 +38,7 @@ public sealed class FindTorrentPageTests
 
         var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
-        Assert.That(page, Is.Not.Default);
-        Assert.Multiple(() =>
-        {
-            Assert.That(page.Torrents, Has.Count.EqualTo(2));
-            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
-            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
-        });
-
+        AssertTorrentPage(2, page, parameters);
         TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
         TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
     }
@@ -60,14 +53,7 @@ public sealed class FindTorrentPageTests
 
         var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
-        Assert.That(page, Is.Not.Default);
-        Assert.Multiple(() =>
-        {
-            Assert.That(page.Torrents, Has.Count.EqualTo(2));
-            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
-            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
-        });
-
+        AssertTorrentPage(2, page, parameters);
         TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
         TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
     }
@@ -85,15 +71,7 @@ public sealed class FindTorrentPageTests
 
         var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
-        Assert.That(page, Is.Not.Default);
-        Assert.Multiple(() =>
-        {
-            Assert.That(page.Torrents, Has.Count.EqualTo(1));
-            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
-            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
-        });
-
-        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
+        AssertTorrentPage(1, page, parameters);
     }
 
     [Test]
@@ -113,10 +91,18 @@ public sealed class FindTorrentPageTests
 
         var page = await response.Content.ReadFromJsonAsync<FindTorrentPageResponse>().ConfigureAwait(false);
 
+        AssertTorrentPage(0, page, parameters);
+    }
+
+    private static void AssertTorrentPage(
+        int expectedCount,
+        FindTorrentPageResponse page,
+        FindTorrentPageParameters parameters)
+    {
         Assert.That(page, Is.Not.Default);
         Assert.Multiple(() =>
         {
-            Assert.That(page.Torrents, Has.Count.EqualTo(0));
+            Assert.That(page.Torrents, Has.Count.EqualTo(expectedCount));
             var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
             Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
         });
