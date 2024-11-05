@@ -35,7 +35,7 @@ public static class FindTorrentPageParametersExtensions
         nameStartsWith = WebUtility.UrlEncode(nameStartsWith);
         return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={afterId}" +
             $"{(hashString is null ? string.Empty : $"&{nameof(hashString)}={hashString}")}" +
-            $"{(webPageUri is null ? string.Empty : $"&{nameof(webPageUri)}={webPageUri}")}" +
+            $"{(webPageUri is null ? string.Empty : $"&{nameof(webPageUri)}={webPageUri.OriginalString}")}" +
             $"{(string.IsNullOrEmpty(nameStartsWith) ? string.Empty : $"&{nameof(nameStartsWith)}={nameStartsWith}")}" +
             $"{(cronExists is null ? string.Empty : $"&{nameof(cronExists)}={cronExists}")}";
     }
