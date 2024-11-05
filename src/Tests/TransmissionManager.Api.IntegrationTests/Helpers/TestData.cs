@@ -11,22 +11,26 @@ internal static class TestData
     {
         public const string FirstTorrentHashString = "0bda511316a069e86dd8ee8a3610475d2013a7fa";
         public const string FirstTorrentName = "TV Show 1";
-        public const string FirstTorrentWebPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
+        public const string FirstTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
         public const string FirstTorrentDownloadDir = "/tvshows";
         public const string FirstTorrentCron = "0 11,17 * * *";
 
         public const string SecondTorrentHashString = "98ad2e3a694dfc69571c25241bd4042b94a55cf5";
         public const string SecondTorrentName = "TV Show 2";
-        public const string SecondTorrentWebPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234568";
+        public const string SecondTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234568";
         public const string SecondTorrentDownloadDir = "/tvshows";
         public const string SecondTorrentMagnetRegexPattern = @"magnet:\?xt=[^""]*";
 
         public const string ThirdTorrentHashString = "10824f01cccd5d4088d8fa04f3d46b7d319744b2";
         public const string ThirdTorrentName = "TV Show 3";
-        public const string ThirdTorrentWebPageUri = "https://torrentTracker.com/forum/viewtopic.php?t=1234569";
+        public const string ThirdTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234569";
         public const string ThirdTorrentDownloadDir = "/tvshows";
         public const string ThirdTorrentMagnetRegexPattern = @"magnet:\?xt=urn:[^""]*";
         public const string ThirdTorrentCron = "30 9,15 * * *";
+
+        public static readonly Uri FirstTorrentWebPageUri = new(FirstTorrentWebPageAddress);
+        public static readonly Uri SecondTorrentWebPageUri = new(SecondTorrentWebPageAddress);
+        public static readonly Uri ThirdTorrentWebPageUri = new(ThirdTorrentWebPageAddress);
 
         public static Torrent[] CreateInitialTorrents() =>
             [
@@ -35,7 +39,7 @@ internal static class TestData
                     Id = default,
                     HashString = FirstTorrentHashString,
                     Name = FirstTorrentName,
-                    WebPageUri = new(FirstTorrentWebPageUri),
+                    WebPageUri = FirstTorrentWebPageUri,
                     DownloadDir = FirstTorrentDownloadDir,
                     Cron = FirstTorrentCron,
                 },
@@ -44,7 +48,7 @@ internal static class TestData
                     Id = default,
                     HashString = SecondTorrentHashString,
                     Name = SecondTorrentName,
-                    WebPageUri = new(SecondTorrentWebPageUri),
+                    WebPageUri = SecondTorrentWebPageUri,
                     DownloadDir = SecondTorrentDownloadDir,
                     MagnetRegexPattern = SecondTorrentMagnetRegexPattern,
                 },
@@ -53,7 +57,7 @@ internal static class TestData
                     Id = default,
                     HashString = ThirdTorrentHashString,
                     Name = ThirdTorrentName,
-                    WebPageUri = new(ThirdTorrentWebPageUri),
+                    WebPageUri = ThirdTorrentWebPageUri,
                     DownloadDir = ThirdTorrentDownloadDir,
                     MagnetRegexPattern = ThirdTorrentMagnetRegexPattern,
                     Cron = ThirdTorrentCron,
@@ -93,30 +97,18 @@ internal static class TestData
 
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
 
-        public static readonly Uri FirstPageUriExistingMagnet =
-            new(Database.FirstTorrentWebPageUri);
-
-        public static readonly Uri SecondPageUriUpdatedMagnet =
-            new(Database.SecondTorrentWebPageUri);
-
-        public static readonly Uri ThirdPageUriRemovedFromTransmission =
-            new(Database.ThirdTorrentWebPageUri);
-
-        public static readonly Uri FourthPageUriNew =
-            new("https://torrentTracker.com/forum/viewtopic.php?t=1234570");
-
         public static readonly Dictionary<TestRequest, TestResponse> RequestResponseMap = new()
         {
-            [new(HttpMethod.Get, FirstPageUriExistingMagnet)] =
+            [new(HttpMethod.Get, Database.FirstTorrentWebPageUri)] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FirstPageMagnetExisting)),
 
-            [new(HttpMethod.Get, SecondPageUriUpdatedMagnet)] =
+            [new(HttpMethod.Get, Database.SecondTorrentWebPageUri)] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, SecondPageMagnetUpdated)),
 
-            [new(HttpMethod.Get, ThirdPageUriRemovedFromTransmission)] =
+            [new(HttpMethod.Get, Database.ThirdTorrentWebPageUri)] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, ThirdPageMagnetRemovedFromTransmission)),
 
-            [new(HttpMethod.Get, FourthPageUriNew)] =
+            [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FourthPageMagnetNew)),
         };
     }

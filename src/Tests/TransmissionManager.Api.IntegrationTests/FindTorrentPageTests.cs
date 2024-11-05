@@ -57,7 +57,7 @@ public sealed class FindTorrentPageTests
     public async Task FindTorrentPageAsync_WhenGivenCorrectUriAndHashStringFilters_ReturnsMatchingTorrent()
     {
         var parameters = new FindTorrentPageParameters(
-            WebPageUri: new(TestData.Database.SecondTorrentWebPageUri),
+            WebPageUri: TestData.Database.SecondTorrentWebPageUri,
             HashString: TestData.Database.SecondTorrentHashString);
 
         var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
