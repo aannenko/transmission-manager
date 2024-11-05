@@ -23,10 +23,10 @@ SSH to your LibreELEC and execute the following commands:
 docker network create transmission-network
 
 # Create these folders
-mkdir /storage/transmission/config
-mkdir /storage/transmission/watch
-mkdir /storage/videos/movies
-mkdir /storage/transmission-manager/data/db
+mkdir -p /storage/transmission/config
+mkdir -p /storage/transmission/watch
+mkdir -p /storage/videos/movies
+mkdir -p /storage/transmission-manager/data/db
 
 # Run Transmission
 docker run -d \
@@ -82,7 +82,7 @@ docker network connect transmission-network 228b4333c2cd
 docker inspect 228b4333c2cd
 
 # Create a folder for TransmissionManager.db
-mkdir /storage/transmission-manager/data/db
+mkdir -p /storage/transmission-manager/data/db
 
 # Run Transmission Manager
 # (replace 172.18.0.2 with the IP address of your Transmission container)
