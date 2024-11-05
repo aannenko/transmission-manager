@@ -1,6 +1,6 @@
 ﻿using TransmissionManager.TorrentWebPages.Services;
 
-namespace TransmissionManager.Api.Common.TorrentWebPage;
+namespace TransmissionManager.Api.Shared.TorrentWebPage;
 
 public sealed class TorrentWebPageClientWrapper(TorrentWebPageClient torrentWebPageClient)
 {

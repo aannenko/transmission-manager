@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Shared.Constants;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 

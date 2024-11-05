@@ -2,7 +2,7 @@
 using Coravel.Scheduling.Schedule.Interfaces;
 using System.Diagnostics.CodeAnalysis;
 
-namespace TransmissionManager.Api.Common.Scheduling;
+namespace TransmissionManager.Api.Shared.Scheduling;
 
 public sealed class TorrentSchedulerService
 {

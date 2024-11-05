@@ -2,7 +2,7 @@
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Common.Scheduling;
+namespace TransmissionManager.Api.Shared.Scheduling;
 
 public sealed class StartupTorrentSchedulerService(TorrentQueryService queryService, TorrentSchedulerService scheduler)
 {

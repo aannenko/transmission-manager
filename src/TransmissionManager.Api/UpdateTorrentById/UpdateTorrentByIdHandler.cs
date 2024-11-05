@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Common.Scheduling;
+﻿using TransmissionManager.Api.Shared.Scheduling;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 

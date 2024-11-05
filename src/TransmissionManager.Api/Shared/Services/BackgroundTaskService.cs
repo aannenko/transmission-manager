@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Common.Services;
+﻿namespace TransmissionManager.Api.Shared.Services;
 
 public sealed class BackgroundTaskService(IServiceProvider serviceProvider)
 {
