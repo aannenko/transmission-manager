@@ -3,7 +3,7 @@ using TransmissionManager.Api.Shared.Constants;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Api.FindTorrentPage;
+namespace TransmissionManager.Api.Actions.FindTorrentPage;
 
 public static class FindTorrentPageParametersExtensions
 {

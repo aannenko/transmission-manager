@@ -4,9 +4,9 @@ using TransmissionManager.Api.Shared.Services;
 using TransmissionManager.Api.Shared.TorrentWebPage;
 using TransmissionManager.Api.Shared.Transmission;
 using TransmissionManager.Database.Services;
-using Result = TransmissionManager.Api.AddTorrent.AddTorrentResult;
+using Result = TransmissionManager.Api.Actions.AddTorrent.AddTorrentResult;
 
-namespace TransmissionManager.Api.AddTorrent;
+namespace TransmissionManager.Api.Actions.AddTorrent;
 
 public sealed partial class AddTorrentHandler(
     TorrentWebPageClientWrapper torrentWebPageService,

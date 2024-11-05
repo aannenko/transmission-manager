@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TransmissionManager.Api.Shared.Constants;
 
-namespace TransmissionManager.Api.DeleteTorrentById;
+namespace TransmissionManager.Api.Actions.DeleteTorrentById;
 
 public static class DeleteTorrentByIdEndpoint
 {

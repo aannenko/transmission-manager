@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TransmissionManager.Api.Shared.Constants;
 
-namespace TransmissionManager.Api.AddTorrent;
+namespace TransmissionManager.Api.Actions.AddTorrent;
 
 public static class AddTorrentEndpoint
 {

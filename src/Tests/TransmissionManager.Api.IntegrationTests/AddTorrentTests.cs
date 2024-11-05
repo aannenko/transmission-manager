@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.AddTorrent;
+using TransmissionManager.Api.Actions.AddTorrent;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;

@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.RefreshTorrentById;
+﻿namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
 public enum RefreshTorrentByIdResult
 {

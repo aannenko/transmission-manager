@@ -1,8 +1,8 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Api.AddTorrent;
-using TransmissionManager.Api.FindTorrentPage;
-using TransmissionManager.Api.RefreshTorrentById;
-using TransmissionManager.Api.UpdateTorrentById;
+using TransmissionManager.Api.Actions.AddTorrent;
+using TransmissionManager.Api.Actions.FindTorrentPage;
+using TransmissionManager.Api.Actions.RefreshTorrentById;
+using TransmissionManager.Api.Actions.UpdateTorrentById;
 
 namespace TransmissionManager.Api.Shared.Serialization;
 

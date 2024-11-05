@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TransmissionManager.Api.FindTorrentPage;
+namespace TransmissionManager.Api.Actions.FindTorrentPage;
 
 public sealed record FindTorrentPageParameters(
     [property: Range(1, 1000)] int Take = 20,

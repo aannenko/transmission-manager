@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TransmissionManager.Api.Shared.Constants;
 
-namespace TransmissionManager.Api.RefreshTorrentById;
+namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
 public static class RefreshTorrentByIdEndpoint
 {

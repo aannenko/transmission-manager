@@ -4,7 +4,7 @@ using TransmissionManager.Api.Shared.Constants;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.FindTorrentById;
+namespace TransmissionManager.Api.Actions.FindTorrentById;
 
 public static class FindTorrentByIdEndpoint
 {

@@ -2,9 +2,9 @@
 using TransmissionManager.Api.Shared.TorrentWebPage;
 using TransmissionManager.Api.Shared.Transmission;
 using TransmissionManager.Database.Services;
-using Result = TransmissionManager.Api.RefreshTorrentById.RefreshTorrentByIdResult;
+using Result = TransmissionManager.Api.Actions.RefreshTorrentById.RefreshTorrentByIdResult;
 
-namespace TransmissionManager.Api.RefreshTorrentById;
+namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
 public sealed class RefreshTorrentByIdHandler(
     TorrentWebPageClientWrapper torrentWebPageService,

@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Shared.Constants;
 using TransmissionManager.TorrentWebPages.Constants;
 
-namespace TransmissionManager.Api.AddTorrent;
+namespace TransmissionManager.Api.Actions.AddTorrent;
 
 public sealed class AddTorrentRequest
 {

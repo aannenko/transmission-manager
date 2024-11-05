@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Shared.Constants;
 using TransmissionManager.TorrentWebPages.Constants;
 
-namespace TransmissionManager.Api.UpdateTorrentById;
+namespace TransmissionManager.Api.Actions.UpdateTorrentById;
 
 public sealed class UpdateTorrentByIdRequest
 {

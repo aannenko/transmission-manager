@@ -1,6 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.FindTorrentPage;
+using TransmissionManager.Api.Actions.FindTorrentPage;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
 

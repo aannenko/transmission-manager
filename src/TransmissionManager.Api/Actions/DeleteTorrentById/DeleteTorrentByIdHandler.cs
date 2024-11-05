@@ -1,7 +1,7 @@
 ﻿using TransmissionManager.Api.Shared.Scheduling;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.DeleteTorrentById;
+namespace TransmissionManager.Api.Actions.DeleteTorrentById;
 
 public sealed class DeleteTorrentByIdHandler(TorrentCommandService commandService, TorrentSchedulerService scheduler)
 {

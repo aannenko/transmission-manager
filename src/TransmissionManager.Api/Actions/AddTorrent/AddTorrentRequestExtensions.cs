@@ -1,7 +1,7 @@
 ﻿using TransmissionManager.Database.Dto;
 using TransmissionManager.Transmission.Dto;
 
-namespace TransmissionManager.Api.AddTorrent;
+namespace TransmissionManager.Api.Actions.AddTorrent;
 
 public static class AddTorrentRequestExtensions
 {
