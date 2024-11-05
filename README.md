@@ -26,7 +26,7 @@ docker network create transmission-network
 mkdir /storage/transmission/config
 mkdir /storage/transmission/watch
 mkdir /storage/videos/movies
-mkdir /storage/transmission-manager/database
+mkdir /storage/transmission-manager/data/db
 
 # Run Transmission
 docker run -d \
@@ -56,7 +56,7 @@ docker run -d \
   -e PGID=0 \
   -e TZ=Europe/Prague \
   -p 9092:9092 \
-  -v /storage/transmission-manager/database:/app/database \
+  -v /storage/transmission-manager/data:/app/data \
   --restart unless-stopped \
   ghcr.io/aannenko/transmission-manager:latest
 ```
@@ -82,7 +82,7 @@ docker network connect transmission-network 228b4333c2cd
 docker inspect 228b4333c2cd
 
 # Create a folder for TransmissionManager.db
-mkdir /storage/transmission-manager/database
+mkdir /storage/transmission-manager/data/db
 
 # Run Transmission Manager
 # (replace 172.18.0.2 with the IP address of your Transmission container)
@@ -95,7 +95,7 @@ docker run -d \
   -e TZ=Europe/Prague \
   -e Transmission__BaseAddress="http://172.18.0.2:9091" \
   -p 9092:9092 \
-  -v /storage/transmission-manager/database:/app/database \
+  -v /storage/transmission-manager/data:/app/data \
   --restart unless-stopped \
   ghcr.io/aannenko/transmission-manager:latest
 ```
