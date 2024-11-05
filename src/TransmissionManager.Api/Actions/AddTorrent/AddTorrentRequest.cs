@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Shared.Constants;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.TorrentWebPages.Constants;
 
 namespace TransmissionManager.Api.Actions.AddTorrent;

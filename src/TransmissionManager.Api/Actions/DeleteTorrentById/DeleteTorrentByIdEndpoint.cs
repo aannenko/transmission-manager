@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using TransmissionManager.Api.Shared.Constants;
+using TransmissionManager.Api.Common.Constants;
 
 namespace TransmissionManager.Api.Actions.DeleteTorrentById;
 

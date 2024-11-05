@@ -1,6 +1,6 @@
 ﻿using TransmissionManager.Transmission.Services;
 
-namespace TransmissionManager.Api.Shared.Transmission;
+namespace TransmissionManager.Api.Common.Transmission;
 
 public sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {

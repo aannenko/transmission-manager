@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TransmissionManager.Api.Shared.Transmission;
+namespace TransmissionManager.Api.Common.Transmission;
 
 [JsonConverter(typeof(JsonStringEnumConverter<TransmissionAddResult>))]
 public enum TransmissionAddResult

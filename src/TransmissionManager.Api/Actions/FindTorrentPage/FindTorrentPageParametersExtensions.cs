@@ -1,5 +1,5 @@
 ﻿using System.Net;
-using TransmissionManager.Api.Shared.Constants;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 

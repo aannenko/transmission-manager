@@ -4,7 +4,7 @@ using TransmissionManager.Api.Actions.FindTorrentPage;
 using TransmissionManager.Api.Actions.RefreshTorrentById;
 using TransmissionManager.Api.Actions.UpdateTorrentById;
 
-namespace TransmissionManager.Api.Shared.Serialization;
+namespace TransmissionManager.Api.Common.Serialization;
 
 [JsonSourceGenerationOptions(
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]

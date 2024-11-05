@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TransmissionManager.Api.Shared.Scheduling;
-using TransmissionManager.Api.Shared.Services;
-using TransmissionManager.Api.Shared.TorrentWebPage;
-using TransmissionManager.Api.Shared.Transmission;
+using TransmissionManager.Api.Common.Scheduling;
+using TransmissionManager.Api.Common.Services;
+using TransmissionManager.Api.Common.TorrentWebPage;
+using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Database.Services;
 using Result = TransmissionManager.Api.Actions.AddTorrent.AddTorrentResult;
 

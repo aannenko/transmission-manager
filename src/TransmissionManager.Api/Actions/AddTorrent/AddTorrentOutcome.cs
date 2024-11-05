@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Shared.Transmission;
+﻿using TransmissionManager.Api.Common.Transmission;
 
 namespace TransmissionManager.Api.Actions.AddTorrent;
 
