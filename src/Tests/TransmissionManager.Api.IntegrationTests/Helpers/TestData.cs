@@ -188,12 +188,4 @@ internal static class TestData
     {
         public const string Torrents = "/api/v1/torrents";
     }
-
-    public static class EndpointMessages
-    {
-        public const string IdNotFound = "Torrent with id {0} was not found.";
-
-        public static readonly CompositeFormat IdNotFoundFormat = CompositeFormat.Parse(IdNotFound);
-
-    }
 }

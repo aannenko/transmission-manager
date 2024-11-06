@@ -1,15 +1,21 @@
-﻿using TransmissionManager.Transmission.Services;
+﻿using System.Text;
+using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Common.Transmission;
 
 public sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {
+    private static readonly CompositeFormat _addError =
+        CompositeFormat.Parse("Could not get a torrent with hash '{0}' from Transmission{1}.");
+
+    private static readonly CompositeFormat _getError =
+        CompositeFormat.Parse("Could not add a torrent to Transmission{0}.");
+
     public async Task<TransmissionAddResponse> AddTorrentUsingMagnetAsync(
         Uri magnetUri,
         string downloadDir,
         CancellationToken cancellationToken)
     {
-        const string error = "Could not add a torrent to Transmission{0}.";
         try
         {
             var transmissionResponse = await transmissionClient
@@ -22,12 +28,12 @@ public sealed class TransmissionClientWrapper(TransmissionClient transmissionCli
                     new(TransmissionAddResult.Added, transmissionResponse.Arguments.TorrentAdded, null),
                 { TorrentDuplicate: not null } =>
                     new(TransmissionAddResult.Duplicate, transmissionResponse.Arguments.TorrentDuplicate, null),
-                _ => new(null, null, string.Format(error, string.Empty))
+                _ => new(null, null, string.Format(null, _getError, string.Empty))
             };
         }
         catch (HttpRequestException e)
         {
-            return new(null, null, string.Format(error, $": {e.Message}"));
+            return new(null, null, string.Format(null, _getError, $": {e.Message}"));
         }
     }
 
@@ -35,7 +41,6 @@ public sealed class TransmissionClientWrapper(TransmissionClient transmissionCli
         string hashString,
         CancellationToken cancellationToken)
     {
-        const string error = "Could not get a torrent with hash '{0}' from Transmission{1}.";
         try
         {
             var transmissionResponse = await transmissionClient
@@ -46,11 +51,11 @@ public sealed class TransmissionClientWrapper(TransmissionClient transmissionCli
 
             return torrent is not null
                 ? new(torrent, null)
-                : new(null, string.Format(error, hashString, string.Empty));
+                : new(null, string.Format(null, _addError, hashString, string.Empty));
         }
         catch (HttpRequestException e)
         {
-            return new(null, string.Format(error, hashString, $": '{e.Message}'"));
+            return new(null, string.Format(null, _addError, hashString, $": '{e.Message}'"));
         }
     }
 }

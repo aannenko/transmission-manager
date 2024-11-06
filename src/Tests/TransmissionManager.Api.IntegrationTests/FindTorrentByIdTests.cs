@@ -52,6 +52,6 @@ public sealed class FindTorrentByIdTests
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Detail, Is.EqualTo(string.Format(null, TestData.EndpointMessages.IdNotFoundFormat, 999)));
+        Assert.That(problem.Detail, Is.EqualTo("Torrent with id 999 was not found."));
     }
 }

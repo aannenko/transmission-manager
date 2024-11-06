@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.AddTorrent;
@@ -159,8 +158,10 @@ public sealed class AddTorrentTests
         Assert.That(problemDetails, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            const string error = "Addition of a torrent from the web page '{0}' has failed: 'Torrent already exists.'.";
-            Assert.That(problemDetails.Detail, Is.EqualTo(string.Format(CultureInfo.InvariantCulture, error, dto.WebPageUri)));
+            var error =
+                $"Addition of a torrent from the web page '{dto.WebPageUri}' has failed: 'Torrent already exists.'.";
+
+            Assert.That(problemDetails.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
         });
