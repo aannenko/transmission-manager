@@ -24,11 +24,11 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
 
-        var bytesBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
-        char[]? charsBuffer = null;
+        var byteBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
+        char[]? charBuffer = null;
         try
         {
-            var bytes = bytesBuffer.AsMemory();
+            var bytes = byteBuffer.AsMemory();
             var read = 0;
             while ((read = await stream.ReadAsync(bytes[_keepFromLastBuffer..], cancellationToken).ConfigureAwait(false)) > 0)
             {
@@ -50,8 +50,8 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                     bytesToSearchIn = bytes[..(bytesToShiftToStart.Length + read)];
                 }
 
-                charsBuffer = ArrayPool<char>.Shared.Rent(_bufferSize);
-                var chars = charsBuffer.AsMemory();
+                charBuffer = ArrayPool<char>.Shared.Rent(bytesToSearchIn.Length);
+                var chars = charBuffer.AsMemory(0, bytesToSearchIn.Length);
                 if (Encoding.UTF8.TryGetChars(bytesToSearchIn.Span, chars.Span, out var charsWritten) &&
                     regex.TryGetFirstMatch(chars.Span[..charsWritten], out var magnetRange))
                 {
@@ -65,9 +65,9 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         }
         finally
         {
-            ArrayPool<byte>.Shared.Return(bytesBuffer);
-            if (charsBuffer is not null)
-                ArrayPool<char>.Shared.Return(charsBuffer);
+            ArrayPool<byte>.Shared.Return(byteBuffer);
+            if (charBuffer is not null)
+                ArrayPool<char>.Shared.Return(charBuffer);
         }
     }
 
