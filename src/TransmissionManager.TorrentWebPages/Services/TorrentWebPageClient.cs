@@ -24,42 +24,51 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
 
-        using var bytesOwner = MemoryPool<byte>.Shared.Rent(_bufferSize);
-        var read = 0;
-        while ((read = await stream
-            .ReadAsync(bytesOwner.Memory[_keepFromLastBuffer..], cancellationToken)
-            .ConfigureAwait(false)) > 0)
+        var bytesBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
+        char[]? charsBuffer = null;
+        try
         {
-            var bytesToSearchIn = bytesOwner.Memory[..(_keepFromLastBuffer + read)];
-            var indexOfMagnet = ((ReadOnlySpan<byte>)bytesToSearchIn.Span).IndexOfStartOf("magnet:?"u8);
-            if (indexOfMagnet is -1)
+            var bytes = bytesBuffer.AsMemory();
+            var read = 0;
+            while ((read = await stream.ReadAsync(bytes[_keepFromLastBuffer..], cancellationToken).ConfigureAwait(false)) > 0)
             {
-                bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(bytesToSearchIn);
-                continue;
+                var bytesToSearchIn = bytes[..(_keepFromLastBuffer + read)];
+                var indexOfMagnet = ((ReadOnlySpan<byte>)bytesToSearchIn.Span).IndexOfStartOf("magnet:?"u8);
+                if (indexOfMagnet is -1)
+                {
+                    bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(bytes);
+                    continue;
+                }
+
+                if (indexOfMagnet >= _keepFromLastBuffer * 4)
+                {
+                    var bytesToShiftToStart = bytesToSearchIn[(indexOfMagnet - _keepFromLastBuffer)..];
+                    bytesToShiftToStart.CopyTo(bytes);
+                    read = await stream.ReadAsync(bytes[bytesToShiftToStart.Length..], cancellationToken)
+                        .ConfigureAwait(false);
+
+                    bytesToSearchIn = bytes[..(bytesToShiftToStart.Length + read)];
+                }
+
+                charsBuffer = ArrayPool<char>.Shared.Rent(_bufferSize);
+                var chars = charsBuffer.AsMemory();
+                if (Encoding.UTF8.TryGetChars(bytesToSearchIn.Span, chars.Span, out var charsWritten) &&
+                    regex.TryGetFirstMatch(chars.Span[..charsWritten], out var magnetRange))
+                {
+                    return new(chars[magnetRange].ToString());
+                }
+
+                bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(bytes);
             }
 
-            if (indexOfMagnet >= _keepFromLastBuffer * 4)
-            {
-                var bytesToShiftToStart = bytesToSearchIn[(indexOfMagnet - _keepFromLastBuffer)..];
-                bytesToShiftToStart.CopyTo(bytesToSearchIn);
-                read = await stream.ReadAsync(bytesOwner.Memory[bytesToShiftToStart.Length..], cancellationToken)
-                    .ConfigureAwait(false);
-
-                bytesToSearchIn = bytesOwner.Memory[..(bytesToShiftToStart.Length + read)];
-            }
-
-            using var charsOwner = MemoryPool<char>.Shared.Rent(_bufferSize);
-            var chars = charsOwner.Memory;
-            if (Encoding.UTF8.TryGetChars(bytesToSearchIn.Span, chars.Span, out var charsWritten) &&
-                regex.TryGetFirstMatch(chars.Span[..charsWritten], out var magnetRange))
-            {
-                return new(chars[magnetRange].ToString());
-            }
-
-            bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(bytesToSearchIn);
+            return null;
         }
-
-        return null;
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(bytesBuffer);
+            if (charsBuffer is not null)
+                ArrayPool<char>.Shared.Return(charsBuffer);
+        }
     }
 
     private Regex GetMagnetRegex(string? regexPattern)
