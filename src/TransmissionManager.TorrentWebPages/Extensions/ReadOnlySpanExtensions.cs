@@ -2,6 +2,9 @@
 
 public static class ReadOnlySpanExtensions
 {
+    public static int IndexOfStartOf(this Span<byte> span, ReadOnlySpan<byte> value) =>
+        ((ReadOnlySpan<byte>)span).IndexOfStartOf(value);
+
     public static int IndexOfStartOf(this ReadOnlySpan<byte> span, ReadOnlySpan<byte> value)
     {
         var index = span.IndexOf(value);

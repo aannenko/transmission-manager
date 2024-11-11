@@ -30,10 +30,11 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         {
             var bytes = byteBuffer.AsMemory();
             var read = 0;
-            while ((read = await stream.ReadAsync(bytes[_keepFromLastBuffer..], cancellationToken).ConfigureAwait(false)) > 0)
+            while ((read = await stream.ReadAsync(bytes[_keepFromLastBuffer..], cancellationToken)
+                .ConfigureAwait(false)) > 0)
             {
                 var bytesToSearchIn = bytes[..(_keepFromLastBuffer + read)];
-                var indexOfMagnet = ((ReadOnlySpan<byte>)bytesToSearchIn.Span).IndexOfStartOf("magnet:?"u8);
+                var indexOfMagnet = bytesToSearchIn.Span.IndexOfStartOf("magnet:?"u8);
                 if (indexOfMagnet is -1)
                 {
                     bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(bytes);
