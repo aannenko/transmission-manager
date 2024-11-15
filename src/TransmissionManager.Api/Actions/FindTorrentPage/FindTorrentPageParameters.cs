@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.Api.Actions.FindTorrentPage;
 
-public sealed record FindTorrentPageParameters(
+internal readonly record struct FindTorrentPageParameters(
     [property: Range(1, 1000)] int Take = 20,
     long AfterId = 0,
     [property: RegularExpression("[0-9A-Fa-f]{40}")] string? HashString = null,

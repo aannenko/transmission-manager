@@ -11,7 +11,7 @@ using TorrentFields = TransmissionManager.Transmission.Dto.TransmissionTorrentGe
 namespace TransmissionManager.Transmission.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class TransmissionClientTests
+internal sealed class TransmissionClientTests
 {
     private const string _transmissionRpcUri = "http://transmission:9091/transmission/rpc";
     private const string _twoTorrentsAllFieldsResponse = """

@@ -1,26 +1,40 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using MiniValidation;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.FindTorrentPage;
 
-public static class FindTorrentPageEndpoint
+internal static class FindTorrentPageEndpoint
 {
     public static IEndpointRouteBuilder MapFindTorrentPageEndpoint(this IEndpointRouteBuilder builder)
     {
         builder.MapGet("/", FindTorrentPageAsync)
-            .WithParameterValidation()
+            //.WithParameterValidation() // Commented out until the bugs described below are fixed
             .WithName(EndpointNames.FindTorrentPage);
 
         return builder;
     }
 
+    // Using [AsParameters] class or struct has these bugs:
+    // - a class cannot have a nullable reference type constructor parameter https://github.com/dotnet/aspnetcore/issues/58953
+    // - default values of a struct's constructor parameters are ignored https://github.com/dotnet/aspnetcore/issues/56396
     private static async Task<Results<Ok<FindTorrentPageResponse>, ValidationProblem>> FindTorrentPageAsync(
         [FromServices] TorrentQueryService service,
-        [AsParameters] FindTorrentPageParameters parameters,
-        CancellationToken cancellationToken)
+        //[AsParameters] FindTorrentPageParameters parameters,
+        int Take = 20,
+        long AfterId = 0,
+        string? HashString = null,
+        Uri? WebPageUri = null,
+        string? NameStartsWith = null,
+        bool? CronExists = null,
+        CancellationToken cancellationToken = default)
     {
+        var parameters = new FindTorrentPageParameters(Take, AfterId, HashString, WebPageUri, NameStartsWith, CronExists);
+        if (!MiniValidator.TryValidate(parameters, out var errors))
+            return TypedResults.ValidationProblem(errors);
+
         var torrents = await service
             .FindPageAsync(parameters.ToPageDescriptor(), parameters.ToTorrentFilter(), cancellationToken)
             .ConfigureAwait(false);

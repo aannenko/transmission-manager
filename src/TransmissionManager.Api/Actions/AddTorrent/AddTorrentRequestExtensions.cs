@@ -3,7 +3,7 @@ using TransmissionManager.Transmission.Dto;
 
 namespace TransmissionManager.Api.Actions.AddTorrent;
 
-public static class AddTorrentRequestExtensions
+internal static class AddTorrentRequestExtensions
 {
     public static TorrentAddDto ToTorrentAddDto(
         this AddTorrentRequest dto,

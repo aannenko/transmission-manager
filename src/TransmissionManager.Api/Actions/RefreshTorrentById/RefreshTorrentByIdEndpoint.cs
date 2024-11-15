@@ -4,7 +4,7 @@ using TransmissionManager.Api.Common.Constants;
 
 namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
-public static class RefreshTorrentByIdEndpoint
+internal static class RefreshTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapRefreshTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {

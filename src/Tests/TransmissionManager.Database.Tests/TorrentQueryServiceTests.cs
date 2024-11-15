@@ -4,7 +4,7 @@ using TransmissionManager.Database.Services;
 namespace TransmissionManager.Database.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
+internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
 {
     [Test]
     public async Task FindOneByIdAsync_ReturnsTorrent_WhenTorrentWithSuchIdExists()
@@ -207,7 +207,7 @@ public sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     {
         Assert.That(actual, Is.Not.Null);
         Assert.That(actual, Has.Length.EqualTo(expected.Length));
-        for (var i = 0; i < actual.Length; i++)
+        for (var i = 0; i < actual!.Length; i++)
             AssertTorrent(actual[i], expected[i], expectedIds[i]);
     }
 
@@ -216,7 +216,7 @@ public sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
         Assert.That(actual, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(actual.Id, Is.EqualTo(expectedId));
+            Assert.That(actual!.Id, Is.EqualTo(expectedId));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
             Assert.That(actual.Name, Is.EqualTo(expected.Name));
             Assert.That(actual.WebPageUri, Is.EqualTo(expected.WebPageUri));

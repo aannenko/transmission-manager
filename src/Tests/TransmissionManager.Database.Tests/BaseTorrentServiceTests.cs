@@ -5,7 +5,7 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Database.Tests;
 
-public abstract class BaseTorrentServiceTests
+internal abstract class BaseTorrentServiceTests
 {
     private protected static readonly Torrent[] _initialTorrents =
     [
@@ -39,8 +39,8 @@ public abstract class BaseTorrentServiceTests
         }
     ];
 
-    private SqliteConnection _connection;
-    private DbContextOptions<AppDbContext> _contextOptions;
+    private SqliteConnection _connection = default!;
+    private DbContextOptions<AppDbContext> _contextOptions = default!;
 
     [OneTimeSetUp]
     public void Setup()

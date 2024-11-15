@@ -3,7 +3,7 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.DeleteTorrentById;
 
-public sealed class DeleteTorrentByIdHandler(TorrentCommandService commandService, TorrentSchedulerService scheduler)
+internal sealed class DeleteTorrentByIdHandler(TorrentCommandService commandService, TorrentSchedulerService scheduler)
 {
     public Task<bool> TryDeleteTorrentByIdAsync(long id, CancellationToken cancellationToken = default)
     {

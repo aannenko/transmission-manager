@@ -4,7 +4,7 @@ using TransmissionManager.TorrentWebPages.Constants;
 
 namespace TransmissionManager.Api.Actions.AddTorrent;
 
-public sealed class AddTorrentRequest
+internal sealed class AddTorrentRequest
 {
     [Required]
     public required Uri WebPageUri { get; init; }

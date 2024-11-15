@@ -77,11 +77,11 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         if (regexPattern is null)
             return options.CurrentValue.DefaultMagnetRegex;
 
-        if (!TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
-            throw new ArgumentException(
-                $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
-                nameof(regexPattern));
+        if (TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
+            return RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
 
-        return RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
+        throw new ArgumentException(
+            $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
+            nameof(regexPattern));
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Net.Http.Json;
+﻿using Microsoft.AspNetCore.Http;
+using System.Net;
+using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.FindTorrentPage;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
@@ -6,12 +8,12 @@ using TransmissionManager.Database.Models;
 namespace TransmissionManager.Api.IntegrationTests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class FindTorrentPageTests
+internal sealed class FindTorrentPageTests
 {
     private static readonly Torrent[] _torrents = TestData.Database.CreateInitialTorrents();
 
-    private TestWebAppliationFactory<Program> _factory;
-    private HttpClient _client;
+    private TestWebAppliationFactory<Program> _factory = default!;
+    private HttpClient _client = default!;
 
     [OneTimeSetUp]
     public void Setup()
@@ -64,6 +66,7 @@ public sealed class FindTorrentPageTests
             .ConfigureAwait(false);
 
         AssertTorrentPage(1, page, parameters);
+        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
     }
 
     [Test]
@@ -81,6 +84,54 @@ public sealed class FindTorrentPageTests
             .ConfigureAwait(false);
 
         AssertTorrentPage(0, page, parameters);
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenInvalidTakeParameter_ReturnsValidationProblem()
+    {
+        var parameters = new FindTorrentPageParameters(Take: 0);
+
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors, Has.Count.EqualTo(1));
+        Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.Take)));
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenTooLargeValueOfTakeParameter_ReturnsValidationProblem()
+    {
+        var parameters = new FindTorrentPageParameters(Take: 1001);
+
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors, Has.Count.EqualTo(1));
+        Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.Take)));
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenInvalidHashStringParameter_ReturnsValidationProblem()
+    {
+        var parameters = new FindTorrentPageParameters(HashString: "invalid");
+
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors, Has.Count.EqualTo(1));
+        Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.HashString)));
     }
 
     private static void AssertTorrentPage(

@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Api.Actions.AddTorrent;
 
-public enum AddTorrentResult
+internal enum AddTorrentResult
 {
     TorrentAdded,
     TorrentExists,

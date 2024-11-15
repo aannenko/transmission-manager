@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.Api.Actions.UpdateTorrentById;
 
-public static class UpdateTorrentByIdRequestExtensions
+internal static class UpdateTorrentByIdRequestExtensions
 {
     public static TorrentUpdateDto ToTorrentUpdateDto(this UpdateTorrentByIdRequest dto)
     {

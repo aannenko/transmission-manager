@@ -7,7 +7,7 @@ using TransmissionManager.TorrentWebPages.Services;
 namespace TransmissionManager.TorrentWebPages.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class TorrentWebPageClientTests
+internal sealed class TorrentWebPageClientTests
 {
     private const string _webPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
 

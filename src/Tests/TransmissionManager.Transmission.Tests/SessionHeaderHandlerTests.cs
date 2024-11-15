@@ -7,7 +7,7 @@ using TransmissionManager.Transmission.Services;
 namespace TransmissionManager.Transmission.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class SessionHeaderHandlerTests
+internal sealed class SessionHeaderHandlerTests
 {
     private const string _requestUri = "http://transmission:9091/transmission/rpc";
     private const string _sessionHeaderName = "X-Transmission-Session-Id";

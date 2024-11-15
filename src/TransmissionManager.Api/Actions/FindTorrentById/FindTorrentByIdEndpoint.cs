@@ -6,7 +6,7 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.FindTorrentById;
 
-public static class FindTorrentByIdEndpoint
+internal static class FindTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapFindTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {

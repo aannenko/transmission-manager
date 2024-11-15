@@ -8,12 +8,12 @@ using TransmissionManager.Database.Models;
 namespace TransmissionManager.Api.IntegrationTests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class UpdateTorrentByIdTests
+internal sealed class UpdateTorrentByIdTests
 {
     private static readonly Torrent[] _torrents = TestData.Database.CreateInitialTorrents();
 
-    private TestWebAppliationFactory<Program> _factory;
-    private HttpClient _client;
+    private TestWebAppliationFactory<Program> _factory = default!;
+    private HttpClient _client = default!;
 
     [OneTimeSetUp]
     public void Setup()
@@ -54,7 +54,7 @@ public sealed class UpdateTorrentByIdTests
         Assert.That(torrent, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));
+            Assert.That(torrent!.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));
         });
@@ -72,6 +72,6 @@ public sealed class UpdateTorrentByIdTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id -1 was not found."));
+        Assert.That(problemDetails!.Detail, Is.EqualTo("Torrent with id -1 was not found."));
     }
 }

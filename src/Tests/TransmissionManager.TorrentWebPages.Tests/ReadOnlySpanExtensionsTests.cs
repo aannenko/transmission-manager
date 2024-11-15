@@ -3,7 +3,7 @@
 namespace TransmissionManager.TorrentWebPages.Tests;
 
 [Parallelizable(ParallelScope.All)]
-public sealed class ReadOnlySpanExtensionsTests
+internal sealed class ReadOnlySpanExtensionsTests
 {
     [Test]
     public void IndexOfStartOf_WhenGivenNormalSpanAndFullyExistingValue_ReturnsIndexOfValue() =>

@@ -6,7 +6,7 @@ using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Common.Services;
 
-public sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTaskService)
+internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTaskService)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
         [TransmissionTorrentGetRequestFields.Name];

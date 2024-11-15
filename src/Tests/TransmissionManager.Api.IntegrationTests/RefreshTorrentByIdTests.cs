@@ -8,7 +8,7 @@ using TransmissionManager.Database.Models;
 namespace TransmissionManager.Api.IntegrationTests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class RefreshTorrentByIdTests
+internal sealed class RefreshTorrentByIdTests
 {
     private static readonly Torrent[] _initialTorrents = TestData.Database.CreateInitialTorrents();
 
@@ -175,8 +175,8 @@ public sealed class RefreshTorrentByIdTests
 
     #endregion
 
-    private TestWebAppliationFactory<Program> _factory;
-    private HttpClient _client;
+    private TestWebAppliationFactory<Program> _factory = default!;
+    private HttpClient _client = default!;
 
     [OneTimeSetUp]
     public void Setup()

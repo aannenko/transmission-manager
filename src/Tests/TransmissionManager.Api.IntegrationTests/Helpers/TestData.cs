@@ -7,7 +7,7 @@ namespace TransmissionManager.Api.IntegrationTests.Helpers;
 
 internal static class TestData
 {
-    public static class Database
+    internal static class Database
     {
         public const string FirstTorrentHashString = "0bda511316a069e86dd8ee8a3610475d2013a7fa";
         public const string FirstTorrentName = "TV Show 1";
@@ -113,7 +113,7 @@ internal static class TestData
         };
     }
 
-    public static class Transmission
+    internal static class Transmission
     {
         public const string SessionHeaderName = "X-Transmission-Session-Id";
         public const string SessionHeaderValue = "FctoNpkk6eYSSgmBV0B2DXI4SsLLSYc0lA5MdYkLpc9fDA59";
@@ -184,7 +184,7 @@ internal static class TestData
         };
     }
 
-    public static class Endpoints
+    internal static class Endpoints
     {
         public const string Torrents = "/api/v1/torrents";
     }

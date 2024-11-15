@@ -5,7 +5,7 @@ using TransmissionManager.Database.Services;
 namespace TransmissionManager.Database.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
+internal sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
 {
     [Test]
     public async Task AddOneAsync_AddsTorrent_WhenItDoesNotConflictWithExistingTorrents()
@@ -34,7 +34,7 @@ public sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(actual.Id, Is.EqualTo(torrentId));
+            Assert.That(actual!.Id, Is.EqualTo(torrentId));
             Assert.That(actual.HashString, Is.EqualTo(dto.HashString));
             Assert.That(actual.Name, Is.EqualTo(dto.Name));
             Assert.That(actual.WebPageUri, Is.EqualTo(dto.WebPageUri));
@@ -100,7 +100,7 @@ public sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
         Assert.That(actual, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(actual.HashString, Is.EqualTo(dto.HashString));
+            Assert.That(actual!.HashString, Is.EqualTo(dto.HashString));
             Assert.That(actual.Name, Is.EqualTo(dto.Name));
             Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
@@ -125,7 +125,7 @@ public sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
         Assert.That(actual, Is.Not.Null);
         Assert.Multiple(() =>
         {
-            Assert.That(actual.MagnetRegexPattern, Is.Null);
+            Assert.That(actual!.MagnetRegexPattern, Is.Null);
             Assert.That(actual.Cron, Is.Null);
         });
     }

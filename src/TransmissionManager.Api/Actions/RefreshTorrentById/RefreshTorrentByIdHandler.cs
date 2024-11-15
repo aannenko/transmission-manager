@@ -7,7 +7,7 @@ using Result = TransmissionManager.Api.Actions.RefreshTorrentById.RefreshTorrent
 
 namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
-public sealed class RefreshTorrentByIdHandler(
+internal sealed class RefreshTorrentByIdHandler(
     TorrentWebPageClientWrapper torrentWebPageService,
     TransmissionClientWrapper transmissionService,
     TorrentQueryService queryService,

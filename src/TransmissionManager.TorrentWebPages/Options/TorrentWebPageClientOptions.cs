@@ -10,8 +10,10 @@ public sealed class TorrentWebPageClientOptions
 {
     private readonly Lazy<Regex> _lazyDefaultMagnetRegex;
 
-    public TorrentWebPageClientOptions() =>
+    public TorrentWebPageClientOptions()
+    {
         _lazyDefaultMagnetRegex = new(() => RegexUtils.CreateRegex(DefaultMagnetRegexPattern!, RegexMatchTimeout));
+    }
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
     [Required]

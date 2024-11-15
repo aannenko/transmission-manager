@@ -15,6 +15,9 @@ using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Services;
 using TransmissionManager.TorrentWebPages.Extensions;
 using TransmissionManager.Transmission.Extensions;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("TransmissionManager.Api.IntegrationTests")]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -73,9 +76,9 @@ app.MapGroup(EndpointAddresses.TorrentsApi)
 
 await app.RunAsync().ConfigureAwait(false);
 
-public sealed partial class Program;
+internal sealed partial class Program;
 
-static partial class LoggerStartupExtensions
+internal static partial class LoggerStartupExtensions
 {
     public static void LogStartup(this ILogger logger)
     {

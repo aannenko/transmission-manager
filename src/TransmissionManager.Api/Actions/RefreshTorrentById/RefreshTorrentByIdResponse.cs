@@ -2,4 +2,4 @@
 
 namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
-public readonly record struct RefreshTorrentByIdResponse(TransmissionAddResult TransmissionResult);
+internal readonly record struct RefreshTorrentByIdResponse(TransmissionAddResult TransmissionResult);

@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.Api.Common.TorrentWebPage;
 
-public sealed class TorrentWebPageClientWrapper(TorrentWebPageClient torrentWebPageClient)
+internal sealed class TorrentWebPageClientWrapper(TorrentWebPageClient torrentWebPageClient)
 {
     public async Task<TorrentWebPageGetMagnetResponse> GetMagnetUriAsync(
         Uri webPageUri,

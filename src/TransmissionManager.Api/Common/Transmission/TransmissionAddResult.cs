@@ -3,7 +3,7 @@
 namespace TransmissionManager.Api.Common.Transmission;
 
 [JsonConverter(typeof(JsonStringEnumConverter<TransmissionAddResult>))]
-public enum TransmissionAddResult
+internal enum TransmissionAddResult
 {
     Added,
     Duplicate

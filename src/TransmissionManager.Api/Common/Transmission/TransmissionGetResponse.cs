@@ -2,4 +2,4 @@
 
 namespace TransmissionManager.Api.Common.Transmission;
 
-public readonly record struct TransmissionGetResponse(TransmissionTorrentGetResponseItem? Torrent, string? Error);
+internal readonly record struct TransmissionGetResponse(TransmissionTorrentGetResponseItem? Torrent, string? Error);

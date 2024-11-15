@@ -5,12 +5,10 @@ using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.Actions.FindTorrentPage;
 
-public static class FindTorrentPageParametersExtensions
+internal static class FindTorrentPageParametersExtensions
 {
     public static PageDescriptor ToPageDescriptor(this FindTorrentPageParameters parameters)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
-
         return new(
             Take: parameters.Take,
             AfterId: parameters.AfterId);
@@ -18,8 +16,6 @@ public static class FindTorrentPageParametersExtensions
 
     public static TorrentFilter ToTorrentFilter(this FindTorrentPageParameters parameters)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
-
         return new(
             HashString: parameters.HashString,
             WebPageUri: parameters.WebPageUri,
@@ -29,8 +25,6 @@ public static class FindTorrentPageParametersExtensions
 
     public static string ToPathAndQueryString(this FindTorrentPageParameters parameters)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
-
         var (take, afterId, hashString, webPageUri, nameStartsWith, cronExists) = parameters;
         nameStartsWith = WebUtility.UrlEncode(nameStartsWith);
         return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={afterId}" +
@@ -44,12 +38,10 @@ public static class FindTorrentPageParametersExtensions
         this FindTorrentPageParameters parameters,
         IReadOnlyList<Torrent> currentPage)
     {
-        ArgumentNullException.ThrowIfNull(parameters);
         ArgumentNullException.ThrowIfNull(currentPage);
 
-        if (currentPage.Count is 0 || parameters.WebPageUri is not null || parameters.HashString is not null)
-            return null;
-
-        return parameters with { AfterId = currentPage[^1].Id };
+        return currentPage.Count is 0 || parameters.WebPageUri is not null || parameters.HashString is not null
+            ? null
+            : (parameters with { AfterId = currentPage[^1].Id });
     }
 }

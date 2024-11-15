@@ -18,8 +18,10 @@ public sealed record TestRequest(
             return Headers is null or { Count: 0 } && other.Headers is null or { Count: 0 };
 
         foreach (var (key, value) in Headers)
+        {
             if (!other.Headers.TryGetValue(key, out var otherValue) || value != otherValue)
                 return false;
+        }
 
         return true;
     }

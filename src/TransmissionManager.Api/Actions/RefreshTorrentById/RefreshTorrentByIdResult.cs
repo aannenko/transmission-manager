@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
-public enum RefreshTorrentByIdResult
+internal enum RefreshTorrentByIdResult
 {
     TorrentRefreshed,
     NotFoundLocally,

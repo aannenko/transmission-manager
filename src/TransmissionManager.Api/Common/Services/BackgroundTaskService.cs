@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Api.Common.Services;
 
-public sealed class BackgroundTaskService(IServiceProvider serviceProvider)
+internal sealed class BackgroundTaskService(IServiceProvider serviceProvider)
 {
     public async Task RunScopedAsync<TArg>(
         Func<IServiceProvider, TArg, CancellationToken, Task> func,

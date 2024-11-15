@@ -3,12 +3,14 @@ using TransmissionManager.TorrentWebPages.Extensions;
 
 namespace TransmissionManager.TorrentWebPages.Tests;
 
-public sealed partial class RegexExtensionsTests
+internal sealed partial class RegexExtensionsTests
 {
+    private const string _abcdefg = "abcdefg";
+
     [Test]
     public void TryGetFirstMatch_WhenGivenMatchingSpan_ReturnsTrueAndNonEmptyMatchRange()
     {
-        var result = CdeRegex().TryGetFirstMatch("abcdefg", out var range);
+        var result = CdeRegex().TryGetFirstMatch(_abcdefg, out var range);
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.True);
@@ -19,7 +21,7 @@ public sealed partial class RegexExtensionsTests
     [Test]
     public void TryGetFirstMatch_WhenGivenNonMatchingSpan_ReturnsFalseAndEmptyMatchRange()
     {
-        var result = CdfRegex().TryGetFirstMatch("abcdefg", out var range);
+        var result = CdfRegex().TryGetFirstMatch(_abcdefg, out var range);
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.False);

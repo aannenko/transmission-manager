@@ -4,7 +4,7 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.UpdateTorrentById;
 
-public sealed class UpdateTorrentByIdHandler(TorrentCommandService commandService, TorrentSchedulerService scheduler)
+internal sealed class UpdateTorrentByIdHandler(TorrentCommandService commandService, TorrentSchedulerService scheduler)
 {
     public async Task<bool> TryUpdateTorrentByIdAsync(
         long id,

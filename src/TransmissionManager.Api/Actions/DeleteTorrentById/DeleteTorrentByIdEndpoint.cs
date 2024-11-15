@@ -4,7 +4,7 @@ using TransmissionManager.Api.Common.Constants;
 
 namespace TransmissionManager.Api.Actions.DeleteTorrentById;
 
-public static class DeleteTorrentByIdEndpoint
+internal static class DeleteTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapDeleteTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {

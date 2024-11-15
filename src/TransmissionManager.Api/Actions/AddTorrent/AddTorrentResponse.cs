@@ -2,4 +2,4 @@
 
 namespace TransmissionManager.Api.Actions.AddTorrent;
 
-public readonly record struct AddTorrentResponse(TransmissionAddResult TransmissionResult);
+internal readonly record struct AddTorrentResponse(TransmissionAddResult TransmissionResult);

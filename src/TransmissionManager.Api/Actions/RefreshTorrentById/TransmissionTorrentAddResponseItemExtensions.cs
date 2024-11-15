@@ -3,7 +3,7 @@ using TransmissionManager.Transmission.Dto;
 
 namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 
-public static class TransmissionTorrentAddResponseItemExtensions
+internal static class TransmissionTorrentAddResponseItemExtensions
 {
     public static TorrentUpdateDto ToTorrentUpdateDto(this TransmissionTorrentAddResponseItem transmissionTorrent)
     {

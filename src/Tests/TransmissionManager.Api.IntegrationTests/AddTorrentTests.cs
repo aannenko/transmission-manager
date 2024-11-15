@@ -9,7 +9,7 @@ using TransmissionManager.Database.Models;
 namespace TransmissionManager.Api.IntegrationTests;
 
 [Parallelizable(ParallelScope.Self)]
-public sealed class AddTorrentTests
+internal sealed class AddTorrentTests
 {
     private static readonly Torrent[] _initialTorrents = [TestData.Database.CreateInitialTorrents()[0]];
 
@@ -98,8 +98,8 @@ public sealed class AddTorrentTests
 
     #endregion
 
-    private TestWebAppliationFactory<Program> _factory;
-    private HttpClient _client;
+    private TestWebAppliationFactory<Program> _factory = default!;
+    private HttpClient _client = default!;
 
     [OneTimeSetUp]
     public void Setup()
@@ -161,7 +161,7 @@ public sealed class AddTorrentTests
             var error =
                 $"Addition of a torrent from the web page '{dto.WebPageUri}' has failed: 'Torrent already exists.'.";
 
-            Assert.That(problemDetails.Detail, Is.EqualTo(error));
+            Assert.That(problemDetails!.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
         });

@@ -14,7 +14,7 @@ using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.IntegrationTests.Helpers;
 
-public sealed class TestWebAppliationFactory<TProgram>(
+internal sealed class TestWebAppliationFactory<TProgram>(
     Torrent[] initialTorrents,
     IReadOnlyDictionary<TestRequest, TestResponse>? torrentPageRequestResponseMap,
     IReadOnlyDictionary<TestRequest, TestResponse>? transmissionRequestResponseMap)
@@ -40,25 +40,25 @@ public sealed class TestWebAppliationFactory<TProgram>(
 
         base.ConfigureWebHost(builder);
 
-        _ = builder.UseEnvironment("Testing");
+        builder.UseEnvironment("Testing");
 
         DisposeOfDbConnection();
         _connection = new SqliteConnection("Data Source=:memory:");
         _connection.Open();
 
-        _ = builder.ConfigureServices(services =>
+        builder.ConfigureServices(services =>
         {
-            _ = services
+            services
                 .RemoveAll<DbContextOptions<AppDbContext>>()
                 .AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
 
-            _ = services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
+            services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
                     builder.PrimaryHandler = new FakeHttpMessageHandler(_torrentPageRequestResponseMap));
             });
 
-            _ = services.PostConfigure(nameof(TransmissionClient), (HttpClientFactoryOptions options) =>
+            services.PostConfigure(nameof(TransmissionClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
                     builder.PrimaryHandler = new FakeHttpMessageHandler(_transmissionRequestResponseMap));
@@ -73,7 +73,7 @@ public sealed class TestWebAppliationFactory<TProgram>(
         using var scope = host.Services.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         dbContext.Torrents.AddRange(initialTorrents);
-        _ = dbContext.SaveChanges();
+        dbContext.SaveChanges();
 
         return host;
     }

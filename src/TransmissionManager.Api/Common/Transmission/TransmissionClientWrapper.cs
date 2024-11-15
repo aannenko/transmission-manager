@@ -3,7 +3,7 @@ using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Common.Transmission;
 
-public sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
+internal sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {
     private static readonly CompositeFormat _addError =
         CompositeFormat.Parse("Could not get a torrent with hash '{0}' from Transmission{1}.");

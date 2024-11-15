@@ -4,7 +4,7 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Common.Scheduling;
 
-public sealed class StartupTorrentSchedulerService(TorrentQueryService queryService, TorrentSchedulerService scheduler)
+internal sealed class StartupTorrentSchedulerService(TorrentQueryService queryService, TorrentSchedulerService scheduler)
 {
     private static readonly TorrentFilter _filter = new(CronExists: true);
 
