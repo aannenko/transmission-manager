@@ -52,12 +52,14 @@ using (var scope = app.Services.CreateScope())
 {
     var provider = scope.ServiceProvider;
 
+    var lifetime = provider.GetRequiredService<IHostApplicationLifetime>();
+
     await provider.GetRequiredService<AppDbContext>()
-        .Database.EnsureCreatedAsync()
+        .Database.EnsureCreatedAsync(lifetime.ApplicationStopping)
         .ConfigureAwait(false);
 
     await provider.GetRequiredService<StartupTorrentSchedulerService>()
-        .ScheduleUpdatesForAllTorrentsAsync()
+        .ScheduleUpdatesForAllTorrentsAsync(lifetime.ApplicationStopping)
         .ConfigureAwait(false);
 }
 
