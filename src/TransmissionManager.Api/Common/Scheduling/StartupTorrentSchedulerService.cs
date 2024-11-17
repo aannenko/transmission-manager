@@ -1,22 +1,23 @@
-﻿using TransmissionManager.Database.Dto;
-using TransmissionManager.Database.Models;
+﻿using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Common.Scheduling;
 
-internal sealed class StartupTorrentSchedulerService(TorrentQueryService queryService, TorrentSchedulerService scheduler)
+internal sealed class StartupTorrentSchedulerService(
+    AppDbContext dbContext,
+    TorrentSchedulerService scheduler)
 {
-    private static readonly TorrentFilter _filter = new(CronExists: true);
+    private readonly record struct TorrentIdCron(long Id, string Cron);
 
     public async Task ScheduleUpdatesForAllTorrentsAsync()
     {
-        Torrent[] torrents;
-        var pageDescriptor = new PageDescriptor(50, 0);
-        while ((torrents = await queryService.FindPageAsync(pageDescriptor, _filter).ConfigureAwait(false)).Length > 0)
+        await foreach (var torrent in dbContext.Torrents
+            .Where(static torrent => torrent.Cron != null)
+            .Select(static torrent => new TorrentIdCron(torrent.Id, torrent.Cron!))
+            .AsAsyncEnumerable()
+            .ConfigureAwait(false))
         {
-            pageDescriptor = pageDescriptor with { AfterId = torrents[^1].Id };
-            foreach (var torrent in torrents)
-                scheduler.ScheduleTorrentRefresh(torrent.Id, torrent.Cron!);
+            scheduler.ScheduleTorrentRefresh(torrent.Id, torrent.Cron);
         }
     }
 }
