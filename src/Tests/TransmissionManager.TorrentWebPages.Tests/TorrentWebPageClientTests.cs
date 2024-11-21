@@ -84,7 +84,7 @@ internal sealed class TorrentWebPageClientTests
     [Test]
     public void FindMagnetUriAsync_ThrowsHttpRequestException_IfGivenNonExistentWebPage()
     {
-        var nonExistingAddress = new Uri("https://seemingly.valid.though.non.existent.page");
+        var nonExistingAddress = new Uri("https://seemingly.valid.though.non.existent.address");
 
         using var httpClient = new HttpClient();
         var client = new TorrentWebPageClient(_options, httpClient);
