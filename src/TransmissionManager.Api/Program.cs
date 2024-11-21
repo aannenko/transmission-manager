@@ -15,9 +15,6 @@ using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Services;
 using TransmissionManager.TorrentWebPages.Extensions;
 using TransmissionManager.Transmission.Extensions;
-using System.Runtime.CompilerServices;
-
-[assembly: InternalsVisibleTo("TransmissionManager.Api.IntegrationTests")]
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
