@@ -18,7 +18,7 @@ internal static class FindTorrentPageEndpoint
     }
 
     // Using [AsParameters] class or struct has these bugs:
-    // - a class cannot have a nullable reference type constructor parameter https://github.com/dotnet/aspnetcore/issues/58953
+    // - a class cannot have nullable reference type constructor parameters https://github.com/dotnet/aspnetcore/issues/58953
     // - default values of a struct's constructor parameters are ignored https://github.com/dotnet/aspnetcore/issues/56396
     private static async Task<Results<Ok<FindTorrentPageResponse>, ValidationProblem>> FindTorrentPageAsync(
         [FromServices] TorrentQueryService service,

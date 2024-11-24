@@ -22,15 +22,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     {
         ArgumentNullException.ThrowIfNull(modelBuilder);
 
-        var torrentEntity = modelBuilder.Entity<Torrent>();
+        var torrentBuilder = modelBuilder.Entity<Torrent>();
 
-        torrentEntity.Property(torrent => torrent.Name)
+        torrentBuilder.Property(torrent => torrent.Name)
             .UseCollation(_noCaseCollation);
 
-        torrentEntity.Property(torrent => torrent.WebPageUri)
+        torrentBuilder.Property(torrent => torrent.WebPageUri)
             .UseCollation(_noCaseCollation);
 
-        torrentEntity.Property(torrent => torrent.HashString)
+        torrentBuilder.Property(torrent => torrent.HashString)
             .UseCollation(_noCaseCollation);
     }
 }
