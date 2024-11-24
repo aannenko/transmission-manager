@@ -144,7 +144,7 @@ internal sealed class AddTorrentTests
     {
         var dto = new AddTorrentRequest
         {
-            WebPageUri = _initialTorrents[0].WebPageUri,
+            WebPageUri = new(_initialTorrents[0].WebPageUri),
             DownloadDir = _initialTorrents[0].DownloadDir,
             Cron = _initialTorrents[0].Cron,
         };

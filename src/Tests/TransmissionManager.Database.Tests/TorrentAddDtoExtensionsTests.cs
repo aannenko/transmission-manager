@@ -25,7 +25,7 @@ internal sealed class TorrentAddDtoExtensionsTests
             Assert.That(torrent.Id, Is.Zero);
             Assert.That(torrent.HashString, Is.EqualTo(dto.HashString));
             Assert.That(torrent.Name, Is.EqualTo(dto.Name));
-            Assert.That(torrent.WebPageUri, Is.EqualTo(dto.WebPageUri));
+            Assert.That(torrent.WebPageUri, Is.EqualTo(dto.WebPageUri.OriginalString));
             Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));

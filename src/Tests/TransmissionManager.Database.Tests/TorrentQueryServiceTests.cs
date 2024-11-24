@@ -116,7 +116,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
         var service = new TorrentQueryService(context);
 
         var torrents = await service
-            .FindPageAsync(new(2, 0), new(WebPageUri: _initialTorrents[1].WebPageUri))
+            .FindPageAsync(new(2, 0), new(WebPageUri: new(_initialTorrents[1].WebPageUri)))
             .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
@@ -128,7 +128,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var upperCaseUri = new Uri(_initialTorrents[1].WebPageUri.OriginalString.ToUpperInvariant());
+        var upperCaseUri = new Uri(_initialTorrents[1].WebPageUri.ToUpperInvariant());
         var torrents = await service.FindPageAsync(new(2, 0), new(WebPageUri: upperCaseUri)).ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
@@ -175,7 +175,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
 
         var expected = _initialTorrents[2];
         var torrents = await service
-            .FindPageAsync(new(5, 0), new(expected.HashString, expected.WebPageUri, expected.Name[..1], true))
+            .FindPageAsync(new(5, 0), new(expected.HashString, new(expected.WebPageUri), expected.Name[..1], true))
             .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, [expected], [3]);

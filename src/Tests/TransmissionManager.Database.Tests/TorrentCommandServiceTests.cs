@@ -37,7 +37,7 @@ internal sealed class TorrentCommandServiceTests : BaseTorrentServiceTests
             Assert.That(actual!.Id, Is.EqualTo(torrentId));
             Assert.That(actual.HashString, Is.EqualTo(dto.HashString));
             Assert.That(actual.Name, Is.EqualTo(dto.Name));
-            Assert.That(actual.WebPageUri, Is.EqualTo(dto.WebPageUri));
+            Assert.That(actual.WebPageUri, Is.EqualTo(dto.WebPageUri.OriginalString));
             Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(dto.Cron));

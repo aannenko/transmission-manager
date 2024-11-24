@@ -28,8 +28,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
             .UseCollation(_noCaseCollation);
 
         torrentEntity.Property(torrent => torrent.WebPageUri)
-            .UseCollation(_noCaseCollation)
-            .HasConversion(uri => uri.OriginalString, str => new Uri(str));
+            .UseCollation(_noCaseCollation);
 
         torrentEntity.Property(torrent => torrent.HashString)
             .UseCollation(_noCaseCollation);

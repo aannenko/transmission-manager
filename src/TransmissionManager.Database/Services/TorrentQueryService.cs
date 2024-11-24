@@ -26,7 +26,7 @@ public sealed class TorrentQueryService(AppDbContext dbContext)
             query = query.Where(torrent => torrent.HashString == filter.HashString);
 
         if (!string.IsNullOrEmpty(filter.WebPageUri?.OriginalString))
-            query = query.Where(torrent => torrent.WebPageUri == filter.WebPageUri);
+            query = query.Where(torrent => torrent.WebPageUri == filter.WebPageUri.OriginalString);
 
         if (!string.IsNullOrEmpty(filter.NameStartsWith))
             query = query.Where(torrent => torrent.Name.StartsWith(filter.NameStartsWith));

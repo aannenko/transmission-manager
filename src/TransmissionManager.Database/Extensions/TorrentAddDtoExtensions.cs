@@ -15,7 +15,7 @@ public static class TorrentAddDtoExtensions
             HashString = dto.HashString,
             Name = dto.Name,
             DownloadDir = dto.DownloadDir,
-            WebPageUri = dto.WebPageUri,
+            WebPageUri = dto.WebPageUri.OriginalString,
             MagnetRegexPattern = dto.MagnetRegexPattern,
             Cron = dto.Cron,
         };
