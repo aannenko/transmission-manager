@@ -22,20 +22,19 @@ public sealed class TorrentQueryService(AppDbContext dbContext)
 
         var query = dbContext.Torrents.AsNoTracking();
 
-        if (!string.IsNullOrEmpty(filter.HashString))
-            query = query.Where(torrent => torrent.HashString == filter.HashString);
-
-        if (!string.IsNullOrEmpty(filter.WebPageUri?.OriginalString))
-            query = query.Where(torrent => torrent.WebPageUri == filter.WebPageUri.OriginalString);
-
-        if (!string.IsNullOrEmpty(filter.NameStartsWith))
-            query = query.Where(torrent => torrent.Name.StartsWith(filter.NameStartsWith));
+        if (!string.IsNullOrEmpty(filter.PropertyStartsWith))
+        {
+            query = query.Where(torrent =>
+                torrent.HashString.StartsWith(filter.PropertyStartsWith) ||
+                torrent.Name.StartsWith(filter.PropertyStartsWith) ||
+                torrent.WebPageUri.StartsWith(filter.PropertyStartsWith) ||
+                torrent.DownloadDir.StartsWith(filter.PropertyStartsWith));
+        }
 
         if (filter.CronExists is not null)
             query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
 
         return await query.Where(torrent => torrent.Id > pageDescriptor.AfterId)
-            .OrderBy(static torrent => torrent.Id)
             .Take(pageDescriptor.Take)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);

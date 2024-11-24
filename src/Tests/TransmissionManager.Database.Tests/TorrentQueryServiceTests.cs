@@ -84,76 +84,111 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenHashStringFilterIsUsed()
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullHashStringFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var torrents = await service
-            .FindPageAsync(new(2, 0), new(HashString: _initialTorrents[1].HashString))
+        var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].HashString))
             .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenDowncasedHashStringFilterIsUsed()
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedHashStringFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var torrents = await service
-            .FindPageAsync(new(2, 0), new(HashString: _initialTorrents[1].HashString.ToUpperInvariant()))
+        var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].HashString.ToUpperInvariant()))
             .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenWebPageUriFilterIsUsed()
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialHashStringFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var torrents = await service
-            .FindPageAsync(new(2, 0), new(WebPageUri: new(_initialTorrents[1].WebPageUri)))
+        var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].HashString[..20]))
             .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenDowncasedWebPageUriFilterIsUsed()
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var upperCaseUri = new Uri(_initialTorrents[1].WebPageUri.ToUpperInvariant());
-        var torrents = await service.FindPageAsync(new(2, 0), new(WebPageUri: upperCaseUri)).ConfigureAwait(false);
+        var torrents = await service.FindPageAsync(new(2, 0), new(new(_initialTorrents[1].WebPageUri)))
+            .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenNameFilterIsUsed()
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var torrents = await service.FindPageAsync(new(5, 0), new(NameStartsWith: "M")).ConfigureAwait(false);
+        var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].WebPageUri.ToUpperInvariant()))
+            .ConfigureAwait(false);
 
-        AssertMultipleTorrents(torrents, _initialTorrents[1..], [2, 3]);
+        AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenDowncasedNameFilterIsUsed()
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
         var service = new TorrentQueryService(context);
 
-        var torrents = await service.FindPageAsync(new(5, 0), new(NameStartsWith: "m")).ConfigureAwait(false);
+        var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].WebPageUri[..^1]))
+            .ConfigureAwait(false);
 
-        AssertMultipleTorrents(torrents, _initialTorrents[1..], [2, 3]);
+        AssertMultipleTorrents(torrents, _initialTorrents, [1, 2, 3]);
+    }
+
+    [Test]
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullNameFilterIsUsed()
+    {
+        using var context = CreateContext();
+        var service = new TorrentQueryService(context);
+
+        var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].Name))
+            .ConfigureAwait(false);
+
+        AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
+    }
+
+    [Test]
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedNameFilterIsUsed()
+    {
+        using var context = CreateContext();
+        var service = new TorrentQueryService(context);
+
+        var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].Name.ToUpperInvariant()))
+            .ConfigureAwait(false);
+
+        AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
+    }
+
+    [Test]
+    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialNameFilterIsUsed()
+    {
+        using var context = CreateContext();
+        var service = new TorrentQueryService(context);
+
+        var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].Name[..^1]))
+            .ConfigureAwait(false);
+
+        AssertMultipleTorrents(torrents, _initialTorrents[1..^1], [2]);
     }
 
     [Test]
@@ -175,7 +210,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
 
         var expected = _initialTorrents[2];
         var torrents = await service
-            .FindPageAsync(new(5, 0), new(expected.HashString, new(expected.WebPageUri), expected.Name[..1], true))
+            .FindPageAsync(new(5, 0), new(expected.Name[..1], true))
             .ConfigureAwait(false);
 
         AssertMultipleTorrents(torrents, [expected], [3]);

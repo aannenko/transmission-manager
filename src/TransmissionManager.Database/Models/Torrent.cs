@@ -5,6 +5,7 @@ namespace TransmissionManager.Database.Models;
 [Index(nameof(HashString), IsUnique = true)]
 [Index(nameof(WebPageUri), IsUnique = true)]
 [Index(nameof(Name))]
+[Index(nameof(DownloadDir))]
 public sealed class Torrent
 {
     public required long Id { get; set; }

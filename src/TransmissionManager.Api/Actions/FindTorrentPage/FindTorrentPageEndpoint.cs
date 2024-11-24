@@ -25,13 +25,11 @@ internal static class FindTorrentPageEndpoint
         //[AsParameters] FindTorrentPageParameters parameters,
         int Take = 20,
         long AfterId = 0,
-        string? HashString = null,
-        Uri? WebPageUri = null,
-        string? NameStartsWith = null,
+        string? PropertyStartsWith = null,
         bool? CronExists = null,
         CancellationToken cancellationToken = default)
     {
-        var parameters = new FindTorrentPageParameters(Take, AfterId, HashString, WebPageUri, NameStartsWith, CronExists);
+        var parameters = new FindTorrentPageParameters(Take, AfterId, PropertyStartsWith, CronExists);
         if (!MiniValidator.TryValidate(parameters, out var errors))
             return TypedResults.ValidationProblem(errors);
 

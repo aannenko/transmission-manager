@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.FindTorrentPage;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
 
@@ -32,12 +33,26 @@ internal sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenCorrectPageDescriptor_ReturnsMatchingTorrents()
     {
+        var parameters = new FindTorrentPageParameters(Take: 2, AfterId: 1);
+        const string expectedNextPage = EndpointAddresses.TorrentsApi + "?take=2&afterId=3";
+
+        var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
+            .ConfigureAwait(false);
+
+        AssertTorrentPage(page, 2, expectedNextPage);
+        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
+        TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenTakeValueLargerThanReturnedPage_ReturnsNullNextPageAddress()
+    {
         var parameters = new FindTorrentPageParameters(Take: 5, AfterId: 1);
 
         var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        AssertTorrentPage(2, page, parameters);
+        AssertTorrentPage(page, 2, null);
         TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
         TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
     }
@@ -45,45 +60,74 @@ internal sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenCorrectNameAndCronFilters_ReturnsMatchingTorrents()
     {
-        var parameters = new FindTorrentPageParameters(NameStartsWith: "TV Show", CronExists: true);
+        var parameters = new FindTorrentPageParameters(Take: 2, PropertyStartsWith: "TV Show", CronExists: true);
+        const string expectedNextPage = EndpointAddresses.TorrentsApi +
+            "?take=2&afterId=3&propertyStartsWith=TV+Show&cronExists=True";
 
         var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        AssertTorrentPage(2, page, parameters);
+        AssertTorrentPage(page, 2, expectedNextPage);
         TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
         TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
     }
 
     [Test]
-    public async Task FindTorrentPageAsync_WhenGivenCorrectUriAndHashStringFilters_ReturnsMatchingTorrent()
+    public async Task FindTorrentPageAsync_WhenGivenCorrectUriFilter_ReturnsMatchingTorrent()
     {
         var parameters = new FindTorrentPageParameters(
-            WebPageUri: TestData.Database.SecondTorrentWebPageUri,
-            HashString: TestData.Database.SecondTorrentHashString);
+            Take: 1,
+            PropertyStartsWith: TestData.Database.SecondTorrentWebPageAddress);
+
+        const string expectedNextPage = EndpointAddresses.TorrentsApi +
+            "?take=1&afterId=2" +
+            "&propertyStartsWith=https%3A%2F%2FtorrentTracker.com%2Fforum%2Fviewtopic.php%3Ft%3D1234568";
 
         var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        AssertTorrentPage(1, page, parameters);
+        AssertTorrentPage(page, 1, expectedNextPage);
         TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenCorrectHashStringFilter_ReturnsMatchingTorrent()
+    {
+        var parameters = new FindTorrentPageParameters(
+            Take: 1,
+            PropertyStartsWith: TestData.Database.SecondTorrentHashString);
+
+        const string expectedNextPage = EndpointAddresses.TorrentsApi +
+            "?take=1&afterId=2" +
+            $"&propertyStartsWith={TestData.Database.SecondTorrentHashString}";
+
+        var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
+            .ConfigureAwait(false);
+
+        AssertTorrentPage(page, 1, expectedNextPage);
+        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenNonExistingPaginationValues_ReturnsEmptyTorrentPage()
+    {
+        var parameters = new FindTorrentPageParameters(Take: 5, AfterId: 100);
+
+        var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
+            .ConfigureAwait(false);
+
+        AssertTorrentPage(page, 0, null);
     }
 
     [Test]
     public async Task FindTorrentPageAsync_WhenGivenNonExistingFilterValues_ReturnsEmptyTorrentPage()
     {
-        var parameters = new FindTorrentPageParameters(
-            Take: 5,
-            AfterId: 100,
-            NameStartsWith: "NoSuchName",
-            WebPageUri: new("https://torrentTracker.com/i-do-not-exist"),
-            HashString: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-            CronExists: true);
+        var parameters = new FindTorrentPageParameters(PropertyStartsWith: "NoSuchTextAnywhere");
 
         var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        AssertTorrentPage(0, page, parameters);
+        AssertTorrentPage(page, 0, null);
     }
 
     [Test]
@@ -118,33 +162,16 @@ internal sealed class FindTorrentPageTests
         Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.Take)));
     }
 
-    [Test]
-    public async Task FindTorrentPageAsync_WhenGivenInvalidHashStringParameter_ReturnsValidationProblem()
-    {
-        var parameters = new FindTorrentPageParameters(HashString: "invalid");
-
-        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
-
-        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
-
-        Assert.That(problem, Is.Not.Null);
-        Assert.That(problem!.Errors, Has.Count.EqualTo(1));
-        Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.HashString)));
-    }
-
     private static void AssertTorrentPage(
-        int expectedCount,
         FindTorrentPageResponse page,
-        FindTorrentPageParameters parameters)
+        int expectedCount,
+        string? expectedNextPage)
     {
         Assert.That(page, Is.Not.Default);
         Assert.Multiple(() =>
         {
             Assert.That(page.Torrents, Has.Count.EqualTo(expectedCount));
-            var nextPage = parameters.ToNextPageParameters(page.Torrents)?.ToPathAndQueryString();
-            Assert.That(page.NextPageAddress, Is.EqualTo(nextPage));
+            Assert.That(page.NextPageAddress, Is.EqualTo(expectedNextPage));
         });
     }
 }

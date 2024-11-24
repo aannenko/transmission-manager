@@ -17,20 +17,16 @@ internal static class FindTorrentPageParametersExtensions
     public static TorrentFilter ToTorrentFilter(this FindTorrentPageParameters parameters)
     {
         return new(
-            HashString: parameters.HashString,
-            WebPageUri: parameters.WebPageUri,
-            NameStartsWith: parameters.NameStartsWith,
+            PropertyStartsWith: parameters.PropertyStartsWith,
             CronExists: parameters.CronExists);
     }
 
     public static string ToPathAndQueryString(this FindTorrentPageParameters parameters)
     {
-        var (take, afterId, hashString, webPageUri, nameStartsWith, cronExists) = parameters;
-        nameStartsWith = WebUtility.UrlEncode(nameStartsWith);
+        var (take, afterId, propertyStartsWith, cronExists) = parameters;
+        propertyStartsWith = WebUtility.UrlEncode(propertyStartsWith);
         return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={afterId}" +
-            $"{(hashString is null ? string.Empty : $"&{nameof(hashString)}={hashString}")}" +
-            $"{(webPageUri is null ? string.Empty : $"&{nameof(webPageUri)}={webPageUri.OriginalString}")}" +
-            $"{(string.IsNullOrEmpty(nameStartsWith) ? string.Empty : $"&{nameof(nameStartsWith)}={nameStartsWith}")}" +
+            $"{(string.IsNullOrEmpty(propertyStartsWith) ? string.Empty : $"&{nameof(propertyStartsWith)}={propertyStartsWith}")}" +
             $"{(cronExists is null ? string.Empty : $"&{nameof(cronExists)}={cronExists}")}";
     }
 
@@ -40,8 +36,6 @@ internal static class FindTorrentPageParametersExtensions
     {
         ArgumentNullException.ThrowIfNull(currentPage);
 
-        return currentPage.Count is 0 || parameters.WebPageUri is not null || parameters.HashString is not null
-            ? null
-            : (parameters with { AfterId = currentPage[^1].Id });
+        return currentPage.Count < parameters.Take ? null : parameters with { AfterId = currentPage[^1].Id };
     }
 }

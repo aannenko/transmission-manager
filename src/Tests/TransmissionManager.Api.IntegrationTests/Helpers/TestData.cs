@@ -28,10 +28,6 @@ internal static class TestData
         public const string ThirdTorrentMagnetRegexPattern = @"magnet:\?xt=urn:[^""]*";
         public const string ThirdTorrentCron = "30 9,15 * * *";
 
-        public static readonly Uri FirstTorrentWebPageUri = new(FirstTorrentWebPageAddress);
-        public static readonly Uri SecondTorrentWebPageUri = new(SecondTorrentWebPageAddress);
-        public static readonly Uri ThirdTorrentWebPageUri = new(ThirdTorrentWebPageAddress);
-
         public static Torrent[] CreateInitialTorrents() =>
             [
                 new()
@@ -99,13 +95,13 @@ internal static class TestData
 
         public static readonly Dictionary<TestRequest, TestResponse> RequestResponseMap = new()
         {
-            [new(HttpMethod.Get, Database.FirstTorrentWebPageUri)] =
+            [new(HttpMethod.Get, new(Database.FirstTorrentWebPageAddress))] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FirstPageMagnetExisting)),
 
-            [new(HttpMethod.Get, Database.SecondTorrentWebPageUri)] =
+            [new(HttpMethod.Get, new(Database.SecondTorrentWebPageAddress))] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, SecondPageMagnetUpdated)),
 
-            [new(HttpMethod.Get, Database.ThirdTorrentWebPageUri)] =
+            [new(HttpMethod.Get, new(Database.ThirdTorrentWebPageAddress))] =
                 new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, ThirdPageMagnetRemovedFromTransmission)),
 
             [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
