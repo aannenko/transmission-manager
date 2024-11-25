@@ -13,8 +13,7 @@ public static class DatabaseServiceCollectionExtensions
     {
         return services
             .AddDbContext<AppDbContext>(ConfigureDbContextOptions)
-            .AddTransient<TorrentQueryService>()
-            .AddTransient<TorrentCommandService>();
+            .AddTransient<TorrentService>();
     }
 
     private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options) =>

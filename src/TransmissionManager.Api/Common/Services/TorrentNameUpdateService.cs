@@ -76,9 +76,9 @@ internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundT
                 if (string.IsNullOrEmpty(torrentName))
                     break;
 
-                var torrentCommandService = serviceProvider.GetRequiredService<TorrentCommandService>();
+                var torrentService = serviceProvider.GetRequiredService<TorrentService>();
                 var dto = new TorrentUpdateDto(name: torrentName);
-                await torrentCommandService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
+                await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;
             }
         }

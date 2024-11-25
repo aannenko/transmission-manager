@@ -10,8 +10,7 @@ namespace TransmissionManager.Api.Actions.RefreshTorrentById;
 internal sealed class RefreshTorrentByIdHandler(
     TorrentWebPageClientWrapper torrentWebPageService,
     TransmissionClientWrapper transmissionService,
-    TorrentQueryService queryService,
-    TorrentCommandService commandService,
+    TorrentService torrentService,
     TorrentNameUpdateService torrentNameUpdateService)
 {
     private static readonly CompositeFormat _error =
@@ -19,7 +18,7 @@ internal sealed class RefreshTorrentByIdHandler(
 
     public async Task<RefreshTorrentByIdOutcome> RefreshTorrentByIdAsync(long id, CancellationToken cancellationToken)
     {
-        var torrent = await queryService.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        var torrent = await torrentService.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         if (torrent is null)
             return new(Result.NotFoundLocally, null, GetError(id, "No such torrent."));
 
@@ -44,7 +43,7 @@ internal sealed class RefreshTorrentByIdHandler(
         if (transmissionAddTorrent is null)
             return new(Result.DependencyFailed, transmissionAddResult, GetError(id, transmissionAddError));
 
-        var isUpdated = await commandService
+        var isUpdated = await torrentService
             .TryUpdateOneByIdAsync(torrent.Id, transmissionAddTorrent.ToTorrentUpdateDto(), cancellationToken)
             .ConfigureAwait(false);
 

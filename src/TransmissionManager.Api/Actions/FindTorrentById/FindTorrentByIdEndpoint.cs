@@ -17,7 +17,7 @@ internal static class FindTorrentByIdEndpoint
     }
 
     private static async Task<Results<Ok<Torrent>, ProblemHttpResult, ValidationProblem>> FindTorrentByIdAsync(
-        [FromServices] TorrentQueryService service,
+        [FromServices] TorrentService service,
         long id,
         CancellationToken cancellationToken)
     {

@@ -4,13 +4,13 @@ using TransmissionManager.Database.Services;
 namespace TransmissionManager.Database.Tests;
 
 [Parallelizable(ParallelScope.Self)]
-internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
+internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
 {
     [Test]
     public async Task FindOneByIdAsync_ReturnsTorrent_WhenTorrentWithSuchIdExists()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrent = await service.FindOneByIdAsync(2).ConfigureAwait(false);
 
@@ -21,7 +21,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindOneByIdAsync_ReturnsNull_WhenTorrentWithSuchIdDoesNotExist()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrent = await service.FindOneByIdAsync(-1).ConfigureAwait(false);
 
@@ -32,7 +32,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsArrayOfTorrents_WhenDefaultParametersUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0)).ConfigureAwait(false);
 
@@ -43,7 +43,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsArrayWithTwoTorrents_WhenTakeParameterEqualsTwo()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(Take: 2, 0)).ConfigureAwait(false);
 
@@ -54,7 +54,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsArrayOfTorrentsWithIdGreaterThanOne_WhenAfterIdParameterEqualsOne()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, AfterId: 1)).ConfigureAwait(false);
 
@@ -65,7 +65,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsEmptyArray_WhenAfterIdParameterIsGreaterThanAnyTorrentId()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, AfterId: 10)).ConfigureAwait(false);
 
@@ -76,7 +76,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsArrayOfTorrents_WhenAfterIdParameterIsNegative()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, AfterId: long.MinValue)).ConfigureAwait(false);
 
@@ -87,7 +87,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullHashStringFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].HashString))
             .ConfigureAwait(false);
@@ -99,7 +99,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedHashStringFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].HashString.ToUpperInvariant()))
             .ConfigureAwait(false);
@@ -111,7 +111,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialHashStringFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].HashString[..20]))
             .ConfigureAwait(false);
@@ -123,7 +123,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(2, 0), new(new(_initialTorrents[1].WebPageUri)))
             .ConfigureAwait(false);
@@ -135,7 +135,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(2, 0), new(_initialTorrents[1].WebPageUri.ToUpperInvariant()))
             .ConfigureAwait(false);
@@ -147,7 +147,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialWebPageUriFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].WebPageUri[..^1]))
             .ConfigureAwait(false);
@@ -159,7 +159,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullNameFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].Name))
             .ConfigureAwait(false);
@@ -171,7 +171,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedNameFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].Name.ToUpperInvariant()))
             .ConfigureAwait(false);
@@ -183,7 +183,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialNameFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0), new(_initialTorrents[1].Name[..^1]))
             .ConfigureAwait(false);
@@ -195,7 +195,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenCronFilterIsUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var torrents = await service.FindPageAsync(new(5, 0), new(CronExists: true)).ConfigureAwait(false);
 
@@ -206,7 +206,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenMultipleFiltersAreUsed()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         var expected = _initialTorrents[2];
         var torrents = await service
@@ -220,7 +220,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public void FindPageAsync_ThrowsArgumentOutOfRangeException_WhenTakeParameterIsZero()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         Assert.That(
             async () => await service.FindPageAsync(new(0, 0)).ConfigureAwait(false),
@@ -231,7 +231,7 @@ internal sealed class TorrentQueryServiceTests : BaseTorrentServiceTests
     public void FindPageAsync_ThrowsArgumentOutOfRangeException_WhenTakeParameterIsNegative()
     {
         using var context = CreateContext();
-        var service = new TorrentQueryService(context);
+        var service = new TorrentService(context);
 
         Assert.That(
             async () => await service.FindPageAsync(new(int.MinValue, 0)).ConfigureAwait(false),

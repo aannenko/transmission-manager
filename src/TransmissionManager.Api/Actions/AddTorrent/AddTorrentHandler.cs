@@ -12,7 +12,7 @@ namespace TransmissionManager.Api.Actions.AddTorrent;
 internal sealed partial class AddTorrentHandler(
     TorrentWebPageClientWrapper torrentWebPageService,
     TransmissionClientWrapper transmissionService,
-    TorrentCommandService torrentCommandService,
+    TorrentService torrentService,
     TorrentSchedulerService schedulerService,
     TorrentNameUpdateService torrentNameUpdateService)
 {
@@ -40,7 +40,7 @@ internal sealed partial class AddTorrentHandler(
         long torrentId;
         try
         {
-            torrentId = await torrentCommandService
+            torrentId = await torrentService
                 .AddOneAsync(dto.ToTorrentAddDto(transmissionTorrent), cancellationToken)
                 .ConfigureAwait(false);
 
