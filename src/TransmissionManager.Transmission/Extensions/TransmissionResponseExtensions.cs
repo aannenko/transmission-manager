@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.Transmission.Extensions;
 
-public static class TransmissionResponseExtensions
+internal static class TransmissionResponseExtensions
 {
     public static bool IsSuccess(this ITransmissionResponse response)
     {

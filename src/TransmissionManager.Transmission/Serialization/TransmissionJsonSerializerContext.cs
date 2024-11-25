@@ -10,4 +10,4 @@ namespace TransmissionManager.Transmission.Serialization;
 [JsonSerializable(typeof(TransmissionTorrentGetResponse))]
 [JsonSerializable(typeof(TransmissionTorrentAddRequest))]
 [JsonSerializable(typeof(TransmissionTorrentAddResponse))]
-public partial class TransmissionJsonSerializerContext : JsonSerializerContext;
+internal partial class TransmissionJsonSerializerContext : JsonSerializerContext;

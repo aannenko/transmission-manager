@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.TorrentWebPages.Extensions;
 
-public static class ReadOnlySpanExtensions
+internal static class ReadOnlySpanExtensions
 {
     public static int IndexOfStartOf(this Span<byte> span, ReadOnlySpan<byte> value) =>
         ((ReadOnlySpan<byte>)span).IndexOfStartOf(value);

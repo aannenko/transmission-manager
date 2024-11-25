@@ -3,7 +3,7 @@ using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Extensions;
 
-public static class TorrentAddDtoExtensions
+internal static class TorrentAddDtoExtensions
 {
     public static Torrent ToTorrent(this TorrentAddDto dto)
     {

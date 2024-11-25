@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.TorrentWebPages.Extensions;
 
-public static class RegexExtensions
+internal static class RegexExtensions
 {
     public static bool TryGetFirstMatch(this Regex regex, ReadOnlySpan<char> span, out Range matchRange)
     {

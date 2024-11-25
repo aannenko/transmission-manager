@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Transmission.Dto;
 
-public interface ITransmissionResponse
+internal interface ITransmissionResponse
 {
     string Result { get; }
 }
