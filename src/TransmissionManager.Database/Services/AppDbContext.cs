@@ -32,5 +32,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
         torrentBuilder.Property(torrent => torrent.HashString)
             .UseCollation(_noCaseCollation);
+
+        torrentBuilder.Property(torrent => torrent.DownloadDir)
+            .UseCollation(_noCaseCollation);
     }
 }
