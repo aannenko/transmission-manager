@@ -328,17 +328,17 @@ internal sealed class TransmissionClientTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(actual.Result, Is.EqualTo(deserialized.Result));
+            Assert.That(actual.Result, Is.EqualTo(deserialized!.Result));
             Assert.That(actual.Arguments is null, Is.EqualTo(deserialized.Arguments is null));
             Assert.That(actual.Arguments?.Torrents is null, Is.EqualTo(deserialized.Arguments?.Torrents is null));
         });
 
-        if (deserialized.Arguments?.Torrents is not null)
+        if (deserialized!.Arguments?.Torrents is not null)
         {
-            Assert.That(actual.Arguments.Torrents, Has.Count.EqualTo(deserialized.Arguments.Torrents.Count));
+            Assert.That(actual.Arguments!.Torrents, Has.Count.EqualTo(deserialized.Arguments.Torrents.Count));
             Assert.Multiple(() =>
             {
-                for (int i = 0; i < actual.Arguments.Torrents.Count; i++)
+                for (var i = 0; i < actual.Arguments.Torrents!.Count; i++)
                 {
                     var actualTorrent = actual.Arguments.Torrents[i];
                     var expectedTorrent = deserialized.Arguments.Torrents[i];
@@ -368,7 +368,7 @@ internal sealed class TransmissionClientTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(actual.Result, Is.EqualTo(deserialized.Result));
+            Assert.That(actual.Result, Is.EqualTo(deserialized!.Result));
             Assert.That(actual.Arguments is null, Is.EqualTo(deserialized.Arguments is null));
             if (actual.Arguments is not null && deserialized.Arguments is not null)
             {

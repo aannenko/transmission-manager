@@ -7,8 +7,6 @@ internal static class TransmissionTorrentAddResponseItemExtensions
 {
     public static TorrentUpdateDto ToTorrentUpdateDto(this TransmissionTorrentAddResponseItem transmissionTorrent)
     {
-        ArgumentNullException.ThrowIfNull(transmissionTorrent);
-
         return new(
             hashString: transmissionTorrent.HashString,
             name: transmissionTorrent.Name);

@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.FindTorrentPage;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.IntegrationTests;
@@ -131,6 +132,29 @@ internal sealed class FindTorrentPageTests
     }
 
     [Test]
+    public async Task FindTorrentPageAsync_WhenGivenCorrectNamePaginationParams_ReturnsMatchingTorrents()
+    {
+        var parameters = new FindTorrentPageParameters(
+            OrderBy: TorrentOrder.NameDesc,
+            Take: 2);
+
+        const string expectedNextPage = EndpointAddresses.TorrentsApi +
+            "?take=2&afterId=2&after=TV+Show+2&orderBy=NameDesc";
+
+        var page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
+            .ConfigureAwait(false);
+
+        AssertTorrentPage(page, 2, expectedNextPage);
+        TorrentAssertions.AssertEqual(page.Torrents[0], 3, _torrents[2]);
+        TorrentAssertions.AssertEqual(page.Torrents[1], 2, _torrents[1]);
+
+        page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
+
+        AssertTorrentPage(page, 1, null);
+        TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
+    }
+
+    [Test]
     public async Task FindTorrentPageAsync_WhenGivenInvalidTakeParameter_ReturnsValidationProblem()
     {
         var parameters = new FindTorrentPageParameters(Take: 0);
@@ -160,6 +184,22 @@ internal sealed class FindTorrentPageTests
         Assert.That(problem, Is.Not.Null);
         Assert.That(problem!.Errors, Has.Count.EqualTo(1));
         Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.Take)));
+    }
+
+    [Test]
+    public async Task FindTorrentPageAsync_WhenGivenInvalidOrderByParameter_ReturnsValidationProblem()
+    {
+        var parameters = new FindTorrentPageParameters(OrderBy: (TorrentOrder)999);
+
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem!.Errors, Has.Count.EqualTo(1));
+        Assert.That(problem!.Errors, Contains.Key(nameof(FindTorrentPageParameters.OrderBy)));
     }
 
     private static void AssertTorrentPage(

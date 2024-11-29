@@ -7,13 +7,6 @@ namespace TransmissionManager.Api.Actions.FindTorrentPage;
 
 internal static class FindTorrentPageParametersExtensions
 {
-    public static PageDescriptor ToPageDescriptor(this FindTorrentPageParameters parameters)
-    {
-        return new(
-            Take: parameters.Take,
-            AfterId: parameters.AfterId);
-    }
-
     public static TorrentFilter ToTorrentFilter(this FindTorrentPageParameters parameters)
     {
         return new(
@@ -23,19 +16,40 @@ internal static class FindTorrentPageParametersExtensions
 
     public static string ToPathAndQueryString(this FindTorrentPageParameters parameters)
     {
-        var (take, afterId, propertyStartsWith, cronExists) = parameters;
-        propertyStartsWith = WebUtility.UrlEncode(propertyStartsWith);
+        var (orderBy, take, afterId, after, propertyStartsWith, cronExists) = parameters;
+
+        after = string.IsNullOrEmpty(after) ? null : WebUtility.UrlEncode(after);
+        propertyStartsWith = string.IsNullOrEmpty(propertyStartsWith) ? null : WebUtility.UrlEncode(propertyStartsWith);
+
+        var addOrderBy = orderBy is not TorrentOrder.Id;
+        var addAfter = addOrderBy && after is not null;
+        var addPropertyStartsWith = propertyStartsWith is not null;
+        var addCronExists = cronExists is not null;
+
         return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={afterId}" +
-            $"{(string.IsNullOrEmpty(propertyStartsWith) ? string.Empty : $"&{nameof(propertyStartsWith)}={propertyStartsWith}")}" +
-            $"{(cronExists is null ? string.Empty : $"&{nameof(cronExists)}={cronExists}")}";
+            $"{(addAfter ? $"&{nameof(after)}={after}" : string.Empty)}" +
+            $"{(addOrderBy ? $"&{nameof(orderBy)}={orderBy}" : string.Empty)}" +
+            $"{(addPropertyStartsWith ? $"&{nameof(propertyStartsWith)}={propertyStartsWith}" : string.Empty)}" +
+            $"{(addCronExists ? $"&{nameof(cronExists)}={cronExists}" : string.Empty)}";
     }
 
     public static FindTorrentPageParameters? ToNextPageParameters(
         this FindTorrentPageParameters parameters,
         IReadOnlyList<Torrent> currentPage)
     {
-        ArgumentNullException.ThrowIfNull(currentPage);
-
-        return currentPage.Count < parameters.Take ? null : parameters with { AfterId = currentPage[^1].Id };
+        return currentPage.Count < parameters.Take
+            ? null
+            : parameters with
+            {
+                AfterId = currentPage[^1].Id,
+                After = parameters.OrderBy switch
+                {
+                    TorrentOrder.Id => null,
+                    TorrentOrder.Name or TorrentOrder.NameDesc => currentPage[^1].Name,
+                    TorrentOrder.WebPage or TorrentOrder.WebPageDesc => currentPage[^1].WebPageUri,
+                    TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => currentPage[^1].DownloadDir,
+                    _ => null,
+                }
+            };
     }
 }

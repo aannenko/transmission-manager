@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
 using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.FindTorrentPage;
@@ -23,19 +24,19 @@ internal static class FindTorrentPageEndpoint
     private static async Task<Results<Ok<FindTorrentPageResponse>, ValidationProblem>> FindTorrentPageAsync(
         [FromServices] TorrentService service,
         //[AsParameters] FindTorrentPageParameters parameters,
-        int Take = 20,
-        long AfterId = 0,
-        string? PropertyStartsWith = null,
-        bool? CronExists = null,
+        TorrentOrder orderBy = TorrentOrder.Id,
+        int take = 20,
+        long afterId = 0,
+        string? after = null,
+        string? propertyStartsWith = null,
+        bool? cronExists = null,
         CancellationToken cancellationToken = default)
     {
-        var parameters = new FindTorrentPageParameters(Take, AfterId, PropertyStartsWith, CronExists);
+        var parameters = new FindTorrentPageParameters(orderBy, take, afterId, after, propertyStartsWith, cronExists);
         if (!MiniValidator.TryValidate(parameters, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        var torrents = await service
-            .FindPageAsync(parameters.ToPageDescriptor(), parameters.ToTorrentFilter(), cancellationToken)
-            .ConfigureAwait(false);
+        var torrents = await service.FindPageAsync(parameters, cancellationToken).ConfigureAwait(false);
 
         var nextPage = parameters.ToNextPageParameters(torrents)?.ToPathAndQueryString();
         return TypedResults.Ok(new FindTorrentPageResponse(torrents, nextPage));

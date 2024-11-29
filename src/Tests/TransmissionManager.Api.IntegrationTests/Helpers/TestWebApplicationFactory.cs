@@ -34,9 +34,8 @@ internal sealed class TestWebAppliationFactory<TProgram>(
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        ArgumentNullException.ThrowIfNull(builder);
-
         ObjectDisposedException.ThrowIf(_disposed, this);
+        ArgumentNullException.ThrowIfNull(builder);
 
         base.ConfigureWebHost(builder);
 

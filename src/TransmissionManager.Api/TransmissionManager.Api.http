@@ -5,9 +5,9 @@ GET {{TransmissionManager_Web_HostAddress}}/
 
 ###
 
-# Get a page of 5 torrents which have ID greater than 2, cron specified
+# Get a page of 5 torrents ordered by Name, which have cron specified
 # and name, download dir, web page uri or hash string start with "Mi"
-GET {{TransmissionManager_Web_HostAddress}}/?take=5&afterId=2&propertyStartsWith=Mi&cronExists=true
+GET {{TransmissionManager_Web_HostAddress}}/?orderBy=Name&take=5&propertyStartsWith=Mi&cronExists=True
 
 ###
 

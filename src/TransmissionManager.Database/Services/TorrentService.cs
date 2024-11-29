@@ -14,12 +14,12 @@ public sealed class TorrentService(AppDbContext dbContext)
             .ConfigureAwait(false);
     }
 
-    public async Task<Torrent[]> FindPageAsync(
-        PageDescriptor pageDescriptor,
+    public async Task<Torrent[]> FindPageAsync<T>(
+        TorrentPageDescriptor<T> page,
         TorrentFilter filter = default,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(pageDescriptor.Take);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page.Take);
 
         var query = dbContext.Torrents.AsNoTracking();
 
@@ -35,8 +35,9 @@ public sealed class TorrentService(AppDbContext dbContext)
         if (filter.CronExists is not null)
             query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
 
-        return await query.Where(torrent => torrent.Id > pageDescriptor.AfterId)
-            .Take(pageDescriptor.Take)
+        return await query.Where(page.OrderBy, page.AfterId, page.After)
+            .OrderBy(page.OrderBy)
+            .Take(page.Take)
             .ToArrayAsync(cancellationToken)
             .ConfigureAwait(false);
     }
