@@ -15,11 +15,12 @@ public sealed class TorrentService(AppDbContext dbContext)
     }
 
     public async Task<Torrent[]> FindPageAsync<T>(
-        TorrentPageDescriptor<T> page,
+        TorrentPageDescriptor<T> page = default,
         TorrentFilter filter = default,
         CancellationToken cancellationToken = default)
     {
-        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(page.Take);
+        if (page == default)
+            page = new TorrentPageDescriptor<T>();
 
         var query = dbContext.Torrents.AsNoTracking();
 
