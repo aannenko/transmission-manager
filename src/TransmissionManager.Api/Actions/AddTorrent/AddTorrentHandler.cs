@@ -21,8 +21,6 @@ internal sealed partial class AddTorrentHandler(
 
     public async Task<AddTorrentOutcome> AddTorrentAsync(AddTorrentRequest dto, CancellationToken cancellationToken)
     {
-        ArgumentNullException.ThrowIfNull(dto);
-
         var (magnetUri, getMagnetError) = await torrentWebPageService
             .GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);

@@ -11,8 +11,6 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         TorrentUpdateDto dto,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(dto);
-
         scheduler.TryUnscheduleTorrentRefresh(id);
         var result = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
         if (result && !string.IsNullOrEmpty(dto.Cron))

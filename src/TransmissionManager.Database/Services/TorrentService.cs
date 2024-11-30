@@ -44,6 +44,8 @@ public sealed class TorrentService(AppDbContext dbContext)
 
     public async Task<long> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(dto);
+
         var torrent = dto.ToTorrent();
         dbContext.Torrents.Add(torrent);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);

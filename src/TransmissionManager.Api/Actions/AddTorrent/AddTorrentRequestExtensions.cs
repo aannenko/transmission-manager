@@ -9,9 +9,6 @@ internal static class AddTorrentRequestExtensions
         this AddTorrentRequest dto,
         TransmissionTorrentAddResponseItem transmissionTorrent)
     {
-        ArgumentNullException.ThrowIfNull(dto);
-        ArgumentNullException.ThrowIfNull(transmissionTorrent);
-
         return new(
             hashString: transmissionTorrent.HashString,
             name: transmissionTorrent.Name,

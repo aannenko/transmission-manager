@@ -31,11 +31,4 @@ internal sealed class TorrentAddDtoExtensionsTests
             Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));
         });
     }
-
-    [Test]
-    public void ToTorrent_WhenGivenNull_ThrowsArgumentNullException()
-    {
-        TorrentAddDto dto = null!;
-        Assert.That(dto.ToTorrent, Throws.ArgumentNullException);
-    }
 }

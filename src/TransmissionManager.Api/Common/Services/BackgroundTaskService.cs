@@ -7,8 +7,6 @@ internal sealed class BackgroundTaskService(IServiceProvider serviceProvider)
         TArg argument,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(func);
-
         using var scope = serviceProvider.CreateScope();
         await func(scope.ServiceProvider, argument, cancellationToken).ConfigureAwait(false);
     }
