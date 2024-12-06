@@ -12,7 +12,7 @@ internal static class RegexExtensions
             return true;
         }
 
-        matchRange = Range.EndAt(0);
+        matchRange = default;
         return false;
     }
 }

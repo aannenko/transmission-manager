@@ -25,7 +25,7 @@ internal sealed partial class RegexExtensionsTests
         Assert.Multiple(() =>
         {
             Assert.That(result, Is.False);
-            Assert.That(range, Is.EqualTo(Range.EndAt(0)));
+            Assert.That(range, Is.EqualTo(default(Range)));
         });
     }
 
