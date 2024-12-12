@@ -24,16 +24,32 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
         var torrentBuilder = modelBuilder.Entity<Torrent>();
 
+        torrentBuilder.HasIndex(t => t.HashString)
+            .IsUnique(true);
+
+        torrentBuilder.HasIndex(t => t.Name);
+
+        torrentBuilder.HasIndex(t => t.WebPageUri)
+            .IsUnique(true);
+
+        torrentBuilder.HasIndex(t => t.DownloadDir);
+
+        torrentBuilder.HasIndex(t => t.Cron)
+            .HasFilter($"{nameof(Torrent.Cron)} IS NOT NULL");
+
+        torrentBuilder.Property(torrent => torrent.HashString)
+            .UseCollation(_noCaseCollation);
+
         torrentBuilder.Property(torrent => torrent.Name)
             .UseCollation(_noCaseCollation);
 
         torrentBuilder.Property(torrent => torrent.WebPageUri)
             .UseCollation(_noCaseCollation);
 
-        torrentBuilder.Property(torrent => torrent.HashString)
+        torrentBuilder.Property(torrent => torrent.DownloadDir)
             .UseCollation(_noCaseCollation);
 
-        torrentBuilder.Property(torrent => torrent.DownloadDir)
+        torrentBuilder.Property(torrent => torrent.Cron)
             .UseCollation(_noCaseCollation);
     }
 }
