@@ -34,7 +34,7 @@ internal static class AddTorrentEndpoint
                 TypedResults.Problem(
                     error,
                     statusCode: StatusCodes.Status409Conflict,
-                    extensions: new Dictionary<string, object?> { [nameof(transmissionResult)] = transmissionResult }),
+                    extensions: [new(nameof(transmissionResult), transmissionResult)]),
             AddTorrentResult.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException()

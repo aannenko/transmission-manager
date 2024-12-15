@@ -18,7 +18,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             name: "New TV show",
             webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
             downloadDir: "/tvshows",
-            magnetRegexPattern: @"magnet:\?xt=urn:[^""]*",
+            magnetRegexPattern: @"magnet:\?xt=urn:[^""]+",
             cron: "0 10,18 * * *");
 
         var torrentId = await service.AddOneAsync(dto).ConfigureAwait(false);
@@ -88,7 +88,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "98ad2e3a694dfc69571c25241bd4042b94a55cf5",
             name: "New torrent name",
             downloadDir: "/videos",
-            magnetRegexPattern: @"magnet:\?xt=[^""]*",
+            magnetRegexPattern: @"magnet:\?xt=[^""]+",
             cron: "1 2,3 4 5 6");
 
         var isUpdated = await service.TryUpdateOneByIdAsync(1, dto).ConfigureAwait(false);

@@ -1,4 +1,6 @@
-﻿namespace TransmissionManager.Database.Dto;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace TransmissionManager.Database.Dto;
 
 public sealed class TorrentAddDto
 {
@@ -7,7 +9,7 @@ public sealed class TorrentAddDto
         string name,
         Uri webPageUri,
         string downloadDir,
-        string? magnetRegexPattern = null,
+        [StringSyntax(StringSyntaxAttribute.Regex)] string? magnetRegexPattern = null,
         string? cron = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hashString);

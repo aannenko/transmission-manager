@@ -14,7 +14,7 @@ internal sealed class TorrentAddDtoExtensionsTests
             name: "Test name",
             webPageUri: new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
             downloadDir: "/tvshows",
-            magnetRegexPattern: @"magnet:\?xt=[^""]*",
+            magnetRegexPattern: @"magnet:\?xt=[^""]+",
             cron: "0 9,17 * * *");
 
         var torrent = dto.ToTorrent();

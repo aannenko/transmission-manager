@@ -19,13 +19,13 @@ internal static class TestData
         public const string SecondTorrentName = "TV Show 2";
         public const string SecondTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234568";
         public const string SecondTorrentDownloadDir = "/tvshows";
-        public const string SecondTorrentMagnetRegexPattern = @"magnet:\?xt=[^""]*";
+        public const string SecondTorrentMagnetRegexPattern = @"magnet:\?xt=[^""]+";
 
         public const string ThirdTorrentHashString = "10824f01cccd5d4088d8fa04f3d46b7d319744b2";
         public const string ThirdTorrentName = "TV Show 3";
         public const string ThirdTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234569";
         public const string ThirdTorrentDownloadDir = "/tvshows";
-        public const string ThirdTorrentMagnetRegexPattern = @"magnet:\?xt=urn:[^""]*";
+        public const string ThirdTorrentMagnetRegexPattern = @"magnet:\?xt=urn:[^""]+";
         public const string ThirdTorrentCron = "30 9,15 * * *";
 
         public static Torrent[] CreateInitialTorrents() =>
