@@ -11,10 +11,15 @@ internal static class ReadOnlySpanExtensions
         if (index is not -1)
             return index;
 
-        for (var valueLength = Math.Min(span.Length, value.Length - 1); valueLength > 0; valueLength--)
+        for (var end = span[^Math.Min(span.Length, value.Length - 1)..]; end.Length > 0; end = end[1..])
         {
-            if (span.EndsWith(value[..valueLength]))
-                return span.Length - valueLength;
+            index = end.IndexOf(value[0]);
+            if (index is -1)
+                return -1;
+
+            end = end[index..];
+            if (end.SequenceEqual(value[..end.Length]))
+                return span.Length - end.Length;
         }
 
         return -1;
