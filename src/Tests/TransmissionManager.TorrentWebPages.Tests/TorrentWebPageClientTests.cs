@@ -20,7 +20,7 @@ internal sealed class TorrentWebPageClientTests
     });
 
     [Test]
-    public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenProperWebPage()
+    public async Task FindMagnetUriAsync_WhenGivenProperWebPage_FindsMagnetUri()
     {
         const string magnetUri = "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name";
         const string webPageContentWithMagnet = $"""
@@ -52,7 +52,7 @@ internal sealed class TorrentWebPageClientTests
     }
 
     [Test]
-    public async Task FindMagnetUriAsync_FindsMagnetUri_IfGivenWebPageWithoutMagnet()
+    public async Task FindMagnetUriAsync_WhenGivenWebPageWithoutMagnet_FindsMagnetUri()
     {
         const string webPageContentWithoutMagnet = """
             <!DOCTYPE html>
@@ -82,7 +82,7 @@ internal sealed class TorrentWebPageClientTests
     }
 
     [Test]
-    public void FindMagnetUriAsync_ThrowsHttpRequestException_IfGivenNonExistentWebPage()
+    public void FindMagnetUriAsync_WhenGivenNonExistentWebPage_ThrowsHttpRequestException()
     {
         var nonExistingAddress = new Uri("https://seemingly.valid.though.non.existent.address");
 

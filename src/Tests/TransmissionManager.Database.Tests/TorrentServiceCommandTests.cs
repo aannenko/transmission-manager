@@ -8,7 +8,7 @@ namespace TransmissionManager.Database.Tests;
 internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 {
     [Test]
-    public async Task AddOneAsync_AddsTorrent_WhenItDoesNotConflictWithExistingTorrents()
+    public async Task AddOneAsync_WhenGivenDataNotConflictingWithExistingTorrents_AddsTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -45,7 +45,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public void AddOneAsync_ThrowsDbUpdateException_WhenHashStringConflictsWithExistingTorrents()
+    public void AddOneAsync_WhenGivenHashStringConflictingWithExistingTorrent_ThrowsDbUpdateException()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -62,7 +62,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public void AddOneAsync_ThrowsDbUpdateException_WhenWebPageConflictsWithExistingTorrents()
+    public void AddOneAsync_WhenGivenWebPageConflictingWithExistingTorrent_ThrowsDbUpdateException()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -79,7 +79,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryUpdateOneByIdAsync_UpdatesTorrent_WhenItCanBeFoundById()
+    public async Task TryUpdateOneByIdAsync_WhenGivenExistingTorrentId_UpdatesTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -109,7 +109,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryUpdateOneByIdAsync_SetsTorrentMagnetRegexPatternAndCronToNull_WhenInputIsEmptyString()
+    public async Task TryUpdateOneByIdAsync_WhenGivenEmptyStringMagnetAndCron_SetsMagnetAndCronToNull()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -131,7 +131,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryUpdateOneByIdAsync_DoesNotUpdateTorrent_WhenItCannotBeFoundById()
+    public async Task TryUpdateOneByIdAsync_WhenGivenNonExistingTorrentId_DoesNotUpdateTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -149,7 +149,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryDeleteOneByIdAsync_DeletesTorrent_WhenItCanBeFoundById()
+    public async Task TryDeleteOneByIdAsync_WhenGivenExistingTorrentId_DeletesTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -165,7 +165,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryDeleteOneByIdAsync_DoesNotDeleteTorrent_WhenItCannotBeFoundById()
+    public async Task TryDeleteOneByIdAsync_WhenGivenNonExistingTorrentId_DoesNotDeleteTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);

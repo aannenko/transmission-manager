@@ -46,7 +46,7 @@ internal sealed class FindTorrentPageTests
     }
 
     [Test]
-    public async Task FindTorrentPageAsync_WhenGivenTakeValueLargerThanReturnedPage_ReturnsNullNextPageAddress()
+    public async Task FindTorrentPageAsync_WhenGivenParameterTakeLargerThanReturnedPage_ReturnsNullNextPageAddress()
     {
         var parameters = new FindTorrentPageParameters(Take: 5, AfterId: 1);
 
@@ -132,7 +132,7 @@ internal sealed class FindTorrentPageTests
     }
 
     [Test]
-    public async Task FindTorrentPageAsync_WhenGivenCorrectNamePaginationParams_ReturnsMatchingTorrents()
+    public async Task FindTorrentPageAsync_WhenGivenCorrectNamePaginationParameters_ReturnsMatchingTorrents()
     {
         var parameters = new FindTorrentPageParameters(
             OrderBy: TorrentOrder.NameDesc,

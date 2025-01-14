@@ -8,7 +8,7 @@ namespace TransmissionManager.Database.Tests;
 internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
 {
     [Test]
-    public async Task FindOneByIdAsync_ReturnsTorrent_WhenTorrentWithSuchIdExists()
+    public async Task FindOneByIdAsync_WhenGivenExistingTorrentId_ReturnsTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -19,7 +19,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindOneByIdAsync_ReturnsNull_WhenTorrentWithSuchIdDoesNotExist()
+    public async Task FindOneByIdAsync_WhenGivenNonExistingTorrentId_ReturnsNull()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -30,7 +30,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsArrayOfTorrents_WhenDefaultParametersUsed()
+    public async Task FindPageAsync_WhenGivenDefaultParameters_ReturnsArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -41,7 +41,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsArrayWithTwoTorrents_WhenTakeParameterEqualsTwo()
+    public async Task FindPageAsync_WhenGivenParameterTakeEqualToTwo_ReturnsArrayWithTwoTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -52,7 +52,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsArrayOfTorrentsWithIdGreaterThanOne_WhenAfterIdParameterEqualsOne()
+    public async Task FindPageAsync_WhenGivenParameterAfterIdEqualToOne_ReturnsArrayOfTorrentsWithIdGreaterThanOne()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -63,7 +63,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsEmptyArray_WhenAfterIdParameterIsGreaterThanAnyTorrentId()
+    public async Task FindPageAsync_WhenGivenParameterAfterIdGreaterThanAnyTorrentId_ReturnsEmptyArray()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -74,7 +74,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsArrayOfTorrents_WhenAfterIdParameterIsNegative()
+    public async Task FindPageAsync_WhenGivenParameterAfterIdEqualToNegativeValue_ReturnsArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -85,7 +85,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullHashStringFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenFullHashStringFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -97,7 +97,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedHashStringFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenFullUppercasedHashStringFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -110,7 +110,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialHashStringFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenPartialHashStringFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -123,7 +123,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullWebPageUriFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenFullWebPageUriFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -136,7 +136,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedWebPageUriFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenFullUppercasedWebPageUriFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -149,7 +149,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialWebPageUriFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenPartialWebPageUriFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -162,7 +162,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullNameFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenFullNameFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -175,7 +175,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenFullUppercasedNameFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenFullUppercasedNameFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -188,7 +188,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenPartialNameFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenPartialNameFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -201,7 +201,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenCronFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenCronFilter_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -213,7 +213,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsFilteredArrayOfTorrents_WhenMultipleFiltersAreUsed()
+    public async Task FindPageAsync_WhenGivenMultipleFilters_ReturnsFilteredArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -226,7 +226,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByIdIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderById_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -238,7 +238,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByNameIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderByName_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -250,7 +250,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByNameDescIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderByNameDesc_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -265,7 +265,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByWebPageIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderByWebPage_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -277,7 +277,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByWebPageDescIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderByWebPageDesc_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -292,7 +292,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByDownloadDirIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderByDownloadDir_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -307,7 +307,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsSortedArrayOfTorrents_WhenOrderByDownloadDirDescIsUsed()
+    public async Task FindPageAsync_WhenGivenParameterOrderByDownloadDirDesc_ReturnsSortedArrayOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -322,7 +322,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByNameWithNullValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByNameAndAfterNull_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -338,7 +338,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByNameWithEmptyStringValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByNameAndAfterEmptyString_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -354,7 +354,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByNameWithValidValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByNameAndAfterValidValue_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -370,7 +370,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByNameDescWithValidValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByNameDescAndAfterValidValue_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -386,7 +386,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByWebPageWithNullValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByWebPageAndAfterNull_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -399,7 +399,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByWebPageWithEmptyStringValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByWebPageAndAfterEmptyString_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -412,7 +412,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByWebPageWithValidValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByWebPageAndAfterValidValue_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -428,7 +428,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByWebPageDescWithValidValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByWebPageDescAndAfterValidValue_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -444,7 +444,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByDownloadDirWithNullValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByDownloadDirAndAfterNull_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -460,7 +460,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByDownloadDirWithEmptyStringValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByDownloadDirAndAfterEmptyString_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -476,7 +476,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByDownloadDirWithValidValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByDownloadDirAndAfterValidValue_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -492,7 +492,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByDownloadDirDescWithValidValueOfAfterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByDownloadDirDescAndAfterValidValue_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -508,7 +508,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindPageAsync_ReturnsPageOfTorrents_WhenOrderByNameDescWithValidValueOfAfterAndFilterIsUsed()
+    public async Task FindPageAsync_WhenGivenParametersOrderByNameDescAndAfterValidValueAndFilter_ReturnsPageOfTorrents()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -521,7 +521,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public void FindPageAsync_ThrowsArgumentOutOfRangeException_WhenTakeParameterIsZero()
+    public void FindPageAsync_WhenGivenParameterTakeEqualToZero_ThrowsArgumentOutOfRangeException()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -532,7 +532,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public void FindPageAsync_ThrowsArgumentOutOfRangeException_WhenTakeParameterIsNegative()
+    public void FindPageAsync_WhenGivenParameterTakeEqualToNegativeValue_ThrowsArgumentOutOfRangeException()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -543,7 +543,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public void FindPageAsync_ThrowsArgumentException_WhenIncompatibleValueOfOrderByAndTypeOfAfterIsUsed()
+    public void FindPageAsync_WhenGivenIncompatibleParameterOrderByAndTypeOfParameterAfter_ThrowsArgumentException()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
