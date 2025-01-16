@@ -38,7 +38,7 @@ internal sealed class ReadOnlySpanExtensionsTests
         Assert.That(""u8.IndexOfStartOf(""u8), Is.EqualTo(0));
 
     [Test]
-    public void IndexOfStartOf_WhenGivenNormalSpanAndNonExistingValue_ReturnsMinusOne() =>
+    public void IndexOfStartOf_WhenGivenNormalSpanAndNonExistentValue_ReturnsMinusOne() =>
         Assert.That("testing"u8.IndexOfStartOf("asdfg"u8), Is.EqualTo(-1));
 
     [Test]

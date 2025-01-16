@@ -48,7 +48,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenGivenNonExistingId_ReturnsNotFound()
+    public async Task UpdateTorrentByIdAsync_WhenGivenNonExistentId_ReturnsNotFound()
     {
         var response = await _client.DeleteAsync($"{TestData.Endpoints.Torrents}/-1").ConfigureAwait(false);
 

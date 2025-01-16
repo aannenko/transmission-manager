@@ -131,7 +131,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryUpdateOneByIdAsync_WhenGivenNonExistingTorrentId_DoesNotUpdateTorrent()
+    public async Task TryUpdateOneByIdAsync_WhenGivenNonExistentTorrentId_DoesNotUpdateTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);
@@ -165,7 +165,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task TryDeleteOneByIdAsync_WhenGivenNonExistingTorrentId_DoesNotDeleteTorrent()
+    public async Task TryDeleteOneByIdAsync_WhenGivenNonExistentTorrentId_DoesNotDeleteTorrent()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);

@@ -61,7 +61,7 @@ internal sealed class UpdateTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenGivenNonExistingId_ReturnsNotFound()
+    public async Task UpdateTorrentByIdAsync_WhenGivenNonExistentId_ReturnsNotFound()
     {
         var dto = new UpdateTorrentByIdRequest { DownloadDir = "/videos" };
 

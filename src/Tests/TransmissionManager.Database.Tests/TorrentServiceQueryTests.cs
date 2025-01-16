@@ -19,7 +19,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task FindOneByIdAsync_WhenGivenNonExistingTorrentId_ReturnsNull()
+    public async Task FindOneByIdAsync_WhenGivenNonExistentTorrentId_ReturnsNull()
     {
         using var context = CreateContext();
         var service = new TorrentService(context);

@@ -123,7 +123,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsAllTorrentsWithNoFields_WhenNonExistingRequestedFieldsProvided()
+    public async Task GetTorrentsAsync_GetsAllTorrentsWithNoFields_WhenNonExistentRequestedFieldsProvided()
     {
         const string expectedRequest = """{"method":"torrent-get","arguments":{"fields":[998,999]}}""";
 
@@ -159,7 +159,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsNoTorrents_WhenNonExistingHashstringProvided()
+    public async Task GetTorrentsAsync_GetsNoTorrents_WhenNonExistentHashstringProvided()
     {
         const string expectedRequest =
             """{"method":"torrent-get","arguments":{"fields":[],"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fb"]}}""";

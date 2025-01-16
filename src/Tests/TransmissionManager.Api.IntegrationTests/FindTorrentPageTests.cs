@@ -110,7 +110,7 @@ internal sealed class FindTorrentPageTests
     }
 
     [Test]
-    public async Task FindTorrentPageAsync_WhenGivenNonExistingPaginationValues_ReturnsEmptyTorrentPage()
+    public async Task FindTorrentPageAsync_WhenGivenNonExistentPaginationValues_ReturnsEmptyTorrentPage()
     {
         var parameters = new FindTorrentPageParameters(Take: 5, AfterId: 100);
 
@@ -121,7 +121,7 @@ internal sealed class FindTorrentPageTests
     }
 
     [Test]
-    public async Task FindTorrentPageAsync_WhenGivenNonExistingFilterValues_ReturnsEmptyTorrentPage()
+    public async Task FindTorrentPageAsync_WhenGivenNonExistentFilterValues_ReturnsEmptyTorrentPage()
     {
         var parameters = new FindTorrentPageParameters(PropertyStartsWith: "NoSuchTextAnywhere");
 

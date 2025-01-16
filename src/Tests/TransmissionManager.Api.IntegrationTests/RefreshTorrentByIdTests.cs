@@ -221,7 +221,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithNonExistingHash_RefreshesTorrentAndReturns422()
+    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithNonExistentHash_RefreshesTorrentAndReturns422()
     {
         var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/3", null).ConfigureAwait(false);
 

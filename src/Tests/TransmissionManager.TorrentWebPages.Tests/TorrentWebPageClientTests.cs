@@ -84,13 +84,13 @@ internal sealed class TorrentWebPageClientTests
     [Test]
     public void FindMagnetUriAsync_WhenGivenNonExistentWebPage_ThrowsHttpRequestException()
     {
-        var nonExistingAddress = new Uri("https://seemingly.valid.though.non.existent.address");
+        var NonExistentAddress = new Uri("https://seemingly.valid.though.non.existent.address");
 
         using var httpClient = new HttpClient();
         var client = new TorrentWebPageClient(_options, httpClient);
 
         Assert.That(
-            async () => await client.FindMagnetUriAsync(nonExistingAddress).ConfigureAwait(false),
+            async () => await client.FindMagnetUriAsync(NonExistentAddress).ConfigureAwait(false),
             Throws.TypeOf<HttpRequestException>());
     }
 }
