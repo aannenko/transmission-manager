@@ -11,6 +11,7 @@ The steps outlined below assume you have a Raspberry Pi with LibreELEC and a Doc
 By following these steps, you will set up both Transmission and Transmission Manager to run in Docker on your Raspberry Pi. Transmission will then save files directly to the Raspberry Pi's storage (an SSD is recommended for optimal performance).
 
 Alternatively, you can customize the setup to your liking. The essential components are Docker for running Transmission Manager and Transmission, which should be accessible over the network. With these in place, Transmission Manager can be deployed to any Docker host on the network that supports the `linux/amd64` or `linux/arm64` architecture.
+
 ### Given
 - Raspberry Pi with LibreELEC 12 and Docker add-on<br>
 - Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (use your own time zone instead)
