@@ -131,12 +131,12 @@ internal sealed class AddTorrentTests
 
         var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto).ConfigureAwait(false);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
             var location = $"{TestData.Endpoints.Torrents}/2";
             Assert.That(response.Headers.Location?.OriginalString, Is.EqualTo(location));
-        });
+        }
     }
 
     [Test]
@@ -156,7 +156,7 @@ internal sealed class AddTorrentTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             var error =
                 $"Addition of a torrent from the web page '{dto.WebPageUri}' has failed: 'Torrent already exists.'.";
@@ -164,6 +164,6 @@ internal sealed class AddTorrentTests
             Assert.That(problemDetails!.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
-        });
+        }
     }
 }

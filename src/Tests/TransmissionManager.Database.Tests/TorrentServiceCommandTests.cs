@@ -26,13 +26,13 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             .FirstOrDefaultAsync(torrent => torrent.Id == torrentId)
             .ConfigureAwait(false);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(torrentId, Is.GreaterThan(0));
             Assert.That(actual, Is.Not.Null);
-        });
+        }
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual!.Id, Is.EqualTo(torrentId));
             Assert.That(actual.HashString, Is.EqualTo(dto.HashString));
@@ -41,7 +41,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(dto.Cron));
-        });
+        }
     }
 
     [Test]
@@ -98,14 +98,14 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
 
         Assert.That(actual, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual!.HashString, Is.EqualTo(dto.HashString));
             Assert.That(actual.Name, Is.EqualTo(dto.Name));
             Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(dto.Cron));
-        });
+        }
     }
 
     [Test]
@@ -123,11 +123,11 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
 
         Assert.That(actual, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual!.MagnetRegexPattern, Is.Null);
             Assert.That(actual.Cron, Is.Null);
-        });
+        }
     }
 
     [Test]
@@ -141,11 +141,11 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         var isUpdated = await service.TryUpdateOneByIdAsync(-1, dto).ConfigureAwait(false);
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == -1).ConfigureAwait(false);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(!isUpdated);
             Assert.That(actual, Is.Null);
-        });
+        }
     }
 
     [Test]
@@ -157,11 +157,11 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         var isDeleted = await service.TryDeleteOneByIdAsync(2).ConfigureAwait(false);
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 2).ConfigureAwait(false);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(isDeleted);
             Assert.That(actual, Is.Null);
-        });
+        }
     }
 
     [Test]
@@ -173,10 +173,10 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         var isDeleted = await service.TryDeleteOneByIdAsync(-1).ConfigureAwait(false);
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == -1).ConfigureAwait(false);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(!isDeleted);
             Assert.That(actual, Is.Null);
-        });
+        }
     }
 }

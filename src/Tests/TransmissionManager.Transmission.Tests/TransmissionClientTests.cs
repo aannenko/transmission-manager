@@ -320,23 +320,23 @@ internal sealed class TransmissionClientTests
             expected,
             TransmissionJsonSerializerContext.Default.TransmissionTorrentGetResponse);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(deserialized, Is.Not.Null);
             Assert.That(actual, Is.Not.Null);
-        });
+        }
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual.Result, Is.EqualTo(deserialized!.Result));
             Assert.That(actual.Arguments is null, Is.EqualTo(deserialized.Arguments is null));
             Assert.That(actual.Arguments?.Torrents is null, Is.EqualTo(deserialized.Arguments?.Torrents is null));
-        });
+        }
 
         if (deserialized!.Arguments?.Torrents is not null)
         {
             Assert.That(actual.Arguments!.Torrents, Has.Count.EqualTo(deserialized.Arguments.Torrents.Count));
-            Assert.Multiple(() =>
+            using (Assert.EnterMultipleScope())
             {
                 for (var i = 0; i < actual.Arguments.Torrents!.Count; i++)
                 {
@@ -348,7 +348,7 @@ internal sealed class TransmissionClientTests
                     Assert.That(actualTorrent.PercentDone, Is.EqualTo(expectedTorrent.PercentDone));
                     Assert.That(actualTorrent.SizeWhenDone, Is.EqualTo(expectedTorrent.SizeWhenDone));
                 }
-            });
+            }
         }
     }
 
@@ -360,13 +360,13 @@ internal sealed class TransmissionClientTests
             expected,
             TransmissionJsonSerializerContext.Default.TransmissionTorrentAddResponse);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(deserialized, Is.Not.Null);
             Assert.That(actual, Is.Not.Null);
-        });
+        }
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual.Result, Is.EqualTo(deserialized!.Result));
             Assert.That(actual.Arguments is null, Is.EqualTo(deserialized.Arguments is null));
@@ -380,7 +380,7 @@ internal sealed class TransmissionClientTests
                     actual.Arguments.TorrentDuplicate,
                     deserialized.Arguments.TorrentDuplicate);
             }
-        });
+        }
 
         static void AssertUponTransmissionTorrentAddResponseItem(
             TransmissionTorrentAddResponseItem? actual,
@@ -389,11 +389,11 @@ internal sealed class TransmissionClientTests
             Assert.That(actual is null, Is.EqualTo(expected is null));
             if (actual is not null && expected is not null)
             {
-                Assert.Multiple(() =>
+                using (Assert.EnterMultipleScope())
                 {
                     Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
                     Assert.That(actual.Name, Is.EqualTo(expected.Name));
-                });
+                }
             }
         }
     }

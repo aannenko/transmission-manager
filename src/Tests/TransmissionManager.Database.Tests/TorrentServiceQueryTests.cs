@@ -569,7 +569,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     private static void AssertTorrent(Torrent? actual, Torrent expected, long expectedId)
     {
         Assert.That(actual, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual!.Id, Is.EqualTo(expectedId));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
@@ -578,6 +578,6 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
-        });
+        }
     }
 }

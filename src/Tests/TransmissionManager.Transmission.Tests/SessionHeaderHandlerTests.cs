@@ -46,10 +46,10 @@ internal sealed class SessionHeaderHandlerTests
 
         var result = await client.GetAsync(new Uri(_requestUri)).ConfigureAwait(false);
 
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result.IsSuccessStatusCode);
             Assert.That(provider.SessionHeaderValue, Is.EqualTo(_sessionHeaderValue));
-        });
+        }
     }
 }

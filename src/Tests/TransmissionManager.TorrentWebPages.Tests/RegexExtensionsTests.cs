@@ -11,22 +11,22 @@ internal sealed partial class RegexExtensionsTests
     public void TryGetFirstMatch_WhenGivenMatchingSpan_ReturnsTrueAndNonEmptyMatchRange()
     {
         var result = CdeRegex().TryGetFirstMatch(_abcdefg, out var range);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.True);
             Assert.That(range, Is.EqualTo(new Range(2, 5)));
-        });
+        }
     }
 
     [Test]
     public void TryGetFirstMatch_WhenGivenNonMatchingSpan_ReturnsFalseAndEmptyMatchRange()
     {
         var result = CdfRegex().TryGetFirstMatch(_abcdefg, out var range);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.False);
             Assert.That(range, Is.EqualTo(default(Range)));
-        });
+        }
     }
 
     [GeneratedRegex("cde")]

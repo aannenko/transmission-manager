@@ -20,7 +20,7 @@ internal sealed class TorrentAddDtoExtensionsTests
         var torrent = dto.ToTorrent();
 
         Assert.That(torrent, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(torrent.Id, Is.Zero);
             Assert.That(torrent.HashString, Is.EqualTo(dto.HashString));
@@ -29,6 +29,6 @@ internal sealed class TorrentAddDtoExtensionsTests
             Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));
-        });
+        }
     }
 }

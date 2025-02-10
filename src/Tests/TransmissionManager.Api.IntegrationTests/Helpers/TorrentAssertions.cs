@@ -7,7 +7,7 @@ internal static class TorrentAssertions
     public static void AssertEqual(Torrent? actual, long expectedId, Torrent expected)
     {
         Assert.That(actual, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(actual!.Id, Is.EqualTo(expectedId));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
@@ -16,6 +16,6 @@ internal static class TorrentAssertions
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
-        });
+        }
     }
 }

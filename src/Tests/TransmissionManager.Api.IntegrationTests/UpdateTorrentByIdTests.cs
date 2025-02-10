@@ -52,12 +52,12 @@ internal sealed class UpdateTorrentByIdTests
         var torrent = await response.Content.ReadFromJsonAsync<Torrent>().ConfigureAwait(false);
 
         Assert.That(torrent, Is.Not.Null);
-        Assert.Multiple(() =>
+        using (Assert.EnterMultipleScope())
         {
             Assert.That(torrent!.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));
-        });
+        }
     }
 
     [Test]
