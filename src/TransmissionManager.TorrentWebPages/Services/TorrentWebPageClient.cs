@@ -13,7 +13,9 @@ namespace TransmissionManager.TorrentWebPages.Services;
 public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
 {
     private const int _bufferSize = 2048;
-    private const int _keepFromLastBuffer = _bufferSize / 16;
+    private const int _padding = _bufferSize / 16;
+
+    private static ReadOnlySpan<byte> Magnet => "magnet:?"u8;
 
     public async Task<Uri?> FindMagnetUriAsync(
         Uri torrentWebPageUri,
@@ -23,38 +25,37 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         var regex = GetMagnetRegex(regexPattern);
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
-
         var byteBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
+        var reader = new PaddedBytesReader(stream, byteBuffer, _padding);
         try
         {
-            var read = 0;
-            while ((read = await stream.ReadAsync(byteBuffer.AsMemory(_keepFromLastBuffer), cancellationToken)
-                .ConfigureAwait(false)) > 0)
+            while (await reader.ReadNextAsync(cancellationToken).ConfigureAwait(false))
             {
-                var bytesToSearchIn = byteBuffer.AsSpan(0, _keepFromLastBuffer + read);
-                var indexOfMagnet = bytesToSearchIn.IndexOfStartOf("magnet:?"u8);
-                if (indexOfMagnet is -1)
-                {
-                    bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(byteBuffer);
+                var bytes = reader.Bytes;
+                var indexOfM = bytes.IndexOfStartOf(Magnet);
+                if (indexOfM is -1)
                     continue;
-                }
 
-                if (indexOfMagnet >= _keepFromLastBuffer * 4)
+                var isIndexOfMagnet = bytes.Length - indexOfM >= Magnet.Length;
+
+                if (indexOfM >= _padding * 4)
                 {
-                    var bytesToShiftToStart = bytesToSearchIn[(indexOfMagnet - _keepFromLastBuffer)..];
-                    var shiftedBytesLength = bytesToShiftToStart.Length;
-                    bytesToShiftToStart.CopyTo(byteBuffer);
-                    read = await stream.ReadAsync(byteBuffer.AsMemory(shiftedBytesLength), cancellationToken)
+                    await reader.ReadNextAsync(bytes.Length - indexOfM + _padding, cancellationToken)
                         .ConfigureAwait(false);
 
-                    bytesToSearchIn = byteBuffer.AsSpan(0, shiftedBytesLength + read);
+                    bytes = reader.Bytes;
+                    if (!isIndexOfMagnet)
+                        isIndexOfMagnet = bytes[(_padding + 1)..].StartsWith(Magnet);
                 }
 
-                var charBuffer = ArrayPool<char>.Shared.Rent(bytesToSearchIn.Length);
+                if (!isIndexOfMagnet)
+                    continue;
+
+                var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
                 try
                 {
-                    var chars = charBuffer.AsSpan(0, bytesToSearchIn.Length);
-                    if (Encoding.UTF8.TryGetChars(bytesToSearchIn, chars, out var charsWritten) &&
+                    var chars = charBuffer.AsSpan();
+                    if (Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) &&
                         regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
                     {
                         return new(chars[magnetRange].ToString());
@@ -64,8 +65,6 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 {
                     ArrayPool<char>.Shared.Return(charBuffer);
                 }
-
-                bytesToSearchIn[^_keepFromLastBuffer..].CopyTo(byteBuffer);
             }
 
             return null;
