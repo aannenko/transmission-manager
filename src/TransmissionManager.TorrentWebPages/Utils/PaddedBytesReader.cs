@@ -7,7 +7,6 @@ internal sealed class PaddedBytesReader
     private readonly int _defaultPadding;
 
     private int _padding;
-
     private int _bytesLength;
 
     public PaddedBytesReader(Stream stream, byte[] buffer, int defaultPadding)
@@ -40,17 +39,28 @@ internal sealed class PaddedBytesReader
         {
             throw new ArgumentOutOfRangeException(
                 nameof(padding),
-                $"The value must be between 0 and the length of the {nameof(Bytes)} span (inclusive).");
+                $"The value must be between 0 and the length of the {nameof(Bytes)} span.");
         }
 
         if (padding > 0)
             Bytes[^padding..].CopyTo(_buffer);
 
-        var bytesRead = await _stream.ReadAsync(_buffer.AsMemory(padding), cancellationToken).ConfigureAwait(false);
+        _bytesLength = padding;
+        bool wereBytesRead = false;
 
-        _bytesLength = bytesRead > 0 ? padding + bytesRead : 0;
+        int read;
+        do
+        {
+            read = await _stream.ReadAsync(_buffer.AsMemory(_bytesLength), cancellationToken).ConfigureAwait(false);
+            wereBytesRead = wereBytesRead || read > 0;
+            _bytesLength += read;
+        } while (read > 0 && _bytesLength < _buffer.Length);
+
+        if (!wereBytesRead)
+            _bytesLength = 0;
+
         _padding = Math.Min(_defaultPadding, _bytesLength);
 
-        return bytesRead > 0;
+        return wereBytesRead;
     }
 }
