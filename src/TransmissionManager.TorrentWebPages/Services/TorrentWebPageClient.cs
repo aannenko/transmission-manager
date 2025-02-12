@@ -13,7 +13,7 @@ namespace TransmissionManager.TorrentWebPages.Services;
 public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
 {
     private const int _bufferSize = 2048;
-    private const int _padding = _bufferSize / 16;
+    private const int _defaultPadding = _bufferSize / 16;
 
     private static ReadOnlySpan<byte> Magnet => "magnet:?"u8;
 
@@ -26,30 +26,27 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
         var byteBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
-        var reader = new PaddedBytesReader(stream, byteBuffer, _padding);
+        var reader = new PaddedBytesReader(stream, byteBuffer);
         try
         {
-            while (await reader.ReadNextAsync(cancellationToken).ConfigureAwait(false))
+            var padding = 0;
+            while (await reader.ReadNextAsync(padding, cancellationToken).ConfigureAwait(false))
             {
                 var bytes = reader.Bytes;
-                var indexOfM = bytes.IndexOfStartOf(Magnet);
-                if (indexOfM is -1)
-                    continue;
-
-                var isIndexOfMagnet = bytes.Length - indexOfM >= Magnet.Length;
-
-                if (indexOfM >= _padding * 4)
+                var indexOfMagnet = bytes.IndexOf(Magnet);
+                if (indexOfMagnet is -1)
                 {
-                    await reader.ReadNextAsync(bytes.Length - indexOfM + _padding, cancellationToken)
+                    padding = _defaultPadding;
+                    continue;
+                }
+
+                if (indexOfMagnet >= _defaultPadding * 4)
+                {
+                    await reader.ReadNextAsync(bytes.Length - indexOfMagnet + _defaultPadding, cancellationToken)
                         .ConfigureAwait(false);
 
                     bytes = reader.Bytes;
-                    if (!isIndexOfMagnet)
-                        isIndexOfMagnet = bytes[(_padding + 1)..].StartsWith(Magnet);
                 }
-
-                if (!isIndexOfMagnet)
-                    continue;
 
                 var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
                 try
@@ -65,6 +62,8 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 {
                     ArrayPool<char>.Shared.Return(charBuffer);
                 }
+
+                padding = bytes.Length - indexOfMagnet - Magnet.Length;
             }
 
             return null;
