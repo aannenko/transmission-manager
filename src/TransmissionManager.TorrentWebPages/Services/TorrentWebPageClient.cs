@@ -48,20 +48,8 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                     bytes = reader.Bytes;
                 }
 
-                var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
-                try
-                {
-                    var chars = charBuffer.AsSpan();
-                    if (Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) &&
-                        regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
-                    {
-                        return new(chars[magnetRange].ToString());
-                    }
-                }
-                finally
-                {
-                    ArrayPool<char>.Shared.Return(charBuffer);
-                }
+                if (TryGetMagnetFromBytes(bytes, regex, out var magnet))
+                    return new(new string(magnet));
 
                 padding = bytes.Length - indexOfMagnet - Magnet.Length;
             }
@@ -85,5 +73,27 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         throw new ArgumentException(
             $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.",
             nameof(regexPattern));
+    }
+
+    private static bool TryGetMagnetFromBytes(ReadOnlySpan<byte> bytes, Regex regex, out ReadOnlySpan<char> magnet)
+    {
+        var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
+        try
+        {
+            var chars = charBuffer.AsSpan();
+            if (Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) &&
+                regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
+            {
+                magnet = chars[magnetRange];
+                return true;
+            }
+        }
+        finally
+        {
+            ArrayPool<char>.Shared.Return(charBuffer);
+        }
+
+        magnet = default;
+        return false;
     }
 }
