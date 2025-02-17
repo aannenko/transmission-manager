@@ -63,9 +63,18 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
         where TResponse : ITransmissionResponse
     {
         var endpoint = options.CurrentValue.RpcEndpointAddressSuffix;
-        var response = await httpClient
-            .PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
-            .ConfigureAwait(false);
+
+        HttpResponseMessage response;
+        try
+        {
+            response = await httpClient
+                .PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            throw new HttpRequestException($"Request to Transmission failed unexpectedly: '{e.Message}'.", e);
+        }
 
         var responseObject = await response.EnsureSuccessStatusCode().Content
             .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
