@@ -195,7 +195,9 @@ internal sealed class TransmissionClientTests
 
         var task = client.GetTorrentsAsync(cancellationToken: new(true));
 
-        Assert.That(async () => await task.ConfigureAwait(false), Throws.TypeOf<TaskCanceledException>());
+        Assert.That(
+            async () => await task.ConfigureAwait(false),
+            Throws.TypeOf<HttpRequestException>().With.InnerException.TypeOf<TaskCanceledException>());
     }
 
     [Test]
