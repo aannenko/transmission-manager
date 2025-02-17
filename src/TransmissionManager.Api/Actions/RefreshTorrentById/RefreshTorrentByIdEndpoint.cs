@@ -26,7 +26,7 @@ internal static class RefreshTorrentByIdEndpoint
 
         return result switch
         {
-            RefreshTorrentByIdResult.TorrentRefreshed =>
+            RefreshTorrentByIdResult.Refreshed =>
                 TypedResults.Ok(new RefreshTorrentByIdResponse(transmissionResult!.Value)),
             RefreshTorrentByIdResult.NotFoundLocally or RefreshTorrentByIdResult.Removed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),

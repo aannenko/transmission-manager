@@ -56,7 +56,7 @@ internal sealed class RefreshTorrentByIdHandler(
         if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
             _ = torrentNameUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
 
-        return new(Result.TorrentRefreshed, transmissionAddResult, null);
+        return new(Result.Refreshed, transmissionAddResult, null);
     }
 
     private static string GetError(long id, string? message) =>

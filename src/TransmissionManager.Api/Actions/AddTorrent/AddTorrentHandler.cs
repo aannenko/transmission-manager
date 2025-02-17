@@ -9,7 +9,7 @@ using Result = TransmissionManager.Api.Actions.AddTorrent.AddTorrentResult;
 
 namespace TransmissionManager.Api.Actions.AddTorrent;
 
-internal sealed partial class AddTorrentHandler(
+internal sealed class AddTorrentHandler(
     TorrentWebPageClientWrapper torrentWebPageService,
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
@@ -48,13 +48,13 @@ internal sealed partial class AddTorrentHandler(
         catch (DbUpdateException)
         {
             var torrentExistsError = GetError(dto.WebPageUri, "Torrent already exists.");
-            return new(Result.TorrentExists, null, transmissionResult, torrentExistsError);
+            return new(Result.Exists, null, transmissionResult, torrentExistsError);
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
             _ = torrentNameUpdateService.UpdateTorrentNameAsync(torrentId, transmissionTorrent.HashString);
 
-        return new(Result.TorrentAdded, torrentId, transmissionResult, null);
+        return new(Result.Added, torrentId, transmissionResult, null);
     }
 
     private static string GetError(Uri webPageUri, string? message) =>

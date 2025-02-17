@@ -2,7 +2,7 @@
 
 internal enum RefreshTorrentByIdResult
 {
-    TorrentRefreshed,
+    Refreshed,
     NotFoundLocally,
     NotFoundInTransmission,
     Removed,

@@ -28,9 +28,9 @@ internal static class AddTorrentEndpoint
 
         return result switch
         {
-            AddTorrentResult.TorrentAdded =>
+            AddTorrentResult.Added =>
                 TypedResults.Created(GetTorrentUri(linker, id), new AddTorrentResponse(transmissionResult!.Value)),
-            AddTorrentResult.TorrentExists =>
+            AddTorrentResult.Exists =>
                 TypedResults.Problem(
                     error,
                     statusCode: StatusCodes.Status409Conflict,

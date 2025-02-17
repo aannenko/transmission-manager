@@ -2,7 +2,7 @@
 
 internal enum AddTorrentResult
 {
-    TorrentAdded,
-    TorrentExists,
+    Added,
+    Exists,
     DependencyFailed
 }
