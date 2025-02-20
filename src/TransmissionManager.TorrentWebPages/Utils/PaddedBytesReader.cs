@@ -18,7 +18,7 @@ internal sealed class PaddedBytesReader
         _bytesLength = _buffer.Length;
     }
 
-    public ReadOnlySpan<byte> Bytes => _buffer.AsSpan(0, _bytesLength);
+    public ReadOnlySpan<byte> Bytes => new(_buffer, 0, _bytesLength);
 
     public async ValueTask<bool> ReadNextAsync(int padding, CancellationToken cancellationToken = default)
     {
