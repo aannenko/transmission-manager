@@ -43,6 +43,17 @@ internal sealed class RefreshTorrentByIdHandler(
         if (transmissionAddTorrent is null)
             return new(Result.DependencyFailed, transmissionAddResult, GetError(id, transmissionAddError));
 
+        if (transmissionAddResult is TransmissionAddResult.Added)
+        {
+            var transmissionRemoveResponse = await transmissionService
+                .RemoveTorrentAsync(torrent.HashString, false, cancellationToken)
+                .ConfigureAwait(false);
+
+            var transmissionRemoveError = transmissionRemoveResponse.Error;
+            if (transmissionRemoveError is not null)
+                return new(Result.DependencyFailed, transmissionAddResult, GetError(id, transmissionRemoveError));
+        }
+
         var isUpdated = await torrentService
             .TryUpdateOneByIdAsync(torrent.Id, transmissionAddTorrent.ToTorrentUpdateDto(), cancellationToken)
             .ConfigureAwait(false);

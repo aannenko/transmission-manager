@@ -62,7 +62,7 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
         }
     }
 
-    public async Task<TransmissionRemoveResponse> DeleteTorrentAsync(
+    public async Task<TransmissionRemoveResponse> RemoveTorrentAsync(
         string hashString,
         bool deleteData,
         CancellationToken cancellationToken)

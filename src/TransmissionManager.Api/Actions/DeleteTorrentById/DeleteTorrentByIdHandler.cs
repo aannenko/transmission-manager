@@ -35,7 +35,7 @@ internal sealed class DeleteTorrentByIdHandler(
 
         var deleteData = deleteType is DeleteTorrentByIdType.LocalAndTransmissionAndData;
         var transmissionResult = await transmissionService
-            .DeleteTorrentAsync(torrent.HashString, deleteData, cancellationToken)
+            .RemoveTorrentAsync(torrent.HashString, deleteData, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionResult.Error is not null)

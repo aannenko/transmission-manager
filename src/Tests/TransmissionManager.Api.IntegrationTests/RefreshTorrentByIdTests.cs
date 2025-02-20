@@ -22,62 +22,62 @@ internal sealed class RefreshTorrentByIdTests
         TestData.Transmission.ConflictResponseHeaders,
         TestData.Transmission.ConflictResponseBody);
 
-    // Get Existing Torrent
+    // Get Duplicate Torrent
 
-    private static readonly string _getExistingTorrentRequestBody = string.Format(
+    private static readonly string _getDuplicateTorrentRequestBody = string.Format(
         null,
         TestData.Transmission.GetOneTorrentRequestBodyFormat,
         _initialTorrents[0].HashString);
 
-    private static readonly TestRequest _getExistingTorrentInvalidHeaderRequest = new(
+    private static readonly TestRequest _getDuplicateTorrentInvalidHeaderRequest = new(
         HttpMethod.Post,
         TestData.Transmission.ApiUri,
         TestData.Transmission.EmptyRequestHeaders,
-        _getExistingTorrentRequestBody);
+        _getDuplicateTorrentRequestBody);
 
-    private static readonly TestRequest _getExistingTorrentValidHeaderRequest = new(
+    private static readonly TestRequest _getDuplicateTorrentValidHeaderRequest = new(
         HttpMethod.Post,
         TestData.Transmission.ApiUri,
         TestData.Transmission.FilledRequestHeaders,
-        _getExistingTorrentRequestBody);
+        _getDuplicateTorrentRequestBody);
 
-    private static readonly string _getExistingTorrentResponseBody = string.Format(
+    private static readonly string _getDuplicateTorrentResponseBody = string.Format(
         null,
         TestData.Transmission.GetOneTorrentResponseBodyFormat,
         _initialTorrents[0].DownloadDir,
         _initialTorrents[0].HashString,
         _initialTorrents[0].Name);
 
-    private static readonly TestResponse _getExistingTorrentValidHeaderResponse = new(
+    private static readonly TestResponse _getDuplicateTorrentValidHeaderResponse = new(
         HttpStatusCode.OK,
         TestData.Transmission.DefaultResponseHeaders,
-        _getExistingTorrentResponseBody);
+        _getDuplicateTorrentResponseBody);
 
-    // Add Existing Torrent
+    // Add Duplicate Torrent
 
-    private static readonly string _addExistingTorrentRequestBody = string.Format(
+    private static readonly string _addDuplicateTorrentRequestBody = string.Format(
         null,
         TestData.Transmission.AddTorrentRequestBodyFormat,
         TestData.WebPages.FirstPageMagnetExisting,
         _initialTorrents[0].DownloadDir);
 
-    private static readonly TestRequest _addExistingTorrentValidHeaderRequest = new(
+    private static readonly TestRequest _addDuplicateTorrentValidHeaderRequest = new(
         HttpMethod.Post,
         TestData.Transmission.ApiUri,
         TestData.Transmission.FilledRequestHeaders,
-        _addExistingTorrentRequestBody);
+        _addDuplicateTorrentRequestBody);
 
-    private static readonly string _addExistingTorrentResponseBody = string.Format(
+    private static readonly string _addDuplicateTorrentResponseBody = string.Format(
         null,
         TestData.Transmission.AddTorrentDuplicateResponseBodyFormat,
         _initialTorrents[0].HashString,
         25,
         _initialTorrents[0].Name);
 
-    private static readonly TestResponse _addExistingTorrentValidHeaderResponse = new(
+    private static readonly TestResponse _addDuplicateTorrentValidHeaderResponse = new(
         HttpStatusCode.OK,
         TestData.Transmission.DefaultResponseHeaders,
-        _addExistingTorrentResponseBody);
+        _addDuplicateTorrentResponseBody);
 
     // Get Outdated Torrent
 
@@ -110,21 +110,21 @@ internal sealed class RefreshTorrentByIdTests
         TestData.Transmission.DefaultResponseHeaders,
         _getOutdatedTorrentResponseBody);
 
-    // Add Outdated Torrent
+    // Add Updated Torrent
 
-    private static readonly string _addOutdatedTorrentRequestBody = string.Format(
+    private static readonly string _addUpdatedTorrentRequestBody = string.Format(
         null,
         TestData.Transmission.AddTorrentRequestBodyFormat,
         TestData.WebPages.SecondPageMagnetUpdated,
         _initialTorrents[1].DownloadDir);
 
-    private static readonly TestRequest _addOutdatedTorrentValidHeaderRequest = new(
+    private static readonly TestRequest _addUpdatedTorrentValidHeaderRequest = new(
         HttpMethod.Post,
         TestData.Transmission.ApiUri,
         TestData.Transmission.FilledRequestHeaders,
-        _addOutdatedTorrentRequestBody);
+        _addUpdatedTorrentRequestBody);
 
-    private static readonly string _addOutdatedTorrentResponseBody = string.Format(
+    private static readonly string _addUpdatedTorrentResponseBody = string.Format(
         null,
         TestData.Transmission.AddTorrentAddedResponseBodyFormat,
         _initialTorrents[1].HashString,
@@ -134,7 +134,26 @@ internal sealed class RefreshTorrentByIdTests
     private static readonly TestResponse _addOutdatedTorrentValidHeaderResponse = new(
         HttpStatusCode.OK,
         TestData.Transmission.DefaultResponseHeaders,
-        _addOutdatedTorrentResponseBody);
+        _addUpdatedTorrentResponseBody);
+
+    // Remove Outdated Torrent
+
+    private static readonly string _removeOutdatedTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.DeleteTorrentRequestBodyFormat,
+        _initialTorrents[1].HashString,
+        "false");
+
+    private static readonly TestRequest _removeOutdatedTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _removeOutdatedTorrentRequestBody);
+
+    private static readonly TestResponse _removeOutdatedTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        TestData.Transmission.DeleteTorrentResponseBody);
 
     // Get Removed Torrent
 
@@ -164,12 +183,13 @@ internal sealed class RefreshTorrentByIdTests
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
     {
-        [_getExistingTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
-        [_getExistingTorrentValidHeaderRequest] = _getExistingTorrentValidHeaderResponse,
-        [_addExistingTorrentValidHeaderRequest] = _addExistingTorrentValidHeaderResponse,
+        [_getDuplicateTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getDuplicateTorrentValidHeaderRequest] = _getDuplicateTorrentValidHeaderResponse,
+        [_addDuplicateTorrentValidHeaderRequest] = _addDuplicateTorrentValidHeaderResponse,
         [_getOutdatedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getOutdatedTorrentValidHeaderRequest] = _getOutdatedTorrentValidHeaderResponse,
-        [_addOutdatedTorrentValidHeaderRequest] = _addOutdatedTorrentValidHeaderResponse,
+        [_addUpdatedTorrentValidHeaderRequest] = _addOutdatedTorrentValidHeaderResponse,
+        [_removeOutdatedTorrentValidHeaderRequest] = _removeOutdatedTorrentValidHeaderResponse,
         [_getRemovedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getRemovedTorrentValidHeaderRequest] = _getRemovedTorrentValidHeaderResponse,
     };
@@ -222,7 +242,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithNonExistentHash_RefreshesTorrentAndReturns422()
+    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithNonExistentHash_Returns422UnprocessableEntity()
     {
         var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/3", null).ConfigureAwait(false);
 
