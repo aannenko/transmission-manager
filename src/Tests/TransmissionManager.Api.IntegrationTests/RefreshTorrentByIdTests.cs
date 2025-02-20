@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.RefreshTorrentById;
+using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
@@ -203,9 +204,9 @@ internal sealed class RefreshTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse?>().ConfigureAwait(false);
+        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
 
-        Assert.That(result?.TransmissionResult.ToString(), Is.EqualTo("Duplicate"));
+        Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Duplicate));
     }
 
     [Test]
@@ -215,9 +216,9 @@ internal sealed class RefreshTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse?>().ConfigureAwait(false);
+        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
 
-        Assert.That(result?.TransmissionResult.ToString(), Is.EqualTo("Added"));
+        Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
     }
 
     [Test]

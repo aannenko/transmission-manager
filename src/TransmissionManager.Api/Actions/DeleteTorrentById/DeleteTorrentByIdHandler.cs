@@ -1,13 +1,51 @@
-﻿using TransmissionManager.Api.Common.Scheduling;
+﻿using System.Text;
+using TransmissionManager.Api.Common.Scheduling;
+using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Database.Services;
+using Result = TransmissionManager.Api.Actions.DeleteTorrentById.DeleteTorrentByIdResult;
 
 namespace TransmissionManager.Api.Actions.DeleteTorrentById;
 
-internal sealed class DeleteTorrentByIdHandler(TorrentService torrentService, TorrentSchedulerService scheduler)
+internal sealed class DeleteTorrentByIdHandler(
+    TransmissionClientWrapper transmissionService,
+    TorrentService torrentService,
+    TorrentSchedulerService scheduler)
 {
-    public Task<bool> TryDeleteTorrentByIdAsync(long id, CancellationToken cancellationToken = default)
+    private const string _noSuchTorrent = "No such torrent.";
+
+    private static readonly CompositeFormat _error =
+        CompositeFormat.Parse("Removal of the torrent with id {0} has failed: '{1}'.");
+
+    public async Task<DeleteTorrentByIdOutcome> TryDeleteTorrentByIdAsync(
+        long id,
+        DeleteTorrentByIdType deleteType,
+        CancellationToken cancellationToken)
     {
+        if (deleteType is DeleteTorrentByIdType.Local)
+        {
+            scheduler.TryUnscheduleTorrentRefresh(id);
+            return await torrentService.TryDeleteOneByIdAsync(id, cancellationToken).ConfigureAwait(false)
+                ? new(Result.Removed, null)
+                : new(Result.NotFoundLocally, GetError(id, _noSuchTorrent));
+        }
+
+        var torrent = await torrentService.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        if (torrent is null)
+            return new(Result.NotFoundLocally, GetError(id, _noSuchTorrent));
+
+        var deleteData = deleteType is DeleteTorrentByIdType.LocalAndTransmissionAndData;
+        var transmissionResult = await transmissionService
+            .DeleteTorrentAsync(torrent.HashString, deleteData, cancellationToken)
+            .ConfigureAwait(false);
+
+        if (transmissionResult.Error is not null)
+            return new(Result.DependencyFailed, GetError(id, transmissionResult.Error));
+
         scheduler.TryUnscheduleTorrentRefresh(id);
-        return torrentService.TryDeleteOneByIdAsync(id, cancellationToken);
+        await torrentService.TryDeleteOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        return new(Result.Removed, null);
     }
+
+    private static string GetError(long id, string? message) =>
+        string.Format(null, _error, id, message);
 }

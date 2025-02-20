@@ -16,13 +16,13 @@ internal static class UpdateTorrentByIdEndpoint
     }
 
     private static async Task<Results<NoContent, ProblemHttpResult, ValidationProblem>> UpdateTorrentByIdAsync(
-        [FromServices] UpdateTorrentByIdHandler service,
+        [FromServices] UpdateTorrentByIdHandler handler,
         long id,
         UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken)
     {
         var updateDto = request.ToTorrentUpdateDto();
-        return await service.TryUpdateTorrentByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
+        return await handler.TryUpdateTorrentByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.Problem(
                 string.Format(null, EndpointMessages.IdNotFoundFormat, id),

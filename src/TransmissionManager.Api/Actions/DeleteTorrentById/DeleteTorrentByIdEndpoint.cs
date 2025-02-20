@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 using TransmissionManager.Api.Common.Constants;
 
 namespace TransmissionManager.Api.Actions.DeleteTorrentById;
@@ -9,20 +10,31 @@ internal static class DeleteTorrentByIdEndpoint
     public static IEndpointRouteBuilder MapDeleteTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
         builder.MapDelete("/{id}", DeleteTorrentByIdAsync)
+            .WithParameterValidation()
             .WithName(EndpointNames.DeleteTorrentById);
 
         return builder;
     }
 
     private static async Task<Results<NoContent, ProblemHttpResult, ValidationProblem>> DeleteTorrentByIdAsync(
-        [FromServices] DeleteTorrentByIdHandler service,
+        [FromServices] DeleteTorrentByIdHandler handler,
         long id,
-        CancellationToken cancellationToken)
+        [EnumDataType(typeof(DeleteTorrentByIdType))] DeleteTorrentByIdType deleteType = DeleteTorrentByIdType.Local,
+        CancellationToken cancellationToken = default)
     {
-        return await service.TryDeleteTorrentByIdAsync(id, cancellationToken).ConfigureAwait(false)
-            ? TypedResults.NoContent()
-            : TypedResults.Problem(
-                string.Format(null, EndpointMessages.IdNotFoundFormat, id),
-                statusCode: StatusCodes.Status404NotFound);
+        var (result, error) = await handler
+            .TryDeleteTorrentByIdAsync(id, deleteType, cancellationToken)
+            .ConfigureAwait(false);
+
+        return result switch
+        {
+            DeleteTorrentByIdResult.Removed =>
+                TypedResults.NoContent(),
+            DeleteTorrentByIdResult.NotFoundLocally =>
+                TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
+            DeleteTorrentByIdResult.DependencyFailed =>
+                TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
+            _ => throw new NotImplementedException(),
+        };
     }
 }

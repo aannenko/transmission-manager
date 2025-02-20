@@ -55,6 +55,26 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
             .ConfigureAwait(false);
     }
 
+    public async Task<TransmissionTorrentRemoveResponse> RemoveTorrentsAsync(
+        string[]? hashStrings = null,
+        bool deleteLocalData = false,
+        CancellationToken cancellationToken = default)
+    {
+        return await GetResultWithValidationAsync(
+            new TransmissionTorrentRemoveRequest
+            {
+                Arguments = new()
+                {
+                    HashStrings = hashStrings,
+                    DeleteLocalData = deleteLocalData
+                }
+            },
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentRemoveRequest,
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentRemoveResponse,
+            cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     private async Task<TResponse> GetResultWithValidationAsync<TRequest, TResponse>(
         TRequest request,
         JsonTypeInfo<TRequest> requestTypeInfo,

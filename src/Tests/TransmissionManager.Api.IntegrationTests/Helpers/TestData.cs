@@ -115,7 +115,7 @@ internal static class TestData
         public const string SessionHeaderValue = "FctoNpkk6eYSSgmBV0B2DXI4SsLLSYc0lA5MdYkLpc9fDA59";
 
         public const string GetOneTorrentRequestBody =
-            "{{\"method\":\"torrent-get\",\"arguments\":{{\"fields\":[\"hashString\",\"name\",\"sizeWhenDone\",\"percentDone\",\"downloadDir\"],\"ids\":[\"{0}\"]}}}}";
+            "{{\"method\":\"torrent-get\",\"arguments\":{{\"ids\":[\"{0}\"],\"fields\":[\"hashString\",\"name\",\"sizeWhenDone\",\"percentDone\",\"downloadDir\"]}}}}";
 
         public const string GetOneTorrentResponseBody =
             "{{\"arguments\":{{\"torrents\":[{{\"downloadDir\":\"{0}\",\"hashString\":\"{1}\",\"name\":\"{2}\",\"percentDone\":1,\"sizeWhenDone\":34008064679}}]}},\"result\":\"success\"}}";
@@ -131,6 +131,12 @@ internal static class TestData
 
         public const string AddTorrentDuplicateResponseBody =
             "{{\"arguments\":{{\"torrent-duplicate\":{{\"hashString\":\"{0}\",\"id\":{1},\"name\":\"{2}\"}}}},\"result\":\"success\"}}";
+
+        public const string DeleteTorrentRequestBody =
+            "{{\"method\":\"torrent-remove\",\"arguments\":{{\"ids\":[\"{0}\"],\"delete-local-data\":{1}}}}}";
+
+        public const string DeleteTorrentResponseBody =
+            """{"arguments":{},"result":"success"}""";
 
         public const string ConflictResponseBody = $"""
             <h1>409: Conflict</h1><p>Your request had an invalid session-id header.</p><p>To fix this, follow these steps:<ol><li> When reading a response, get its X-Transmission-Session-Id header and remember it<li> Add the updated header to your outgoing requests<li> When you get this 409 error message, resend your request with the updated header</ol></p><p>This requirement has been added to help prevent <a href="https://en.wikipedia.org/wiki/Cross-site_request_forgery">CSRF</a> attacks.</p><p><code>{SessionHeaderName}: {SessionHeaderValue}</code></p>
@@ -150,6 +156,9 @@ internal static class TestData
 
         public static readonly CompositeFormat AddTorrentDuplicateResponseBodyFormat =
             CompositeFormat.Parse(AddTorrentDuplicateResponseBody);
+
+        public static readonly CompositeFormat DeleteTorrentRequestBodyFormat =
+            CompositeFormat.Parse(DeleteTorrentRequestBody);
 
         public static readonly Uri ApiUri = new("http://transmission:9091/transmission/rpc");
 

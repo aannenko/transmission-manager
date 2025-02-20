@@ -5,11 +5,14 @@ namespace TransmissionManager.Api.Common.Transmission;
 
 internal sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {
-    private static readonly CompositeFormat _addError =
+    private static readonly CompositeFormat _getError =
         CompositeFormat.Parse("Could not get a torrent with hash '{0}' from Transmission{1}.");
 
-    private static readonly CompositeFormat _getError =
+    private static readonly CompositeFormat _addError =
         CompositeFormat.Parse("Could not add a torrent to Transmission{0}.");
+
+    private static readonly CompositeFormat _removeError =
+        CompositeFormat.Parse("Could not remove a torrent with hash '{0}' from Transmission: '{1}'.");
 
     public async Task<TransmissionAddResponse> AddTorrentUsingMagnetAsync(
         Uri magnetUri,
@@ -28,12 +31,12 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
                     new(TransmissionAddResult.Added, transmissionResponse.Arguments.TorrentAdded, null),
                 { TorrentDuplicate: not null } =>
                     new(TransmissionAddResult.Duplicate, transmissionResponse.Arguments.TorrentDuplicate, null),
-                _ => new(null, null, string.Format(null, _getError, string.Empty))
+                _ => new(null, null, string.Format(null, _addError, string.Empty))
             };
         }
         catch (HttpRequestException e)
         {
-            return new(null, null, string.Format(null, _getError, $": {e.Message}"));
+            return new(null, null, string.Format(null, _addError, $": {e.Message}"));
         }
     }
 
@@ -51,11 +54,30 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
 
             return torrent is not null
                 ? new(torrent, null)
-                : new(null, string.Format(null, _addError, hashString, string.Empty));
+                : new(null, string.Format(null, _getError, hashString, string.Empty));
         }
         catch (HttpRequestException e)
         {
-            return new(null, string.Format(null, _addError, hashString, $": '{e.Message}'"));
+            return new(null, string.Format(null, _getError, hashString, $": '{e.Message}'"));
+        }
+    }
+
+    public async Task<TransmissionRemoveResponse> DeleteTorrentAsync(
+        string hashString,
+        bool deleteData,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await transmissionClient
+                .RemoveTorrentsAsync([hashString], deleteData, cancellationToken)
+                .ConfigureAwait(false);
+
+            return new(null);
+        }
+        catch (HttpRequestException e)
+        {
+            return new(string.Format(null, _removeError, hashString, e.Message));
         }
     }
 }

@@ -40,6 +40,8 @@ internal sealed class TransmissionClientTests
 
     private const string _twoTorrentsWithNoFieldsResponse = """{"arguments":{"torrents":[{},{}]},"result":"success"}""";
 
+    private const string _removedSuccessfullyResponse = """{"arguments":{},"result":"success"}""";
+
     private static readonly FakeOptionsMonitor<TransmissionClientOptions> _options = new(new()
     {
         BaseAddress = "http://transmission:9091",
@@ -47,7 +49,7 @@ internal sealed class TransmissionClientTests
     });
 
     [Test]
-    public async Task GetTorrentsAsync_GetsAllTorrentsWithAllFields_WhenNoArgumentsProvided()
+    public async Task GetTorrentsAsync_WhenGivenNoArguments_GetsAllTorrentsWithAllFields()
     {
         const string expectedRequest =
             """{"method":"torrent-get","arguments":{"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"]}}""";
@@ -61,14 +63,14 @@ internal sealed class TransmissionClientTests
 
         var response = await client.GetTorrentsAsync().ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsAllFieldsResponse);
+        AssertTransmissionTorrentGetResponse(response, _twoTorrentsAllFieldsResponse);
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsTwoTorrentsWithAllFields_WhenTwoTorrentHashstringsProvided()
+    public async Task GetTorrentsAsync_WhenGivenTwoHashStrings_GetsTwoTorrentsWithAllFields()
     {
         const string expectedRequest =
-            """{"method":"torrent-get","arguments":{"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"],"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa","738c60cbd44f0e9457ba2afdad9e9231d76243fe"]}}""";
+            """{"method":"torrent-get","arguments":{"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa","738c60cbd44f0e9457ba2afdad9e9231d76243fe"],"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"]}}""";
 
         using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
@@ -83,11 +85,11 @@ internal sealed class TransmissionClientTests
                 "738c60cbd44f0e9457ba2afdad9e9231d76243fe"
             ]).ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsAllFieldsResponse);
+        AssertTransmissionTorrentGetResponse(response, _twoTorrentsAllFieldsResponse);
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsAllTorrentsWithTwoFields_WhenTwoRequestedFieldsProvided()
+    public async Task GetTorrentsAsync_WhenGivenTwoRequestedFields_GetsAllTorrentsWithTwoFields()
     {
         const string expectedRequest = """{"method":"torrent-get","arguments":{"fields":["hashString","name"]}}""";
         const string twoTorrentsTwoFieldsResponse = """
@@ -119,11 +121,11 @@ internal sealed class TransmissionClientTests
             .GetTorrentsAsync(requestFields: [TorrentFields.HashString, TorrentFields.Name])
             .ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentGetResponse(response, twoTorrentsTwoFieldsResponse);
+        AssertTransmissionTorrentGetResponse(response, twoTorrentsTwoFieldsResponse);
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsAllTorrentsWithNoFields_WhenNonExistentRequestedFieldsProvided()
+    public async Task GetTorrentsAsync_WhenGivenNonExistentRequestedFields_GetsAllTorrentsWithNoFields()
     {
         const string expectedRequest = """{"method":"torrent-get","arguments":{"fields":[998,999]}}""";
 
@@ -138,11 +140,11 @@ internal sealed class TransmissionClientTests
             .GetTorrentsAsync(requestFields: [(TorrentFields)998, (TorrentFields)999])
             .ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsWithNoFieldsResponse);
+        AssertTransmissionTorrentGetResponse(response, _twoTorrentsWithNoFieldsResponse);
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsAllTorrentsWithNoFields_WhenEmptyRequestedFieldsProvided()
+    public async Task GetTorrentsAsync_WhenGivenEmptyRequestedFields_GetsAllTorrentsWithNoFields()
     {
         const string expectedRequest = """{"method":"torrent-get","arguments":{"fields":[]}}""";
 
@@ -155,14 +157,14 @@ internal sealed class TransmissionClientTests
 
         var response = await client.GetTorrentsAsync(requestFields: []).ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentGetResponse(response, _twoTorrentsWithNoFieldsResponse);
+        AssertTransmissionTorrentGetResponse(response, _twoTorrentsWithNoFieldsResponse);
     }
 
     [Test]
-    public async Task GetTorrentsAsync_GetsNoTorrents_WhenNonExistentHashstringProvided()
+    public async Task GetTorrentsAsync_WhenGivenNonExistentHashstring_GetsNoTorrents()
     {
         const string expectedRequest =
-            """{"method":"torrent-get","arguments":{"fields":[],"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fb"]}}""";
+            """{"method":"torrent-get","arguments":{"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fb"],"fields":[]}}""";
 
         const string noTorrentsResponse = """{"arguments":{"torrents":[]},"result":"success"}""";
 
@@ -177,11 +179,11 @@ internal sealed class TransmissionClientTests
             .GetTorrentsAsync(["0bda511316a069e86dd8ee8a3610475d2013a7fb"], [])
             .ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentGetResponse(response, noTorrentsResponse);
+        AssertTransmissionTorrentGetResponse(response, noTorrentsResponse);
     }
 
     [Test]
-    public void GetTorrentsAsync_ThrowsTaskCanceledExceptions_WhenCanceledTokenProvided()
+    public void GetTorrentsAsync_WhenGivenCanceledToken_ThrowsTaskCanceledExceptions()
     {
         const string expectedRequest =
             """{"method":"torrent-get","arguments":{"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"]}}""";
@@ -201,7 +203,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task AddTorrentsAsync_ReturnsTorrentAdded_WhenNewMagnetAndDownloadDirProvided()
+    public async Task AddTorrentsAsync_WhenGivenNewMagnetAndDownloadDirProvided_ReturnsTorrentAdded()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name","download-dir":"/tvshows"}}""";
@@ -230,11 +232,11 @@ internal sealed class TransmissionClientTests
             .AddTorrentUsingMagnetUriAsync(new("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name"), "/tvshows")
             .ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentAddResponse(response, torrentAddedResponse);
+        AssertTransmissionTorrentAddResponse(response, torrentAddedResponse);
     }
 
     [Test]
-    public async Task AddTorrentsAsync_ReturnsTorrentDuplicate_WhenExistingMagnetProvided()
+    public async Task AddTorrentsAsync_WhenGivenExistingMagnetProvided_ReturnsTorrentDuplicate()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name","download-dir":"/tvshows"}}""";
@@ -263,11 +265,11 @@ internal sealed class TransmissionClientTests
             .AddTorrentUsingMagnetUriAsync(new("magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name"), "/tvshows")
             .ConfigureAwait(false);
 
-        AssertUponTransmissionTorrentAddResponse(response, torrentDuplicateResponse);
+        AssertTransmissionTorrentAddResponse(response, torrentDuplicateResponse);
     }
 
     [Test]
-    public void AddTorrentsAsync_ThrowsHttpRequestException_WhenInvalidMagnetProvided()
+    public void AddTorrentsAsync_WhenGivenInvalidMagnet_ThrowsHttpRequestException()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:INVALIDMAGNET","download-dir":"/tvshows"}}""";
@@ -291,7 +293,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public void AddTorrentsAsync_ThrowsHttpRequestException_WhenInvalidDownloadDirProvided()
+    public void AddTorrentsAsync_WhenGivenInvalidDownloadDir_ThrowsHttpRequestException()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2","download-dir":"^&*("}}""";
@@ -314,7 +316,81 @@ internal sealed class TransmissionClientTests
         Assert.That(async () => await task, Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(error));
     }
 
-    private static void AssertUponTransmissionTorrentGetResponse(TransmissionTorrentGetResponse actual, string expected)
+    [Test]
+    public async Task RemoveTorrentAsync_WhenGivenExistingHashStrings_RemovesTorrents()
+    {
+        const string expectedRequest =
+            """{"method":"torrent-remove","arguments":{"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa","738c60cbd44f0e9457ba2afdad9e9231d76243fe"],"delete-local-data":true}}""";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
+            new(HttpStatusCode.OK, Content: _removedSuccessfullyResponse));
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client
+            .RemoveTorrentsAsync(["0bda511316a069e86dd8ee8a3610475d2013a7fa", "738c60cbd44f0e9457ba2afdad9e9231d76243fe"], true)
+            .ConfigureAwait(false);
+
+        AssertTransmissionTorrentRemoveResponse(response, _removedSuccessfullyResponse);
+    }
+
+    [Test]
+    public async Task RemoveTorrentAsync_WhenGivenEmptyArrayOfHashStrings_ReturnsSuccess()
+    {
+        const string expectedRequest =
+            """{"method":"torrent-remove","arguments":{"ids":[],"delete-local-data":false}}""";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
+            new(HttpStatusCode.OK, Content: _removedSuccessfullyResponse));
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client.RemoveTorrentsAsync([], false).ConfigureAwait(false);
+
+        AssertTransmissionTorrentRemoveResponse(response, _removedSuccessfullyResponse);
+    }
+
+    [Test]
+    public async Task RemoveTorrentAsync_WhenGivenNullHashStrings_ReturnsSuccess()
+    {
+        const string expectedRequest =
+            """{"method":"torrent-remove","arguments":{"delete-local-data":false}}""";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
+            new(HttpStatusCode.OK, Content: _removedSuccessfullyResponse));
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client.RemoveTorrentsAsync(null, false).ConfigureAwait(false);
+
+        AssertTransmissionTorrentRemoveResponse(response, _removedSuccessfullyResponse);
+    }
+
+    [Test]
+    public async Task RemoveTorrentAsync_WhenGivenInvalidHashString_ReturnsSuccess()
+    {
+        const string expectedRequest =
+            """{"method":"torrent-remove","arguments":{"ids":["INVALID"],"delete-local-data":false}}""";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
+            new(HttpStatusCode.OK, Content: _removedSuccessfullyResponse));
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var response = await client.RemoveTorrentsAsync(["INVALID"], false).ConfigureAwait(false);
+
+        AssertTransmissionTorrentRemoveResponse(response, _removedSuccessfullyResponse);
+    }
+
+    private static void AssertTransmissionTorrentGetResponse(TransmissionTorrentGetResponse actual, string expected)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expected);
 
@@ -354,7 +430,7 @@ internal sealed class TransmissionClientTests
         }
     }
 
-    private static void AssertUponTransmissionTorrentAddResponse(TransmissionTorrentAddResponse actual, string expected)
+    private static void AssertTransmissionTorrentAddResponse(TransmissionTorrentAddResponse actual, string expected)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expected);
 
@@ -374,17 +450,17 @@ internal sealed class TransmissionClientTests
             Assert.That(actual.Arguments is null, Is.EqualTo(deserialized.Arguments is null));
             if (actual.Arguments is not null && deserialized.Arguments is not null)
             {
-                AssertUponTransmissionTorrentAddResponseItem(
+                AssertTransmissionTorrentAddResponseItem(
                     actual.Arguments.TorrentAdded,
                     deserialized.Arguments.TorrentAdded);
 
-                AssertUponTransmissionTorrentAddResponseItem(
+                AssertTransmissionTorrentAddResponseItem(
                     actual.Arguments.TorrentDuplicate,
                     deserialized.Arguments.TorrentDuplicate);
             }
         }
 
-        static void AssertUponTransmissionTorrentAddResponseItem(
+        static void AssertTransmissionTorrentAddResponseItem(
             TransmissionTorrentAddResponseItem? actual,
             TransmissionTorrentAddResponseItem? expected)
         {
@@ -398,5 +474,24 @@ internal sealed class TransmissionClientTests
                 }
             }
         }
+    }
+
+    private static void AssertTransmissionTorrentRemoveResponse(
+        TransmissionTorrentRemoveResponse actual,
+        string expected)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(expected);
+
+        var deserialized = JsonSerializer.Deserialize(
+            expected,
+            TransmissionJsonSerializerContext.Default.TransmissionTorrentRemoveResponse);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(deserialized, Is.Not.Null);
+            Assert.That(actual, Is.Not.Null);
+        }
+
+        Assert.That(actual.Result, Is.EqualTo(deserialized!.Result));
     }
 }

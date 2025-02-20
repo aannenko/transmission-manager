@@ -9,7 +9,7 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
     public async Task<bool> TryUpdateTorrentByIdAsync(
         long id,
         TorrentUpdateDto dto,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         scheduler.TryUnscheduleTorrentRefresh(id);
         var result = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);

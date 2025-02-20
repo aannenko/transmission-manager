@@ -16,10 +16,10 @@ public sealed class TransmissionTorrentGetRequest
 
 public sealed class TransmissionTorrentGetRequestArguments
 {
-    public required IReadOnlyList<TransmissionTorrentGetRequestFields> Fields { get; init; }
-
     [JsonPropertyName("ids")]
     public IReadOnlyList<string>? HashStrings { get; init; }
+
+    public required IReadOnlyList<TransmissionTorrentGetRequestFields> Fields { get; init; }
 }
 
 [JsonConverter(typeof(CamelCaseJsonStringEnumConverter<TransmissionTorrentGetRequestFields>))]
