@@ -45,27 +45,30 @@ internal sealed class RefreshTorrentByIdHandler(
 
         if (transmissionAddResult is TransmissionAddResult.Added)
         {
-            var transmissionRemoveResponse = await transmissionService
-                .RemoveTorrentAsync(torrent.HashString, false, cancellationToken)
+            var transmissionRemoveTask = transmissionService
+                .RemoveTorrentAsync(torrent.HashString, false, cancellationToken);
+
+            var isTorrentUpdated = await torrentService
+                .TryUpdateOneByIdAsync(torrent.Id, transmissionAddTorrent.ToTorrentUpdateDto(), cancellationToken)
                 .ConfigureAwait(false);
 
-            var transmissionRemoveError = transmissionRemoveResponse.Error;
+            if (!isTorrentUpdated)
+            {
+                const string message = "The torrent was removed before it could be updated.";
+                return new(Result.Removed, transmissionAddResult, GetError(id, message));
+            }
+
+            if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
+                _ = torrentNameUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
+
+            var transmissionRemoveError = (await transmissionRemoveTask.ConfigureAwait(false)).Error;
             if (transmissionRemoveError is not null)
                 return new(Result.DependencyFailed, transmissionAddResult, GetError(id, transmissionRemoveError));
         }
-
-        var isUpdated = await torrentService
-            .TryUpdateOneByIdAsync(torrent.Id, transmissionAddTorrent.ToTorrentUpdateDto(), cancellationToken)
-            .ConfigureAwait(false);
-
-        if (!isUpdated)
+        else if (torrent.Name == torrent.HashString)
         {
-            const string message = "The torrent was removed before it could be updated.";
-            return new(Result.Removed, transmissionAddResult, GetError(id, message));
-        }
-
-        if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
             _ = torrentNameUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
+        }
 
         return new(Result.Refreshed, transmissionAddResult, null);
     }
