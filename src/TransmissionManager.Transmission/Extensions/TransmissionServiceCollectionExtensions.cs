@@ -16,7 +16,7 @@ public static class TransmissionServiceCollectionExtensions
 
     public static IServiceCollection AddTransmissionServices(
         this IServiceCollection services,
-        IConfigurationRoot configuration)
+        IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 

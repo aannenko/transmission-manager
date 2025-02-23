@@ -15,7 +15,7 @@ public static class TorrentWebPagesServiceCollectionExtensions
 
     public static IServiceCollection AddTorrentWebPagesServices(
         this IServiceCollection services,
-        IConfigurationRoot configuration)
+        IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 

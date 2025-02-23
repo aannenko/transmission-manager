@@ -9,13 +9,10 @@ public static class DatabaseServiceCollectionExtensions
 {
     private const string _appDbConfigKey = "AppDb";
 
-    public static IServiceCollection AddDatabaseServices(this IServiceCollection services)
+    public static IServiceCollection AddDatabaseServices(this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .AddDbContext<AppDbContext>(ConfigureDbContextOptions)
+            .AddSqlite<AppDbContext>(configuration.GetConnectionString(_appDbConfigKey))
             .AddTransient<TorrentService>();
     }
-
-    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options) =>
-        options.UseSqlite(services.GetRequiredService<IConfiguration>().GetConnectionString(_appDbConfigKey));
 }
