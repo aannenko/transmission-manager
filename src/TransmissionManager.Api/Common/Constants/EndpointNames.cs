@@ -12,4 +12,7 @@ internal static class EndpointNames
 
     // LocalTime
     public const string GetLocalTime = "GetLocalTime";
+
+    // TransmissionInfo
+    public const string GetTransmissionInfo = "GetTransmissionInfo";
 }

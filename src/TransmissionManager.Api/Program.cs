@@ -6,6 +6,7 @@ using TransmissionManager.Api.Actions.Torrents.FindById;
 using TransmissionManager.Api.Actions.Torrents.FindPage;
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
 using TransmissionManager.Api.Actions.Torrents.UpdateById;
+using TransmissionManager.Api.Actions.TransmissionInfo.Get;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Serialization;
 using TransmissionManager.Api.Common.Services;
@@ -76,6 +77,9 @@ app.MapGroup(EndpointAddresses.TorrentsApi)
 
 app.MapGroup(EndpointAddresses.LocalTimeApi)
     .MapGetLocalTimeEndpoint();
+
+app.MapGroup(EndpointAddresses.TransmissionInfoApi)
+    .MapGetTransmissionInfoEndpoint();
 
 await app.RunAsync().ConfigureAwait(false);
 
