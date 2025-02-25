@@ -125,7 +125,7 @@ iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType applic
 iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
 ```
 
-Alternatively, send requests using [Visual Studio Code](https://code.visualstudio.com/) with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension installed - open the file [TransmissionManager.Api.http](src/TransmissionManager.Api/TransmissionManager.Api.http) in VS Code, change the host address, the request data and start sending requests.
+Alternatively, send requests using [Visual Studio Code](https://code.visualstudio.com/) with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension installed - open the file [Torrents.http](src/TransmissionManager.Api/Actions/Torrents/Torrents.http) in VS Code, change the host address, the request data and start sending requests.
 
 ## Usage scenarios
 

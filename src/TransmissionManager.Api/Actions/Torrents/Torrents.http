@@ -1,0 +1,69 @@
+@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
+
+# Get a page of torrents
+GET {{TransmissionManager_Web_HostAddress}}/
+
+###
+
+# Get a page of 5 torrents ordered by Name, which have cron specified
+# and name, download dir, web page uri or hash string start with "Mi"
+GET {{TransmissionManager_Web_HostAddress}}/?orderBy=Name&take=5&propertyStartsWith=Mi&cronExists=True
+
+###
+
+# Get one torrent by id
+GET {{TransmissionManager_Web_HostAddress}}/1
+
+###
+
+# Add a torrent by web page uri
+# Do not provide cron if you don't want the torrent to be automatically updated
+# Do not provide magnetRegexPattern to use a global one
+POST {{TransmissionManager_Web_HostAddress}}/
+Content-Type: application/json
+
+{
+    "webPageUri": "https://nnmclub.to/forum/viewtopic.php?t=206418",
+    "downloadDir": "/videos",
+    "cron": "0 11,17 * * *"
+}
+
+###
+
+# Refresh a torrent by id
+POST {{TransmissionManager_Web_HostAddress}}/1
+Content-Type: application/json
+
+###
+
+# Update existing torrent's cron and magnet-finding regex
+PATCH {{TransmissionManager_Web_HostAddress}}/1
+Content-Type: application/json
+
+{
+    "magnetRegexPattern": "magnet:\\?xt=urn:[^\"]+",
+    "cron": "0 10,16 * * *"
+}
+
+###
+
+# Clear existing torrent's cron and magnet-finding regex using empty strings
+PATCH {{TransmissionManager_Web_HostAddress}}/1
+Content-Type: application/json
+
+{
+    "magnetRegexPattern": "",
+    "cron": ""
+}
+
+###
+
+# Remove a torrent from Transmission Manager by id
+DELETE {{TransmissionManager_Web_HostAddress}}/1
+
+###
+
+# Remove a torrent from Transmission Manager by id, also remove it from Transmission and delete the data
+DELETE {{TransmissionManager_Web_HostAddress}}/1?deleteType=LocalAndTransmissionAndData
+
+###

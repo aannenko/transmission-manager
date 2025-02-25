@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.Actions.UpdateTorrentById;
+using TransmissionManager.Api.Actions.Torrents.UpdateById;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
 
