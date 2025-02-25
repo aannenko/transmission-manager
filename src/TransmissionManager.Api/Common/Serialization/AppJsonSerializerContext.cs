@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using TransmissionManager.Api.Actions.LocalTime.Get;
 using TransmissionManager.Api.Actions.Torrents.Add;
 using TransmissionManager.Api.Actions.Torrents.FindPage;
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
@@ -11,8 +12,9 @@ namespace TransmissionManager.Api.Common.Serialization;
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(AddTorrentRequest))]
 [JsonSerializable(typeof(UpdateTorrentByIdRequest))]
+[JsonSerializable(typeof(HttpValidationProblemDetails))]
 [JsonSerializable(typeof(FindTorrentPageResponse))]
 [JsonSerializable(typeof(AddTorrentResponse))]
 [JsonSerializable(typeof(RefreshTorrentByIdResponse))]
-[JsonSerializable(typeof(HttpValidationProblemDetails))]
+[JsonSerializable(typeof(GetLocalTimeResponse))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;
