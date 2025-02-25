@@ -23,7 +23,7 @@ builder.Services.ConfigureHttpJsonOptions(
 
 builder.Services.AddProblemDetails();
 
-builder.Services.AddDatabaseServices(builder.Configuration);
+builder.Services.AddDatabaseServices();
 builder.Services.AddTorrentWebPagesServices(builder.Configuration);
 builder.Services.AddTransmissionServices(builder.Configuration);
 
