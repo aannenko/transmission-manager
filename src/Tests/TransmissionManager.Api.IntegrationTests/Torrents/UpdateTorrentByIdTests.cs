@@ -5,7 +5,7 @@ using TransmissionManager.Api.Actions.Torrents.UpdateById;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Api.IntegrationTests;
+namespace TransmissionManager.Api.IntegrationTests.Torrents;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class UpdateTorrentByIdTests

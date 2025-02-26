@@ -6,7 +6,7 @@ using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Api.IntegrationTests;
+namespace TransmissionManager.Api.IntegrationTests.Torrents;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class RefreshTorrentByIdTests

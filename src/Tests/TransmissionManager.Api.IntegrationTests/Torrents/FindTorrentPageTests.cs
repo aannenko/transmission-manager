@@ -7,7 +7,7 @@ using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Api.IntegrationTests;
+namespace TransmissionManager.Api.IntegrationTests.Torrents;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class FindTorrentPageTests
