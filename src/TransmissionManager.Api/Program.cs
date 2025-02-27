@@ -1,4 +1,5 @@
 using Coravel;
+using TransmissionManager.Api.Actions.AppVersion.Get;
 using TransmissionManager.Api.Actions.LocalTime.Get;
 using TransmissionManager.Api.Actions.Torrents.Add;
 using TransmissionManager.Api.Actions.Torrents.DeleteById;
@@ -74,6 +75,9 @@ app.MapGroup(EndpointAddresses.TorrentsApi)
     .MapRefreshTorrentByIdEndpoint()
     .MapUpdateTorrentByIdEndpoint()
     .MapDeleteTorrentByIdEndpoint();
+
+app.MapGroup(EndpointAddresses.AppVersionApi)
+    .MapGetAppVersionEndpoint();
 
 app.MapGroup(EndpointAddresses.LocalTimeApi)
     .MapGetLocalTimeEndpoint();
