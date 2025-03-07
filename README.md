@@ -127,7 +127,7 @@ iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
 
 Alternatively, send requests using [Visual Studio Code](https://code.visualstudio.com/) with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension installed - open the file [Torrents.http](src/TransmissionManager.Api/Actions/Torrents/Torrents.http) in VS Code, change the host address, the request data and start sending requests.
 
-Using the API, you can also request information from the Transmission Manager about itself via [AppInfo.http](src/TransmissionManager.Api/Actions/AppInfo/AppInfo.http), or about the connected Transmission instance via [TransmissionInfo.http](src/TransmissionManager.Api/Actions/TransmissionInfo/TransmissionInfo.http).
+Using the API, you can also request information from Transmission Manager about itself via [AppInfo.http](src/TransmissionManager.Api/Actions/AppInfo/AppInfo.http), or about the connected Transmission instance via [TransmissionInfo.http](src/TransmissionManager.Api/Actions/TransmissionInfo/TransmissionInfo.http).
 
 ## Usage scenarios
 
