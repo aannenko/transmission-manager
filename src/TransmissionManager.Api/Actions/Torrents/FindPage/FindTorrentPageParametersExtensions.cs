@@ -1,11 +1,23 @@
 ﻿using System.Net;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Database.Dto;
+using TransmissionManager.Database.Models;
+using Direction = TransmissionManager.Api.Actions.Torrents.FindPage.FindTorrentPageDirection;
 
 namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 
 internal static class FindTorrentPageParametersExtensions
 {
+    public static TorrentPageDescriptor<string> ToTorrentPageDescriptor(this FindTorrentPageParameters parameters)
+    {
+        return new TorrentPageDescriptor<string>(
+            OrderBy: parameters.OrderBy,
+            AnchorId: parameters.AnchorId,
+            AnchorValue: parameters.AnchorValue,
+            IsForwardPagination: parameters.Direction is Direction.Forward,
+            Take: parameters.Take);
+    }
+
     public static TorrentFilter ToTorrentFilter(this FindTorrentPageParameters parameters)
     {
         return new(
@@ -15,40 +27,66 @@ internal static class FindTorrentPageParametersExtensions
 
     public static string ToPathAndQueryString(this FindTorrentPageParameters parameters)
     {
-        var (orderBy, take, afterId, after, propertyStartsWith, cronExists) = parameters;
+        var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;
 
-        after = string.IsNullOrEmpty(after) ? null : WebUtility.UrlEncode(after);
+        anchorValue = string.IsNullOrEmpty(anchorValue) ? null : WebUtility.UrlEncode(anchorValue);
         propertyStartsWith = string.IsNullOrEmpty(propertyStartsWith) ? null : WebUtility.UrlEncode(propertyStartsWith);
 
         var addOrderBy = orderBy is not TorrentOrder.Id;
-        var addAfter = addOrderBy && after is not null;
+        var addAnchorId = anchorId is not null;
+        var addAnchorValue = orderBy is not TorrentOrder.Id and not TorrentOrder.IdDesc && anchorValue is not null;
+        var addDirection = direction is not Direction.Forward;
         var addPropertyStartsWith = propertyStartsWith is not null;
         var addCronExists = cronExists is not null;
 
-        return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}&{nameof(afterId)}={afterId}" +
-            $"{(addAfter ? $"&{nameof(after)}={after}" : string.Empty)}" +
+        return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}" +
             $"{(addOrderBy ? $"&{nameof(orderBy)}={orderBy}" : string.Empty)}" +
+            $"{(addAnchorId ? $"&{nameof(anchorId)}={anchorId}" : string.Empty)}" +
+            $"{(addAnchorValue ? $"&{nameof(anchorValue)}={anchorValue}" : string.Empty)}" +
+            $"{(addDirection ? $"&{nameof(direction)}={direction}" : string.Empty)}" +
             $"{(addPropertyStartsWith ? $"&{nameof(propertyStartsWith)}={propertyStartsWith}" : string.Empty)}" +
             $"{(addCronExists ? $"&{nameof(cronExists)}={cronExists}" : string.Empty)}";
     }
 
     public static FindTorrentPageParameters? ToNextPageParameters(
         this FindTorrentPageParameters parameters,
-        IReadOnlyList<Database.Models.Torrent> currentPage)
+        IReadOnlyList<Torrent> currentPage)
     {
-        return currentPage.Count < parameters.Take
+        return currentPage.Count is 0
             ? null
             : parameters with
             {
-                AfterId = currentPage[^1].Id,
-                After = parameters.OrderBy switch
+                AnchorId = currentPage[^1].Id,
+                AnchorValue = parameters.OrderBy switch
                 {
-                    TorrentOrder.Id => null,
+                    TorrentOrder.Id or TorrentOrder.IdDesc => null,
                     TorrentOrder.Name or TorrentOrder.NameDesc => currentPage[^1].Name,
                     TorrentOrder.WebPage or TorrentOrder.WebPageDesc => currentPage[^1].WebPageUri,
                     TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => currentPage[^1].DownloadDir,
                     _ => null,
-                }
+                },
+                Direction = Direction.Forward
+            };
+    }
+
+    public static FindTorrentPageParameters? ToPreviousPageParameters(
+        this FindTorrentPageParameters parameters,
+        IReadOnlyList<Torrent> currentPage)
+    {
+        return currentPage.Count is 0
+            ? null
+            : parameters with
+            {
+                AnchorId = currentPage[0].Id,
+                AnchorValue = parameters.OrderBy switch
+                {
+                    TorrentOrder.Id or TorrentOrder.IdDesc => null,
+                    TorrentOrder.Name or TorrentOrder.NameDesc => currentPage[0].Name,
+                    TorrentOrder.WebPage or TorrentOrder.WebPageDesc => currentPage[0].WebPageUri,
+                    TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => currentPage[0].DownloadDir,
+                    _ => null,
+                },
+                Direction = Direction.Backward
             };
     }
 }

@@ -26,19 +26,33 @@ internal static class FindTorrentPageEndpoint
         //[AsParameters] FindTorrentPageParameters parameters,
         TorrentOrder orderBy = TorrentOrder.Id,
         int take = 20,
-        long afterId = 0,
-        string? after = null,
+        long? anchorId = null,
+        string? anchorValue = null,
+        FindTorrentPageDirection direction = FindTorrentPageDirection.Forward,
         string? propertyStartsWith = null,
         bool? cronExists = null,
         CancellationToken cancellationToken = default)
     {
-        var parameters = new FindTorrentPageParameters(orderBy, take, afterId, after, propertyStartsWith, cronExists);
+        var parameters = new FindTorrentPageParameters(
+            orderBy,
+            anchorId,
+            anchorValue,
+            take,
+            direction,
+            propertyStartsWith,
+            cronExists);
+
         if (!MiniValidator.TryValidate(parameters, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        var torrents = await service.FindPageAsync(parameters, cancellationToken).ConfigureAwait(false);
+        var pageDescriptor = parameters.ToTorrentPageDescriptor();
+        var filter = parameters.ToTorrentFilter();
+
+        var torrents = await service.FindPageAsync(pageDescriptor, filter, cancellationToken).ConfigureAwait(false);
 
         var nextPage = parameters.ToNextPageParameters(torrents)?.ToPathAndQueryString();
-        return TypedResults.Ok(new FindTorrentPageResponse(torrents, nextPage));
+        var previousPage = parameters.ToPreviousPageParameters(torrents)?.ToPathAndQueryString();
+
+        return TypedResults.Ok(new FindTorrentPageResponse(torrents, nextPage, previousPage));
     }
 }

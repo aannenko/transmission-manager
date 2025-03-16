@@ -9,7 +9,7 @@ internal sealed class PaddedBytesReaderTests
     private static readonly byte[] _testBytes = Encoding.UTF8.GetBytes("abcdefghijklmnopqrst");
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenSpecificPadding_ReadsNextBytes()
+    public async Task ReadNextAsync_WhenSpecificPaddingIsUsed_ReadsNextBytes()
     {
         using var stream = new MemoryStream(_testBytes);
         var reader = new PaddedBytesReader(stream, new byte[10]);
@@ -51,7 +51,7 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenSpecificThenDefaultPadding_DoesNotIgnoreDefaultPadding()
+    public async Task ReadNextAsync_WhenSpecificThenDefaultPaddingIsUsed_DoesNotIgnoreDefaultPadding()
     {
         using var stream = new MemoryStream(_testBytes);
         var reader = new PaddedBytesReader(stream, new byte[10]);
@@ -72,7 +72,7 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenSpecificThenDefaultPadding_DoesNotThrowWhenStreamEnds()
+    public async Task ReadNextAsync_WhenSpecificThenDefaultPaddingIsUsed_DoesNotThrowWhenStreamEnds()
     {
         using var stream = new MemoryStream("abcde"u8.ToArray());
         var reader = new PaddedBytesReader(stream, new byte[5]);
@@ -93,7 +93,7 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenPaddingEqualToBytesSpanSize_DoesNotThrow()
+    public async Task ReadNextAsync_WhenPaddingIsTheSizeOfBytesSpan_DoesNotThrow()
     {
         using var stream = new MemoryStream("abcde"u8.ToArray());
         var reader = new PaddedBytesReader(stream, new byte[10]);
@@ -121,27 +121,27 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public void Constructor_WhenGivenNullStream_ThrowsArgumentNullException()
+    public void Constructor_WhenStreamIsNull_ThrowsArgumentNullException()
     {
         Assert.That(() => new PaddedBytesReader(null!, new byte[5]), Throws.ArgumentNullException);
     }
 
     [Test]
-    public void Constructor_WhenGivenNullBuffer_ThrowsArgumentNullException()
+    public void Constructor_WhenBufferIsNull_ThrowsArgumentNullException()
     {
         using var stream = new MemoryStream(_testBytes);
         Assert.That(() => new PaddedBytesReader(stream, null!), Throws.ArgumentNullException);
     }
 
     [Test]
-    public void Constructor_WhenGivenZeroLengthBuffer_ThrowsArgumentException()
+    public void Constructor_WhenBufferIsZeroLength_ThrowsArgumentException()
     {
         using var stream = new MemoryStream(_testBytes);
         Assert.That(() => new PaddedBytesReader(stream, []), Throws.ArgumentException);
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenPaddingEqualToBufferSize_ThrowsArgumentOutOfRangeException()
+    public async Task ReadNextAsync_WhenPaddingIsEqualToBufferSize_ThrowsArgumentOutOfRangeException()
     {
         using var stream = new MemoryStream(_testBytes);
         var reader = new PaddedBytesReader(stream, new byte[5]);
@@ -152,7 +152,7 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenPaddingGreaterThanBufferSize_ThrowsArgumentOutOfRangeException()
+    public async Task ReadNextAsync_WhenPaddingIsGreaterThanBufferSize_ThrowsArgumentOutOfRangeException()
     {
         using var stream = new MemoryStream(_testBytes);
         var reader = new PaddedBytesReader(stream, new byte[5]);
@@ -163,7 +163,7 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenPaddingGreaterThanBytesSpanSize_ThrowsArgumentOutOfRangeException()
+    public async Task ReadNextAsync_WhenPaddingIsGreaterThanBytesSpanSize_ThrowsArgumentOutOfRangeException()
     {
         using var stream = new MemoryStream("abcde"u8.ToArray());
         var reader = new PaddedBytesReader(stream, new byte[10]);
@@ -181,7 +181,7 @@ internal sealed class PaddedBytesReaderTests
     }
 
     [Test]
-    public async Task ReadNextAsync_WhenGivenNegativePadding_ThrowsArgumentOutOfRangeException()
+    public async Task ReadNextAsync_WhenPaddingIsNegative_ThrowsArgumentOutOfRangeException()
     {
         using var stream = new MemoryStream(_testBytes);
         var reader = new PaddedBytesReader(stream, new byte[5]);

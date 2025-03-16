@@ -7,7 +7,7 @@ namespace TransmissionManager.Database.Tests;
 internal sealed class TorrentAddDtoExtensionsTests
 {
     [Test]
-    public void ToTorrent_WhenGivenValidDto_ReturnsTorrentWithPropertiesCorrectlyMapped()
+    public void ToTorrent_WhenDtoIsValid_ReturnsTorrentWithPropertiesCorrectlyMapped()
     {
         var dto = new TorrentAddDto(
             hashString: "ABCDEF0123456789ABCDEF0123456789ABCDEF01",

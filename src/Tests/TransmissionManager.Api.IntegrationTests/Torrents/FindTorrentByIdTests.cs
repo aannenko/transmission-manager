@@ -29,7 +29,7 @@ internal sealed class FindTorrentByIdTests
     }
 
     [Test]
-    public async Task FindTorrentByIdAsync_WhenGivenExistingTorrentId_ReturnsTorrent()
+    public async Task FindTorrentByIdAsync_WhenIdExists_ReturnsTorrent()
     {
         var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/1").ConfigureAwait(false);
 
@@ -43,7 +43,7 @@ internal sealed class FindTorrentByIdTests
     }
 
     [Test]
-    public async Task FindTorrentByIdAsync_WhenGivenNonExistentTorrentId_ReturnsNotFound()
+    public async Task FindTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
         var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/999").ConfigureAwait(false);
 

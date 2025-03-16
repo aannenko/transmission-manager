@@ -218,7 +218,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithCurrentHash_RefreshesTorrentAndReturnsDuplicate()
+    public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringExistsInTransmission_RefreshesTorrentAndReturnsDuplicate()
     {
         var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/1", null).ConfigureAwait(false);
 
@@ -230,7 +230,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithOutdatedHash_RefreshesTorrentAndReturnsAdded()
+    public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringIsOutdatedInTransmission_RefreshesTorrentAndReturnsAdded()
     {
         var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/2", null).ConfigureAwait(false);
 
@@ -242,7 +242,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenGivenExistingTorrentIdWithNonExistentHash_Returns422UnprocessableEntity()
+    public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringDoesNotExistInTransmission_Returns422UnprocessableEntity()
     {
         var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/3", null).ConfigureAwait(false);
 

@@ -120,7 +120,7 @@ internal sealed class AddTorrentTests
     }
 
     [Test]
-    public async Task AddTorrentAsync_WhenGivenNewTorrentUri_AddsTorrentToTransmissionAndDb()
+    public async Task AddTorrentAsync_WhenWebPageUriIsNew_AddsTorrentToTransmissionAndDb()
     {
         var dto = new AddTorrentRequest
         {
@@ -140,7 +140,7 @@ internal sealed class AddTorrentTests
     }
 
     [Test]
-    public async Task AddTorrentAsync_WhenGivenExistingTorrentUri_ReturnsConflictResponse()
+    public async Task AddTorrentAsync_WhenWebPageUriExists_ReturnsConflictResponse()
     {
         var dto = new AddTorrentRequest
         {

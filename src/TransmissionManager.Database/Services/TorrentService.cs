@@ -36,11 +36,7 @@ public sealed class TorrentService(AppDbContext dbContext)
         if (filter.CronExists is not null)
             query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
 
-        return await query.Where(page.OrderBy, page.AfterId, page.After)
-            .OrderBy(page.OrderBy)
-            .Take(page.Take)
-            .ToArrayAsync(cancellationToken)
-            .ConfigureAwait(false);
+        return await query.WhereOrderByTake(page).ToArrayAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<long> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)

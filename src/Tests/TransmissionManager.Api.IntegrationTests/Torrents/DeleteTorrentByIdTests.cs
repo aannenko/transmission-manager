@@ -74,7 +74,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task DeleteTorrentByIdAsync_WhenGivenExistingId_DeletesTorrent()
+    public async Task DeleteTorrentByIdAsync_WhenIdExists_DeletesTorrent()
     {
         const string torrentAddress = $"{TestData.Endpoints.Torrents}/1";
 
@@ -93,7 +93,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task DeleteTorrentByIdAsync_WhenGivenExistingIdAndFlagToRemoveData_DeletesTorrentAndTransmissionData()
+    public async Task DeleteTorrentByIdAsync_WhenIdExistsAndRemoveDataFlagUsed_DeletesTorrentAndTransmissionData()
     {
         const string torrentAddress = $"{TestData.Endpoints.Torrents}/2?deleteType=LocalAndTransmissionAndData";
 
@@ -112,7 +112,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenGivenNonExistentId_ReturnsNotFound()
+    public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
         var response = await _client.DeleteAsync($"{TestData.Endpoints.Torrents}/-1").ConfigureAwait(false);
 
@@ -127,7 +127,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenGivenNonExistentIdAndFlagToRemoveData_ReturnsNotFound()
+    public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExistAndFlagToRemoveDataUsed_ReturnsNotFound()
     {
         const string torrentAddress = $"{TestData.Endpoints.Torrents}/-1?deleteType=LocalAndTransmission";
 

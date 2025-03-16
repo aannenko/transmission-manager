@@ -5,51 +5,81 @@ namespace TransmissionManager.Database.Extensions;
 
 internal static class QueryableTorrentExtensions
 {
-    public static IQueryable<Torrent> Where<T>(
+    public static IQueryable<Torrent> WhereOrderByTake<T>(this IQueryable<Torrent> query, TorrentPageDescriptor<T> page)
+    {
+        var isWhereRequired = page.AnchorId is not null || page.AnchorValue is not null;
+
+        if (page.IsForwardPagination)
+        {
+            if (isWhereRequired)
+                query = query.Where(page.OrderBy, page.AnchorId, page.AnchorValue);
+
+            return query.OrderBy(page.OrderBy).Take(page.Take);
+        }
+        else
+        {
+            var orderToUse = page.OrderBy.Invert();
+
+            if (isWhereRequired)
+                query = query.Where(orderToUse, page.AnchorId, page.AnchorValue);
+
+            return query.OrderBy(orderToUse).Take(page.Take).OrderBy(page.OrderBy);
+        }
+    }
+
+    private static IQueryable<Torrent> Where<T>(
         this IQueryable<Torrent> query,
         TorrentOrder orderBy,
-        long afterId,
-        T after)
+        long? anchorId,
+        T? anchorValue)
     {
-        return (orderBy, after) switch
+        if (anchorValue is null)
+            orderBy = orderBy.IsDescending() ? TorrentOrder.IdDesc : TorrentOrder.Id;
+
+        anchorId ??= orderBy.IsDescending() ? long.MaxValue : 0;
+
+        return (orderBy, anchorValue) switch
         {
-            (TorrentOrder.Id, _) or (_, null or "") =>
-                query.Where(torrent => torrent.Id > afterId),
+            (TorrentOrder.Id, _) =>
+                query.Where(torrent => torrent.Id > anchorId),
+            (TorrentOrder.IdDesc, _) =>
+                query.Where(torrent => torrent.Id < anchorId),
             (TorrentOrder.Name, string name) =>
                 query.Where(torrent =>
                     torrent.Name.CompareTo(name) > 0 ||
-                    (torrent.Name.CompareTo(name) == 0 && torrent.Id > afterId)),
+                    (torrent.Name.CompareTo(name) == 0 && torrent.Id > anchorId)),
             (TorrentOrder.NameDesc, string name) =>
                 query.Where(torrent =>
                     torrent.Name.CompareTo(name) < 0 ||
-                    (torrent.Name.CompareTo(name) == 0 && torrent.Id > afterId)),
-            (TorrentOrder.WebPage, string page) =>
+                    (torrent.Name.CompareTo(name) == 0 && torrent.Id < anchorId)),
+            (TorrentOrder.WebPage, string webPage) =>
                 query.Where(torrent =>
-                    torrent.WebPageUri.CompareTo(page) > 0 ||
-                    (torrent.WebPageUri.CompareTo(page) == 0 && torrent.Id > afterId)),
-            (TorrentOrder.WebPageDesc, string page) =>
+                    torrent.WebPageUri.CompareTo(webPage) > 0 ||
+                    (torrent.WebPageUri.CompareTo(webPage) == 0 && torrent.Id > anchorId)),
+            (TorrentOrder.WebPageDesc, string webPage) =>
                 query.Where(torrent =>
-                    torrent.WebPageUri.CompareTo(page) < 0 ||
-                    (torrent.WebPageUri.CompareTo(page) == 0 && torrent.Id > afterId)),
-            (TorrentOrder.DownloadDir, string dir) =>
+                    torrent.WebPageUri.CompareTo(webPage) < 0 ||
+                    (torrent.WebPageUri.CompareTo(webPage) == 0 && torrent.Id < anchorId)),
+            (TorrentOrder.DownloadDir, string downloadDir) =>
                 query.Where(torrent =>
-                    torrent.DownloadDir.CompareTo(dir) > 0 ||
-                    (torrent.DownloadDir.CompareTo(dir) == 0 && torrent.Id > afterId)),
-            (TorrentOrder.DownloadDirDesc, string dir) =>
+                    torrent.DownloadDir.CompareTo(downloadDir) > 0 ||
+                    (torrent.DownloadDir.CompareTo(downloadDir) == 0 && torrent.Id > anchorId)),
+            (TorrentOrder.DownloadDirDesc, string downloadDir) =>
                 query.Where(torrent =>
-                    torrent.DownloadDir.CompareTo(dir) < 0 ||
-                    (torrent.DownloadDir.CompareTo(dir) == 0 && torrent.Id > afterId)),
-            _ => throw new ArgumentException(
-                $"Incompatible arguments {nameof(orderBy)} ({orderBy}) and {nameof(after)} ({after}) were provided.",
-                nameof(after))
+                    torrent.DownloadDir.CompareTo(downloadDir) < 0 ||
+                    (torrent.DownloadDir.CompareTo(downloadDir) == 0 && torrent.Id < anchorId)),
+            _ => throw new ArgumentException( // Should never happen due to validation in the TorrentPageDescriptor
+                string.Format(null, TorrentPageDescriptor<T>.OrderByAndAnchorValueErrorFormat, orderBy, anchorId),
+                nameof(anchorValue))
         };
     }
 
-    public static IOrderedQueryable<Torrent> OrderBy(this IQueryable<Torrent> query, TorrentOrder order)
+    private static IOrderedQueryable<Torrent> OrderBy(this IQueryable<Torrent> query, TorrentOrder order)
     {
         var orderedQuery = order switch
         {
             TorrentOrder.Id => query.OrderBy(static torrent => torrent.Id),
+            TorrentOrder.IdDesc => query.OrderByDescending(static torrent => torrent.Id),
             TorrentOrder.Name => query.OrderBy(static torrent => torrent.Name),
             TorrentOrder.NameDesc => query.OrderByDescending(static torrent => torrent.Name),
             TorrentOrder.WebPage => query.OrderBy(static torrent => torrent.WebPageUri),
@@ -59,6 +89,11 @@ internal static class QueryableTorrentExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(order)),
         };
 
-        return order is TorrentOrder.Id ? orderedQuery : orderedQuery.ThenBy(static torrent => torrent.Id);
+        if (order is TorrentOrder.Id or TorrentOrder.IdDesc)
+            return orderedQuery;
+
+        return order.IsDescending()
+            ? orderedQuery.ThenByDescending(static torrent => torrent.Id)
+            : orderedQuery.ThenBy(static torrent => torrent.Id);
     }
 }

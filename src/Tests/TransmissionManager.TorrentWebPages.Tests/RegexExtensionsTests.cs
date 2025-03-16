@@ -8,7 +8,7 @@ internal sealed partial class RegexExtensionsTests
     private const string _abcdefg = "abcdefg";
 
     [Test]
-    public void TryGetFirstMatch_WhenGivenMatchingSpan_ReturnsTrueAndNonEmptyMatchRange()
+    public void TryGetFirstMatch_WhenMatchFound_ReturnsTrueAndNonEmptyMatchRange()
     {
         var result = CdeRegex().TryGetFirstMatch(_abcdefg, out var range);
         using (Assert.EnterMultipleScope())
@@ -19,7 +19,7 @@ internal sealed partial class RegexExtensionsTests
     }
 
     [Test]
-    public void TryGetFirstMatch_WhenGivenNonMatchingSpan_ReturnsFalseAndEmptyMatchRange()
+    public void TryGetFirstMatch_WhenMatchNotFound_ReturnsFalseAndEmptyMatchRange()
     {
         var result = CdfRegex().TryGetFirstMatch(_abcdefg, out var range);
         using (Assert.EnterMultipleScope())
