@@ -7,7 +7,10 @@ namespace TransmissionManager.Database.Tests;
 
 internal abstract class BaseTorrentServiceTests
 {
-    private protected static readonly Torrent[] _initialTorrents =
+    private SqliteConnection _connection = default!;
+    private DbContextOptions<AppDbContext> _contextOptions = default!;
+
+    private protected static Torrent[] InitialTorrents { get; } =
     [
         new Torrent
         {
@@ -39,9 +42,6 @@ internal abstract class BaseTorrentServiceTests
         }
     ];
 
-    private SqliteConnection _connection = default!;
-    private DbContextOptions<AppDbContext> _contextOptions = default!;
-
     [OneTimeSetUp]
     public void Setup()
     {
@@ -53,7 +53,7 @@ internal abstract class BaseTorrentServiceTests
         using var context = new AppDbContext(_contextOptions);
 
         context.Database.EnsureCreated();
-        context.Torrents.AddRange(_initialTorrents);
+        context.Torrents.AddRange(InitialTorrents);
         context.SaveChanges();
     }
 
