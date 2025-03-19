@@ -13,7 +13,7 @@ internal static class TorrentOrderExtensions
             TorrentOrder.DownloadDirDesc;
     }
 
-    public static TorrentOrder Invert(this TorrentOrder orderBy)
+    public static TorrentOrder Reverse(this TorrentOrder orderBy)
     {
         return orderBy switch
         {

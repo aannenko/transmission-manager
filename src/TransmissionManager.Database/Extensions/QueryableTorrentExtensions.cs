@@ -18,12 +18,12 @@ internal static class QueryableTorrentExtensions
         }
         else
         {
-            var orderToUse = page.OrderBy.Invert();
+            var reverseOrder = page.OrderBy.Reverse();
 
             if (isWhereRequired)
-                query = query.Where(orderToUse, page.AnchorId, page.AnchorValue);
+                query = query.Where(reverseOrder, page.AnchorId, page.AnchorValue);
 
-            return query.OrderBy(orderToUse).Take(page.Take).OrderBy(page.OrderBy);
+            return query.OrderBy(reverseOrder).Take(page.Take).OrderBy(page.OrderBy);
         }
     }
 
