@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../.gitignore" />
+    <File Path="../README.md" />
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/TransmissionManager.Api.IntegrationTests/TransmissionManager.Api.IntegrationTests.csproj" />
+    <Project Path="Tests/TransmissionManager.BaseTests/TransmissionManager.BaseTests.csproj" />
+    <Project Path="Tests/TransmissionManager.Database.Tests/TransmissionManager.Database.Tests.csproj" />
+    <Project Path="Tests/TransmissionManager.TorrentWebPages.Tests/TransmissionManager.TorrentWebPages.Tests.csproj" />
+    <Project Path="Tests/TransmissionManager.Transmission.Tests/TransmissionManager.Transmission.Tests.csproj" />
+  </Folder>
+  <Project Path="TransmissionManager.Api/TransmissionManager.Api.csproj" />
+  <Project Path="TransmissionManager.Database/TransmissionManager.Database.csproj" />
+  <Project Path="TransmissionManager.TorrentWebPages/TransmissionManager.TorrentWebPages.csproj" />
+  <Project Path="TransmissionManager.Transmission/TransmissionManager.Transmission.csproj" />
+</Solution>

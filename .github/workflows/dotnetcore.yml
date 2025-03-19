@@ -19,13 +19,13 @@ jobs:
         dotnet-version: '9.x'
 
     - name: Restore dependencies
-      run: dotnet restore src/TransmissionManager.sln
+      run: dotnet restore src/TransmissionManager.slnx
 
     - name: Build solution
-      run: dotnet build src/TransmissionManager.sln --no-restore
+      run: dotnet build src/TransmissionManager.slnx --no-restore
 
     - name: Run all tests
-      run: dotnet test src/TransmissionManager.sln --no-build --verbosity normal
+      run: dotnet test src/TransmissionManager.slnx --no-build --verbosity normal
 
     - name: Publish API
       run: dotnet publish src/TransmissionManager.Api -c Release -o published
