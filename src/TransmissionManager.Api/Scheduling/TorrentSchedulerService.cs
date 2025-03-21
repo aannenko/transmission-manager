@@ -1,6 +1,7 @@
 ﻿using Coravel.Scheduling.Schedule;
 using Coravel.Scheduling.Schedule.Interfaces;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using TransmissionManager.Api.Common.Scheduling;
 
 namespace TransmissionManager.Api.Scheduling;
@@ -21,9 +22,9 @@ internal sealed class TorrentSchedulerService
         _scheduler.ScheduleWithParams<TorrentRefreshTask>(torrentId)
             .Cron(cron)
             .Zoned(TimeZoneInfo.Local)
-            .PreventOverlapping(torrentId.ToString());
+            .PreventOverlapping(torrentId.ToString(CultureInfo.InvariantCulture));
     }
 
     public bool TryUnscheduleTorrentRefresh(long torrentId) =>
-        _scheduler.TryUnschedule(torrentId.ToString());
+        _scheduler.TryUnschedule(torrentId.ToString(CultureInfo.InvariantCulture));
 }
