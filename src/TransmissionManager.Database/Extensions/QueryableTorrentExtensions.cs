@@ -5,7 +5,9 @@ namespace TransmissionManager.Database.Extensions;
 
 internal static class QueryableTorrentExtensions
 {
-    public static IQueryable<Torrent> WhereOrderByTake<T>(this IQueryable<Torrent> query, TorrentPageDescriptor<T> page)
+    public static IQueryable<Torrent> WhereOrderByTake<T>(
+        this IQueryable<Torrent> query,
+        in TorrentPageDescriptor<T> page)
     {
         var isWhereRequired = page.AnchorId is not null || page.AnchorValue is not null;
 
