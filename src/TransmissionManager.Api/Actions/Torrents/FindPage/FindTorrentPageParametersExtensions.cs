@@ -8,7 +8,7 @@ namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 
 internal static class FindTorrentPageParametersExtensions
 {
-    public static TorrentPageDescriptor<string> ToTorrentPageDescriptor(this FindTorrentPageParameters parameters)
+    public static TorrentPageDescriptor<string> ToTorrentPageDescriptor(in this FindTorrentPageParameters parameters)
     {
         return new TorrentPageDescriptor<string>(
             OrderBy: parameters.OrderBy,
@@ -18,14 +18,14 @@ internal static class FindTorrentPageParametersExtensions
             Take: parameters.Take);
     }
 
-    public static TorrentFilter ToTorrentFilter(this FindTorrentPageParameters parameters)
+    public static TorrentFilter ToTorrentFilter(in this FindTorrentPageParameters parameters)
     {
         return new(
             PropertyStartsWith: parameters.PropertyStartsWith,
             CronExists: parameters.CronExists);
     }
 
-    public static string ToPathAndQueryString(this FindTorrentPageParameters parameters)
+    public static string ToPathAndQueryString(in this FindTorrentPageParameters parameters)
     {
         var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;
 
@@ -49,7 +49,7 @@ internal static class FindTorrentPageParametersExtensions
     }
 
     public static FindTorrentPageParameters? ToNextPageParameters(
-        this FindTorrentPageParameters parameters,
+        in this FindTorrentPageParameters parameters,
         IReadOnlyList<Torrent> currentPage)
     {
         return currentPage.Count is 0
@@ -70,7 +70,7 @@ internal static class FindTorrentPageParametersExtensions
     }
 
     public static FindTorrentPageParameters? ToPreviousPageParameters(
-        this FindTorrentPageParameters parameters,
+        in this FindTorrentPageParameters parameters,
         IReadOnlyList<Torrent> currentPage)
     {
         return currentPage.Count is 0
