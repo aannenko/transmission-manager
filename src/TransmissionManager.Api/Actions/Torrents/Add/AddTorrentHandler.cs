@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text;
-using TransmissionManager.Api.Scheduling;
 using TransmissionManager.Api.Services.Background;
+using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Services;

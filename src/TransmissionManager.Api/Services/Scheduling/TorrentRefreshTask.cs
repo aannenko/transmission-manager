@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
 using TransmissionManager.Api.Services.Transmission;
 
-namespace TransmissionManager.Api.Common.Scheduling;
+namespace TransmissionManager.Api.Services.Scheduling;
 
 #pragma warning disable CA1812 // Uninstantiated class - this class gets instantiated by Coravel at run time
 internal sealed partial class TorrentRefreshTask(

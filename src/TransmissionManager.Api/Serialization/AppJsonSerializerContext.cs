@@ -6,7 +6,7 @@ using TransmissionManager.Api.Actions.Torrents.RefreshById;
 using TransmissionManager.Api.Actions.Torrents.UpdateById;
 using TransmissionManager.Api.Actions.TransmissionInfo.Get;
 
-namespace TransmissionManager.Api.Common.Serialization;
+namespace TransmissionManager.Api.Serialization;
 
 [JsonSourceGenerationOptions(
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,

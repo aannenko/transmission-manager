@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Scheduling;
+namespace TransmissionManager.Api.Services.Scheduling;
 
 internal sealed class StartupTorrentSchedulerService(AppDbContext dbContext, TorrentSchedulerService scheduler)
 {
