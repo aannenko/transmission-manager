@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text;
-using TransmissionManager.Api.Common.Services;
-using TransmissionManager.Api.Common.TorrentWebPage;
-using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Api.Scheduling;
+using TransmissionManager.Api.Services.Background;
+using TransmissionManager.Api.Services.TorrentWebPage;
+using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Services;
 using Result = TransmissionManager.Api.Actions.Torrents.Add.AddTorrentResult;
 

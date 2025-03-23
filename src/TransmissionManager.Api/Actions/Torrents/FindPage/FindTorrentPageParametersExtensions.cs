@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using System.Net;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;

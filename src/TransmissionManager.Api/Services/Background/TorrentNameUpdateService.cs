@@ -4,7 +4,7 @@ using TransmissionManager.Database.Services;
 using TransmissionManager.Transmission.Dto;
 using TransmissionManager.Transmission.Services;
 
-namespace TransmissionManager.Api.Common.Services;
+namespace TransmissionManager.Api.Services.Background;
 
 internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTaskService)
 {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Constants;
 
 namespace TransmissionManager.Api.Actions.AppInfo.Get;
 

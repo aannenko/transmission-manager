@@ -2,7 +2,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.Torrents.FindPage;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;

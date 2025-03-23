@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Constants;
 using TransmissionManager.Transmission.Options;
 
 namespace TransmissionManager.Api.Actions.TransmissionInfo.Get;

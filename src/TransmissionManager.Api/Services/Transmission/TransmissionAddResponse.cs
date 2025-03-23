@@ -1,6 +1,6 @@
 ﻿using TransmissionManager.Transmission.Dto;
 
-namespace TransmissionManager.Api.Common.Transmission;
+namespace TransmissionManager.Api.Services.Transmission;
 
 internal readonly record struct TransmissionAddResponse(
     TransmissionAddResult? Result,

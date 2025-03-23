@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Constants;
 using TransmissionManager.TorrentWebPages.Constants;
 
 namespace TransmissionManager.Api.Actions.Torrents.UpdateById;

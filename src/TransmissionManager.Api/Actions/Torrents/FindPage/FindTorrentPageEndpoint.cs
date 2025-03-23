@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Constants;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 

@@ -1,8 +1,8 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
-using TransmissionManager.Api.Common.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
+using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
 

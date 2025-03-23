@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using TransmissionManager.Transmission.Services;
 
-namespace TransmissionManager.Api.Common.Transmission;
+namespace TransmissionManager.Api.Services.Transmission;
 
 internal sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {
