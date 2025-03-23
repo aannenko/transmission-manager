@@ -1,5 +1,7 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using Direction = TransmissionManager.Api.Actions.Torrents.FindPage.FindTorrentPageDirection;
@@ -29,23 +31,48 @@ internal static class FindTorrentPageParametersExtensions
     {
         var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;
 
-        anchorValue = string.IsNullOrEmpty(anchorValue) ? null : WebUtility.UrlEncode(anchorValue);
-        propertyStartsWith = string.IsNullOrEmpty(propertyStartsWith) ? null : WebUtility.UrlEncode(propertyStartsWith);
+        using var builder = new ValueStringBuilder(256);
 
-        var addOrderBy = orderBy is not TorrentOrder.Id;
-        var addAnchorId = anchorId is not null;
-        var addAnchorValue = orderBy is not TorrentOrder.Id and not TorrentOrder.IdDesc && anchorValue is not null;
-        var addDirection = direction is not Direction.Forward;
-        var addPropertyStartsWith = propertyStartsWith is not null;
-        var addCronExists = cronExists is not null;
+        builder.Append($"{EndpointAddresses.TorrentsApi}?{nameof(take)}=");
+        builder.Append(take.ToString(CultureInfo.InvariantCulture));
 
-        return $"{EndpointAddresses.TorrentsApi}?{nameof(take)}={take}" +
-            $"{(addOrderBy ? $"&{nameof(orderBy)}={orderBy}" : string.Empty)}" +
-            $"{(addAnchorId ? $"&{nameof(anchorId)}={anchorId}" : string.Empty)}" +
-            $"{(addAnchorValue ? $"&{nameof(anchorValue)}={anchorValue}" : string.Empty)}" +
-            $"{(addDirection ? $"&{nameof(direction)}={direction}" : string.Empty)}" +
-            $"{(addPropertyStartsWith ? $"&{nameof(propertyStartsWith)}={propertyStartsWith}" : string.Empty)}" +
-            $"{(addCronExists ? $"&{nameof(cronExists)}={cronExists}" : string.Empty)}";
+        if (orderBy is not TorrentOrder.Id)
+        {
+            builder.Append($"&{nameof(orderBy)}=");
+            builder.Append(orderBy.ToString());
+        }
+
+        if (anchorId is not null)
+        {
+            builder.Append($"&{nameof(anchorId)}=");
+            builder.Append(anchorId.Value.ToString(CultureInfo.InvariantCulture));
+        }
+
+        if (!string.IsNullOrEmpty(anchorValue))
+        {
+            builder.Append($"&{nameof(anchorValue)}=");
+            builder.Append(WebUtility.UrlEncode(anchorValue));
+        }
+
+        if (direction is not Direction.Forward)
+        {
+            builder.Append($"&{nameof(direction)}=");
+            builder.Append(direction.ToString());
+        }
+
+        if (!string.IsNullOrEmpty(propertyStartsWith))
+        {
+            builder.Append($"&{nameof(propertyStartsWith)}=");
+            builder.Append(WebUtility.UrlEncode(propertyStartsWith));
+        }
+
+        if (cronExists is not null)
+        {
+            builder.Append($"&{nameof(cronExists)}=");
+            builder.Append(cronExists.Value.ToString());
+        }
+
+        return builder.ToString();
     }
 
     public static FindTorrentPageParameters? ToNextPageParameters(
