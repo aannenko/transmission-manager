@@ -31,7 +31,22 @@ internal static class FindTorrentPageParametersExtensions
     {
         var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;
 
-        using var builder = new ValueStringBuilder(256);
+        // length of path + all param keys + param values except anchorValue and propertyStartsWith + reserve
+        var rentedArraySize = 150;
+
+        if (!string.IsNullOrEmpty(anchorValue))
+        {
+            anchorValue = WebUtility.UrlEncode(anchorValue);
+            rentedArraySize += anchorValue.Length;
+        }
+
+        if (!string.IsNullOrEmpty(propertyStartsWith))
+        {
+            propertyStartsWith = WebUtility.UrlEncode(propertyStartsWith);
+            rentedArraySize += propertyStartsWith.Length;
+        }
+
+        using var builder = new ValueStringBuilder(Math.Max(rentedArraySize, 256));
 
         builder.Append($"{EndpointAddresses.TorrentsApi}?{nameof(take)}=");
         builder.Append(take.ToString(CultureInfo.InvariantCulture));
@@ -51,7 +66,7 @@ internal static class FindTorrentPageParametersExtensions
         if (!string.IsNullOrEmpty(anchorValue))
         {
             builder.Append($"&{nameof(anchorValue)}=");
-            builder.Append(WebUtility.UrlEncode(anchorValue));
+            builder.Append(anchorValue);
         }
 
         if (direction is not Direction.Forward)
@@ -63,7 +78,7 @@ internal static class FindTorrentPageParametersExtensions
         if (!string.IsNullOrEmpty(propertyStartsWith))
         {
             builder.Append($"&{nameof(propertyStartsWith)}=");
-            builder.Append(WebUtility.UrlEncode(propertyStartsWith));
+            builder.Append(propertyStartsWith);
         }
 
         if (cronExists is not null)
