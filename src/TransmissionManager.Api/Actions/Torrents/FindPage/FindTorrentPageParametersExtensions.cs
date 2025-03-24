@@ -77,9 +77,9 @@ internal static class FindTorrentPageParametersExtensions
 
     public static FindTorrentPageParameters? ToNextPageParameters(
         in this FindTorrentPageParameters parameters,
-        IReadOnlyList<Torrent> currentPage)
+        Torrent[] currentPage)
     {
-        return currentPage.Count is 0
+        return currentPage.Length is 0
             ? null
             : parameters with
             {
@@ -98,9 +98,9 @@ internal static class FindTorrentPageParametersExtensions
 
     public static FindTorrentPageParameters? ToPreviousPageParameters(
         in this FindTorrentPageParameters parameters,
-        IReadOnlyList<Torrent> currentPage)
+        Torrent[] currentPage)
     {
-        return currentPage.Count is 0
+        return currentPage.Length is 0
             ? null
             : parameters with
             {

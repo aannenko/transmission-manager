@@ -281,7 +281,7 @@ internal sealed class FindTorrentPageTests
         Assert.That(page, Is.Not.Default);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(page.Torrents, Has.Count.EqualTo(expectedCount));
+            Assert.That(page.Torrents, Has.Length.EqualTo(expectedCount));
             Assert.That(page.NextPageAddress, Is.EqualTo(expectedNextPage));
             Assert.That(page.PreviousPageAddress, Is.EqualTo(expectedPreviousPage));
         }
