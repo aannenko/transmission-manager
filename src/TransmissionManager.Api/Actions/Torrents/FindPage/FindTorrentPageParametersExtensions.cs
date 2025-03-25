@@ -10,6 +10,10 @@ namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 
 internal static class FindTorrentPageParametersExtensions
 {
+    private static readonly int _maxLongLength = long.MaxValue.ToString(CultureInfo.InvariantCulture).Length;
+    private static readonly int _maxTorrentOrderItemLength = Enum.GetNames<TorrentOrder>().Max(i => i.Length);
+    private static readonly int _maxDirectionItemLength = Enum.GetNames<Direction>().Max(i => i.Length);
+
     public static TorrentPageDescriptor<string> ToTorrentPageDescriptor(in this FindTorrentPageParameters parameters)
     {
         return new TorrentPageDescriptor<string>(
@@ -31,59 +35,75 @@ internal static class FindTorrentPageParametersExtensions
     {
         var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;
 
-        // length of path + all param keys + param values except anchorValue and propertyStartsWith + reserve
-        var rentedArraySize = 150;
+        const string takeParamKey = $"?{nameof(take)}=";
+        const string orderByParamKey = $"&{nameof(orderBy)}=";
+        const string anchorIdParamKey = $"&{nameof(anchorId)}=";
+        const string anchorValueParamKey = $"&{nameof(anchorValue)}=";
+        const string directionParamKey = $"&{nameof(direction)}=";
+        const string propertyStartsWithParamKey = $"&{nameof(propertyStartsWith)}=";
+        const string cronExistsParamKey = $"&{nameof(cronExists)}=";
+
+        var rentedArraySize = EndpointAddresses.TorrentsApi.Length + takeParamKey.Length + "1000".Length;
+
+        if (orderBy is not TorrentOrder.Id)
+            rentedArraySize += orderByParamKey.Length + _maxTorrentOrderItemLength;
+
+        if (anchorId is not null)
+            rentedArraySize += anchorIdParamKey.Length + _maxLongLength;
 
         if (!string.IsNullOrEmpty(anchorValue))
-        {
-            anchorValue = WebUtility.UrlEncode(anchorValue);
-            rentedArraySize += anchorValue.Length;
-        }
+            rentedArraySize += anchorValueParamKey.Length +
+                (anchorValue = WebUtility.UrlEncode(anchorValue)).Length;
+
+        if (direction is not Direction.Forward)
+            rentedArraySize += directionParamKey.Length + _maxDirectionItemLength;
 
         if (!string.IsNullOrEmpty(propertyStartsWith))
-        {
-            propertyStartsWith = WebUtility.UrlEncode(propertyStartsWith);
-            rentedArraySize += propertyStartsWith.Length;
-        }
+            rentedArraySize += propertyStartsWithParamKey.Length +
+                (propertyStartsWith = WebUtility.UrlEncode(propertyStartsWith)).Length;
 
-        using var builder = new ValueStringBuilder(Math.Max(rentedArraySize, 256));
+        if (cronExists is not null)
+            rentedArraySize += cronExistsParamKey.Length + bool.FalseString.Length;
 
-        builder.Append($"{EndpointAddresses.TorrentsApi}?{nameof(take)}=");
+        using var builder = new ValueStringBuilder(rentedArraySize);
+
+        builder.Append(EndpointAddresses.TorrentsApi);
+        builder.Append(takeParamKey);
         builder.Append(take.ToString(CultureInfo.InvariantCulture));
 
         if (orderBy is not TorrentOrder.Id)
         {
-            builder.Append($"&{nameof(orderBy)}=");
+            builder.Append(orderByParamKey);
             builder.Append(orderBy.ToString());
         }
 
         if (anchorId is not null)
         {
-            builder.Append($"&{nameof(anchorId)}=");
+            builder.Append(anchorIdParamKey);
             builder.Append(anchorId.Value.ToString(CultureInfo.InvariantCulture));
         }
 
         if (!string.IsNullOrEmpty(anchorValue))
         {
-            builder.Append($"&{nameof(anchorValue)}=");
+            builder.Append(anchorValueParamKey);
             builder.Append(anchorValue);
         }
 
         if (direction is not Direction.Forward)
         {
-            builder.Append($"&{nameof(direction)}=");
+            builder.Append(directionParamKey);
             builder.Append(direction.ToString());
         }
 
         if (!string.IsNullOrEmpty(propertyStartsWith))
         {
-            builder.Append($"&{nameof(propertyStartsWith)}=");
+            builder.Append(propertyStartsWithParamKey);
             builder.Append(propertyStartsWith);
         }
 
         if (cronExists is not null)
         {
-            builder.Append($"&{nameof(cronExists)}=");
+            builder.Append(cronExistsParamKey);
             builder.Append(cronExists.Value.ToString());
         }
 
