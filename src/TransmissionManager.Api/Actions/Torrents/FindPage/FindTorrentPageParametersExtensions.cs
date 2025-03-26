@@ -10,7 +10,7 @@ namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 
 internal static class FindTorrentPageParametersExtensions
 {
-    private static readonly int _maxLongLength = long.MaxValue.ToString(CultureInfo.InvariantCulture).Length;
+    private static readonly int _maxTakeLength = (int)Math.Floor(Math.Log10(FindTorrentPageParameters.MaxTake)) + 1;
     private static readonly int _maxTorrentOrderItemLength = Enum.GetNames<TorrentOrder>().Max(i => i.Length);
     private static readonly int _maxDirectionItemLength = Enum.GetNames<Direction>().Max(i => i.Length);
 
@@ -43,13 +43,13 @@ internal static class FindTorrentPageParametersExtensions
         const string propertyStartsWithParamKey = $"&{nameof(propertyStartsWith)}=";
         const string cronExistsParamKey = $"&{nameof(cronExists)}=";
 
-        var rentedArraySize = EndpointAddresses.TorrentsApi.Length + takeParamKey.Length + "1000".Length;
+        var rentedArraySize = EndpointAddresses.TorrentsApi.Length + takeParamKey.Length + _maxTakeLength;
 
         if (orderBy is not TorrentOrder.Id)
             rentedArraySize += orderByParamKey.Length + _maxTorrentOrderItemLength;
 
         if (anchorId is not null)
-            rentedArraySize += anchorIdParamKey.Length + _maxLongLength;
+            rentedArraySize += anchorIdParamKey.Length + 19; // long.MaxValue.ToString().Length is 19
 
         if (!string.IsNullOrEmpty(anchorValue))
             rentedArraySize += anchorValueParamKey.Length +

@@ -9,13 +9,15 @@ internal readonly record struct FindTorrentPageParameters(
     [property: EnumDataType(typeof(TorrentOrder))] TorrentOrder OrderBy = TorrentOrder.Id,
     long? AnchorId = null,
     string? AnchorValue = null,
-    [property: Range(1, 1000)] int Take = 20,
+    [property: Range(1, FindTorrentPageParameters.MaxTake)] int Take = 20,
     [property: EnumDataType(typeof(Direction))] Direction Direction = Direction.Forward,
 #pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code - tested after trimming
     [property: MinLength(1)] string? PropertyStartsWith = null,
 #pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
     bool? CronExists = null) : IValidatableObject
 {
+    internal const int MaxTake = 1000;
+
     private static readonly CompositeFormat _orderByAndAnchorValueErrorFormat = CompositeFormat.Parse(
         $"Incompatible arguments {nameof(OrderBy)} '{{0}}' and {nameof(AnchorValue)} '{{1}}' were provided.");
 
