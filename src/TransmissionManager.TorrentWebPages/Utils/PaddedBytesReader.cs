@@ -12,15 +12,16 @@ internal sealed class PaddedBytesReader
     {
         _stream = stream ?? throw new ArgumentNullException(nameof(stream));
         _buffer = buffer ?? throw new ArgumentNullException(nameof(buffer));
-        _bytesLength = buffer.Length > 0
-            ? buffer.Length
-            : throw new ArgumentException($"The {nameof(buffer)} size must be greater than 0.", nameof(buffer));
+        if (buffer.Length is 0)
+            throw new ArgumentException($"The {nameof(buffer)} size must be greater than 0.", nameof(buffer));
 
         _maxBufferFreeSpace = maxBufferFreeSpace >= 0 && maxBufferFreeSpace < _buffer.Length
             ? maxBufferFreeSpace
             : throw new ArgumentOutOfRangeException(
                 nameof(maxBufferFreeSpace),
                 $"The value must be greater than or equal to 0 and less than the {nameof(buffer)} size.");
+
+        _bytesLength = buffer.Length;
     }
 
     public ReadOnlySpan<byte> Bytes => new(_buffer, 0, _bytesLength);
