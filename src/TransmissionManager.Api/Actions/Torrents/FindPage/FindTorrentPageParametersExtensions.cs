@@ -69,18 +69,18 @@ internal static class FindTorrentPageParametersExtensions
 
         builder.Append(EndpointAddresses.TorrentsApi);
         builder.Append(takeParamKey);
-        builder.Append(take.ToString(CultureInfo.InvariantCulture));
+        builder.Append(take);
 
         if (orderBy is not TorrentOrder.Id)
         {
             builder.Append(orderByParamKey);
-            builder.Append(orderBy.ToString());
+            builder.Append(orderBy);
         }
 
         if (anchorId is not null)
         {
             builder.Append(anchorIdParamKey);
-            builder.Append(anchorId.Value.ToString(CultureInfo.InvariantCulture));
+            builder.Append(anchorId.Value);
         }
 
         if (!string.IsNullOrEmpty(anchorValue))
@@ -92,7 +92,7 @@ internal static class FindTorrentPageParametersExtensions
         if (direction is not Direction.Forward)
         {
             builder.Append(directionParamKey);
-            builder.Append(direction.ToString());
+            builder.Append(direction);
         }
 
         if (!string.IsNullOrEmpty(propertyStartsWith))

@@ -2,6 +2,7 @@
 
 using System.Buffers;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -29,7 +30,7 @@ internal ref struct ValueStringBuilder
 
     public int Length
     {
-        get => _pos;
+        readonly get => _pos;
         set
         {
             Debug.Assert(value >= 0);
@@ -38,7 +39,7 @@ internal ref struct ValueStringBuilder
         }
     }
 
-    public int Capacity => _chars.Length;
+    public readonly int Capacity => _chars.Length;
 
     public void EnsureCapacity(int capacity)
     {
@@ -56,7 +57,7 @@ internal ref struct ValueStringBuilder
     /// This overload is pattern matched in the C# 7.3+ compiler so you can omit
     /// the explicit method call, and write eg "fixed (char* c = builder)"
     /// </summary>
-    public ref char GetPinnableReference()
+    public readonly ref char GetPinnableReference()
     {
         return ref MemoryMarshal.GetReference(_chars);
     }
@@ -92,7 +93,7 @@ internal ref struct ValueStringBuilder
     }
 
     /// <summary>Returns the underlying storage of the builder.</summary>
-    public Span<char> RawChars => _chars;
+    public readonly Span<char> RawChars => _chars;
 
     /// <summary>
     /// Returns a span around the contents of the builder.
@@ -108,9 +109,9 @@ internal ref struct ValueStringBuilder
         return _chars.Slice(0, _pos);
     }
 
-    public ReadOnlySpan<char> AsSpan() => _chars.Slice(0, _pos);
-    public ReadOnlySpan<char> AsSpan(int start) => _chars.Slice(start, _pos - start);
-    public ReadOnlySpan<char> AsSpan(int start, int length) => _chars.Slice(start, length);
+    public readonly ReadOnlySpan<char> AsSpan() => _chars.Slice(0, _pos);
+    public readonly ReadOnlySpan<char> AsSpan(int start) => _chars.Slice(start, _pos - start);
+    public readonly ReadOnlySpan<char> AsSpan(int start, int length) => _chars.Slice(start, length);
 
     public bool TryCopyTo(Span<char> destination, out int charsWritten)
     {
@@ -239,6 +240,34 @@ internal ref struct ValueStringBuilder
 
         _pos = origPos + length;
         return _chars.Slice(origPos, length);
+    }
+
+    public void Append(int value) => AppendNumber(value, 11);
+
+    public void Append(long value) => AppendNumber(value, 20);
+
+    private void AppendNumber<T>(T value, int maxStringLength) where T : INumber<T>, ISpanFormattable
+    {
+        var slice = _chars.Slice(_pos);
+        if (!value.TryFormat(slice, out int charsWritten, default, null))
+        {
+            Grow(maxStringLength);
+            value.TryFormat(slice, out charsWritten, default, null);
+        }
+
+        _pos += charsWritten;
+    }
+
+    public void Append<T>(T value) where T : struct, Enum
+    {
+        if (Enum.TryFormat(value, _chars.Slice(_pos), out int charsWritten))
+        {
+            _pos += charsWritten;
+        }
+        else
+        {
+            Append(value.ToString());
+        }
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]
