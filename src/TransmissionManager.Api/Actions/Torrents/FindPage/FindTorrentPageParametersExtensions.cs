@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using System.Net;
+﻿using System.Net;
 using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
