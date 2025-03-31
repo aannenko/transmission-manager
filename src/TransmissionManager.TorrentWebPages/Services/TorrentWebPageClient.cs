@@ -14,6 +14,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
 {
     private const int _bufferSize = 2048;
     private const int _defaultPadding = _bufferSize / 16;
+    private const int _maxBufferFreeSpace = _bufferSize / 8;
 
     private static ReadOnlySpan<byte> Magnet => "magnet:?"u8;
 
@@ -26,7 +27,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
 
         using var stream = await httpClient.GetStreamAsync(torrentWebPageUri, cancellationToken).ConfigureAwait(false);
         var byteBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
-        var reader = new PaddedBytesReader(stream, byteBuffer);
+        var reader = new PaddedBytesReader(stream, byteBuffer, _maxBufferFreeSpace);
         try
         {
             var padding = 0;
