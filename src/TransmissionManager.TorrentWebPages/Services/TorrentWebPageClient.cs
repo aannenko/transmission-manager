@@ -49,8 +49,9 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                     bytes = reader.Bytes;
                 }
 
-                if (TryGetMagnetFromBytes(bytes, regex, out var magnet))
-                    return new(new string(magnet));
+                var magnetUri = FindMagnetUri(bytes, regex);
+                if (magnetUri is not null)
+                    return magnetUri;
 
                 padding = bytes.Length - indexOfMagnet - Magnet.Length;
             }
@@ -76,7 +77,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
             nameof(regexPattern));
     }
 
-    private static bool TryGetMagnetFromBytes(ReadOnlySpan<byte> bytes, Regex regex, out ReadOnlySpan<char> magnet)
+    private static Uri? FindMagnetUri(ReadOnlySpan<byte> bytes, Regex regex)
     {
         var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
         try
@@ -85,8 +86,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
             if (Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) &&
                 regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
             {
-                magnet = chars[magnetRange];
-                return true;
+                return new(new string(chars[magnetRange]));
             }
         }
         finally
@@ -94,7 +94,6 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
             ArrayPool<char>.Shared.Return(charBuffer);
         }
 
-        magnet = default;
-        return false;
+        return null;
     }
 }
