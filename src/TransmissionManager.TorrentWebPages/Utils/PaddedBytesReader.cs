@@ -39,19 +39,18 @@ internal sealed class PaddedBytesReader
             Bytes[^padding..].CopyTo(_buffer);
 
         _bytesLength = padding;
-        bool wereBytesRead = false;
 
         int read;
         do
         {
             read = await _stream.ReadAsync(_buffer.AsMemory(_bytesLength), cancellationToken).ConfigureAwait(false);
-            wereBytesRead = wereBytesRead || read > 0;
             _bytesLength += read;
-        } while (read > 0 && _buffer.Length - _bytesLength > _maxBufferFreeSpace);
+        }
+        while (read > 0 && _buffer.Length - _bytesLength > _maxBufferFreeSpace);
 
-        if (!wereBytesRead)
+        if (_bytesLength == padding) // No bytes were read
             _bytesLength = 0;
 
-        return wereBytesRead;
+        return _bytesLength > 0;
     }
 }

@@ -49,7 +49,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                     bytes = reader.Bytes;
                 }
 
-                var magnetUri = FindMagnetUri(bytes, regex);
+                var magnetUri = FindMagnetUriInBytes(bytes, regex);
                 if (magnetUri is not null)
                     return magnetUri;
 
@@ -77,7 +77,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
             nameof(regexPattern));
     }
 
-    private static Uri? FindMagnetUri(ReadOnlySpan<byte> bytes, Regex regex)
+    private static Uri? FindMagnetUriInBytes(ReadOnlySpan<byte> bytes, Regex regex)
     {
         var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
         try
