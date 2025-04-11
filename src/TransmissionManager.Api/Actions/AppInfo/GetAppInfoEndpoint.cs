@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Api.Shared.Dto.AppInfo.Get;
+using TransmissionManager.Api.Common.Dto.AppInfo;
 
-namespace TransmissionManager.Api.Actions.AppInfo.Get;
+namespace TransmissionManager.Api.Actions.AppInfo;
 
 internal static class GetAppInfoEndpoint
 {

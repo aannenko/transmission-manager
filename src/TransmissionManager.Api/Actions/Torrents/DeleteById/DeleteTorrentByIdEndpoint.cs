@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Api.Shared.Dto.Torrents.DeleteById;
+using TransmissionManager.Api.Common.Dto.Torrents.Delete;
 
 namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
 

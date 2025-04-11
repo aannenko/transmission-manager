@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Shared.Dto.Torrents.Add;
+﻿using TransmissionManager.Api.Common.Dto.Torrents.Add;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Transmission.Dto;
 

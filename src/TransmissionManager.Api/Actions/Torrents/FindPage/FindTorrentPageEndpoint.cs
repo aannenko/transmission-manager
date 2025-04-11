@@ -2,9 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Services;
+using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
 
 namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 

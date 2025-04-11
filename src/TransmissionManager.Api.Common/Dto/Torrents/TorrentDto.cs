@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Shared.Dto.Torrents;
+﻿namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 public sealed record TorrentDto(
     long Id,

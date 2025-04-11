@@ -12,10 +12,10 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         CancellationToken cancellationToken)
     {
         scheduler.TryUnscheduleTorrentRefresh(id);
-        var result = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
-        if (result && !string.IsNullOrEmpty(dto.Cron))
+        var isUpdated = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
+        if (isUpdated && !string.IsNullOrEmpty(dto.Cron))
             scheduler.ScheduleTorrentRefresh(id, dto.Cron);
 
-        return result;
+        return isUpdated;
     }
 }

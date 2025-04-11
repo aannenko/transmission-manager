@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.IntegrationTests.Helpers;
-using TransmissionManager.Api.Shared.Dto.Torrents;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;

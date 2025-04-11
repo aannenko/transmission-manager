@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Shared.Constants;
+using TransmissionManager.Api.Common.Constants;
 
-namespace TransmissionManager.Api.Shared.Dto.Torrents.Add;
+namespace TransmissionManager.Api.Common.Dto.Torrents.Add;
 
 public sealed class AddTorrentRequest
 {

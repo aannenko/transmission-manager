@@ -1,10 +1,10 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Api.Shared.Dto.AppInfo.Get;
-using TransmissionManager.Api.Shared.Dto.Torrents.Add;
-using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
-using TransmissionManager.Api.Shared.Dto.Torrents.RefreshById;
-using TransmissionManager.Api.Shared.Dto.Torrents.UpdateById;
-using TransmissionManager.Api.Shared.Dto.TransmissionInfo.Get;
+using TransmissionManager.Api.Common.Dto.AppInfo;
+using TransmissionManager.Api.Common.Dto.Torrents.Add;
+using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
+using TransmissionManager.Api.Common.Dto.Torrents.RefreshById;
+using TransmissionManager.Api.Common.Dto.Torrents.UpdateById;
+using TransmissionManager.Api.Common.Dto.TransmissionInfo;
 
 namespace TransmissionManager.Api.Serialization;
 

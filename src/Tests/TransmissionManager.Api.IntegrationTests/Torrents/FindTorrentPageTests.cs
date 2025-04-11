@@ -4,8 +4,8 @@ using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.Torrents.FindPage;
 using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
-using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
 using TransmissionManager.Database.Models;
+using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
 

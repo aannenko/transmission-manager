@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
+﻿namespace TransmissionManager.Api.Common.Dto.Torrents.FindPage;
 
 public enum FindTorrentPageDirection
 {

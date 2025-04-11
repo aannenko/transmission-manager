@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Shared.Constants;
+using TransmissionManager.Api.Common.Constants;
 
-namespace TransmissionManager.Api.Shared.Dto.Torrents.UpdateById;
+namespace TransmissionManager.Api.Common.Dto.Torrents.UpdateById;
 
 public sealed class UpdateTorrentByIdRequest
 {

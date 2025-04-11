@@ -1,11 +1,11 @@
 ﻿using System.Net;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Api.Shared.Dto.Torrents;
-using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
-using Direction = TransmissionManager.Api.Shared.Dto.Torrents.FindPage.FindTorrentPageDirection;
-using Order = TransmissionManager.Api.Shared.Dto.Torrents.FindPage.FindTorrentPageOrder;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindPage.FindTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.FindPage.FindTorrentPageOrder;
+using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
 
 namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 

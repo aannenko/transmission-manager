@@ -1,5 +1,5 @@
 ﻿using System.Text;
-using TransmissionManager.Api.Shared.Dto.Transmission;
+using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Services.Transmission;

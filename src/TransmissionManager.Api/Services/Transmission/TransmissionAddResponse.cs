@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Shared.Dto.Transmission;
+﻿using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Transmission.Dto;
 
 namespace TransmissionManager.Api.Services.Transmission;

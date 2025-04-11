@@ -1,12 +1,12 @@
 using Coravel;
-using TransmissionManager.Api.Actions.AppInfo.Get;
+using TransmissionManager.Api.Actions.AppInfo;
 using TransmissionManager.Api.Actions.Torrents.Add;
 using TransmissionManager.Api.Actions.Torrents.DeleteById;
 using TransmissionManager.Api.Actions.Torrents.FindById;
 using TransmissionManager.Api.Actions.Torrents.FindPage;
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
 using TransmissionManager.Api.Actions.Torrents.UpdateById;
-using TransmissionManager.Api.Actions.TransmissionInfo.Get;
+using TransmissionManager.Api.Actions.TransmissionInfo;
 using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;

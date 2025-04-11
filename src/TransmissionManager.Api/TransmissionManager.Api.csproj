@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\TransmissionManager.Api.Shared\TransmissionManager.Api.Shared.csproj" />
+    <ProjectReference Include="..\TransmissionManager.Api.Common\TransmissionManager.Api.Common.csproj" />
     <ProjectReference Include="..\TransmissionManager.Database\TransmissionManager.Database.csproj" />
     <ProjectReference Include="..\TransmissionManager.TorrentWebPages\TransmissionManager.TorrentWebPages.csproj" />
     <ProjectReference Include="..\TransmissionManager.Transmission\TransmissionManager.Transmission.csproj" />
