@@ -4,7 +4,7 @@ using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.Torrents.FindPage;
 using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
-using TransmissionManager.Database.Dto;
+using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
@@ -154,7 +154,7 @@ internal sealed class FindTorrentPageTests
     public async Task FindTorrentPageAsync_WhenOrderByIsNameDescAndTakeIsTwo_ReturnsCorrectPagesAndNextPageLinks()
     {
         var parameters = new FindTorrentPageParameters(
-            OrderBy: TorrentOrder.NameDesc,
+            OrderBy: FindTorrentPageOrder.NameDesc,
             Take: 2);
 
         var page = await _client
@@ -190,7 +190,7 @@ internal sealed class FindTorrentPageTests
     public async Task FindTorrentPageAsync_WhenOrderByIsNameDescAndDirectionIsBackwardAndTakeIsTwo_ReturnsCorrectPagesAndPreviousPageLinks()
     {
         var parameters = new FindTorrentPageParameters(
-            OrderBy: TorrentOrder.NameDesc,
+            OrderBy: FindTorrentPageOrder.NameDesc,
             Direction: FindTorrentPageDirection.Backward,
             Take: 2);
 
@@ -259,7 +259,7 @@ internal sealed class FindTorrentPageTests
     [Test]
     public async Task FindTorrentPageAsync_WhenOrderByIsInvalid_ReturnsValidationProblem()
     {
-        var parameters = new FindTorrentPageParameters(OrderBy: (TorrentOrder)999);
+        var parameters = new FindTorrentPageParameters(OrderBy: (FindTorrentPageOrder)999);
 
         var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
@@ -281,7 +281,7 @@ internal sealed class FindTorrentPageTests
         Assert.That(page, Is.Not.Default);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(page.Torrents, Has.Length.EqualTo(expectedCount));
+            Assert.That(page.Torrents, Has.Count.EqualTo(expectedCount));
             Assert.That(page.NextPageAddress, Is.EqualTo(expectedNextPage));
             Assert.That(page.PreviousPageAddress, Is.EqualTo(expectedPreviousPage));
         }

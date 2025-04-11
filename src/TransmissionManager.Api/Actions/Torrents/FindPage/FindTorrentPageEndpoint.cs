@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Database.Dto;
+using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
+using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.Torrents.FindPage;
@@ -24,7 +25,7 @@ internal static class FindTorrentPageEndpoint
     private static async Task<Results<Ok<FindTorrentPageResponse>, ValidationProblem>> FindTorrentPageAsync(
         [FromServices] TorrentService service,
         //[AsParameters] FindTorrentPageParameters parameters,
-        TorrentOrder orderBy = TorrentOrder.Id,
+        FindTorrentPageOrder orderBy = FindTorrentPageOrder.Id,
         int take = 20,
         long? anchorId = null,
         string? anchorValue = null,
@@ -49,10 +50,14 @@ internal static class FindTorrentPageEndpoint
         var filter = parameters.ToTorrentFilter();
 
         var torrents = await service.FindPageAsync(pageDescriptor, filter, cancellationToken).ConfigureAwait(false);
+        var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
 
-        var nextPage = parameters.ToNextPageParameters(torrents)?.ToPathAndQueryString();
-        var previousPage = parameters.ToPreviousPageParameters(torrents)?.ToPathAndQueryString();
+        var nextPage = parameters.ToNextPageParameters(dtos)?.ToPathAndQueryString();
+        var previousPage = parameters.ToPreviousPageParameters(dtos)?.ToPathAndQueryString();
 
-        return TypedResults.Ok(new FindTorrentPageResponse(torrents, nextPage, previousPage));
+        return TypedResults.Ok(new FindTorrentPageResponse(
+            [.. torrents.Select(static torrent => torrent.ToDto())],
+            nextPage,
+            previousPage));
     }
 }

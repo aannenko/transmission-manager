@@ -4,6 +4,7 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Api.Shared.Dto.Torrents.Add;
 using TransmissionManager.Database.Services;
 using Result = TransmissionManager.Api.Actions.Torrents.Add.AddTorrentResult;
 

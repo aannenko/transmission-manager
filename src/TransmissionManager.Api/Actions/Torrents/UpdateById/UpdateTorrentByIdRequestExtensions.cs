@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Database.Dto;
+﻿using TransmissionManager.Api.Shared.Dto.Torrents.UpdateById;
+using TransmissionManager.Database.Dto;
 
 namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
 

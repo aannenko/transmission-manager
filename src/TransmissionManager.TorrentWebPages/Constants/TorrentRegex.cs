@@ -2,7 +2,7 @@
 
 namespace TransmissionManager.TorrentWebPages.Constants;
 
-public static partial class TorrentRegex
+internal static partial class TorrentRegex
 {
     // language=regex
     public const string IsFindMagnet = @"^.*magnet:\\\?.+$";

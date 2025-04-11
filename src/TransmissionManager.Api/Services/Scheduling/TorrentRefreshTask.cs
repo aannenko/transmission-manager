@@ -1,6 +1,6 @@
 ﻿using Coravel.Invocable;
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
-using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Api.Shared.Dto.Transmission;
 
 namespace TransmissionManager.Api.Services.Scheduling;
 

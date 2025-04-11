@@ -1,19 +1,19 @@
 ﻿using System.Text.Json.Serialization;
-using TransmissionManager.Api.Actions.AppInfo.Get;
-using TransmissionManager.Api.Actions.Torrents.Add;
-using TransmissionManager.Api.Actions.Torrents.FindPage;
-using TransmissionManager.Api.Actions.Torrents.RefreshById;
-using TransmissionManager.Api.Actions.Torrents.UpdateById;
-using TransmissionManager.Api.Actions.TransmissionInfo.Get;
+using TransmissionManager.Api.Shared.Dto.AppInfo.Get;
+using TransmissionManager.Api.Shared.Dto.Torrents.Add;
+using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
+using TransmissionManager.Api.Shared.Dto.Torrents.RefreshById;
+using TransmissionManager.Api.Shared.Dto.Torrents.UpdateById;
+using TransmissionManager.Api.Shared.Dto.TransmissionInfo.Get;
 
 namespace TransmissionManager.Api.Serialization;
 
 [JsonSourceGenerationOptions(
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
     UseStringEnumConverter = true)]
+[JsonSerializable(typeof(HttpValidationProblemDetails))]
 [JsonSerializable(typeof(AddTorrentRequest))]
 [JsonSerializable(typeof(UpdateTorrentByIdRequest))]
-[JsonSerializable(typeof(HttpValidationProblemDetails))]
 [JsonSerializable(typeof(FindTorrentPageResponse))]
 [JsonSerializable(typeof(AddTorrentResponse))]
 [JsonSerializable(typeof(RefreshTorrentByIdResponse))]

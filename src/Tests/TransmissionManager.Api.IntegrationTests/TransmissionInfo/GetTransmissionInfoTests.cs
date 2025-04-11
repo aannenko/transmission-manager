@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.Actions.TransmissionInfo.Get;
 using TransmissionManager.Api.IntegrationTests.Helpers;
+using TransmissionManager.Api.Shared.Dto.TransmissionInfo.Get;
 using TransmissionManager.Transmission.Options;
 
 namespace TransmissionManager.Api.IntegrationTests.TransmissionInfo;

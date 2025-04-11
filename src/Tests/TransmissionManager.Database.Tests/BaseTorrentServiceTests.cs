@@ -12,7 +12,7 @@ internal abstract class BaseTorrentServiceTests
 
     private protected static Torrent[] InitialTorrents { get; } =
     [
-        new Torrent
+        new()
         {
             Id = default,
             HashString = "0bda511316a069e86dd8ee8a3610475d2013a7fa",
@@ -21,7 +21,7 @@ internal abstract class BaseTorrentServiceTests
             DownloadDir = "/tvshows",
             Cron = "0 9,17 * * *",
         },
-        new Torrent
+        new()
         {
             Id = default,
             HashString = "738c60cbd44f0e9457ba2afdad9e9231d76243fe",
@@ -30,7 +30,7 @@ internal abstract class BaseTorrentServiceTests
             DownloadDir = "/movies",
             MagnetRegexPattern = @"magnet:\?xt=urn:[^""]+",
         },
-        new Torrent
+        new()
         {
             Id = default,
             HashString = "5713cc1aeb2ec4a371c2412dc04e0a60d710862e",

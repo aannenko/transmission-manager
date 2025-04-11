@@ -1,9 +1,11 @@
 ﻿using System.Net;
 using TransmissionManager.Api.Constants;
+using TransmissionManager.Api.Shared.Dto.Torrents;
+using TransmissionManager.Api.Shared.Dto.Torrents.FindPage;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
-using TransmissionManager.Database.Models;
-using Direction = TransmissionManager.Api.Actions.Torrents.FindPage.FindTorrentPageDirection;
+using Direction = TransmissionManager.Api.Shared.Dto.Torrents.FindPage.FindTorrentPageDirection;
+using Order = TransmissionManager.Api.Shared.Dto.Torrents.FindPage.FindTorrentPageOrder;
 
 namespace TransmissionManager.Api.Actions.Torrents.FindPage;
 
@@ -16,7 +18,7 @@ internal static class FindTorrentPageParametersExtensions
     public static TorrentPageDescriptor<string> ToTorrentPageDescriptor(in this FindTorrentPageParameters parameters)
     {
         return new TorrentPageDescriptor<string>(
-            OrderBy: parameters.OrderBy,
+            OrderBy: (TorrentOrder)parameters.OrderBy,
             AnchorId: parameters.AnchorId,
             AnchorValue: parameters.AnchorValue,
             IsForwardPagination: parameters.Direction is Direction.Forward,
@@ -44,7 +46,7 @@ internal static class FindTorrentPageParametersExtensions
 
         var rentedArraySize = EndpointAddresses.TorrentsApi.Length + takeParamKey.Length + _maxTakeLength;
 
-        if (orderBy is not TorrentOrder.Id)
+        if (orderBy is not Order.Id)
             rentedArraySize += orderByParamKey.Length + _maxTorrentOrderItemLength;
 
         if (anchorId is not null)
@@ -70,7 +72,7 @@ internal static class FindTorrentPageParametersExtensions
         builder.Append(takeParamKey);
         builder.Append(take);
 
-        if (orderBy is not TorrentOrder.Id)
+        if (orderBy is not Order.Id)
         {
             builder.Append(orderByParamKey);
             builder.Append(orderBy);
@@ -111,7 +113,7 @@ internal static class FindTorrentPageParametersExtensions
 
     public static FindTorrentPageParameters? ToNextPageParameters(
         in this FindTorrentPageParameters parameters,
-        Torrent[] currentPage)
+        TorrentDto[] currentPage)
     {
         return currentPage.Length is 0
             ? null
@@ -120,10 +122,10 @@ internal static class FindTorrentPageParametersExtensions
                 AnchorId = currentPage[^1].Id,
                 AnchorValue = parameters.OrderBy switch
                 {
-                    TorrentOrder.Id or TorrentOrder.IdDesc => null,
-                    TorrentOrder.Name or TorrentOrder.NameDesc => currentPage[^1].Name,
-                    TorrentOrder.WebPage or TorrentOrder.WebPageDesc => currentPage[^1].WebPageUri,
-                    TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => currentPage[^1].DownloadDir,
+                    Order.Id or Order.IdDesc => null,
+                    Order.Name or Order.NameDesc => currentPage[^1].Name,
+                    Order.WebPage or Order.WebPageDesc => currentPage[^1].WebPageUri.OriginalString,
+                    Order.DownloadDir or Order.DownloadDirDesc => currentPage[^1].DownloadDir,
                     _ => null,
                 },
                 Direction = Direction.Forward
@@ -132,7 +134,7 @@ internal static class FindTorrentPageParametersExtensions
 
     public static FindTorrentPageParameters? ToPreviousPageParameters(
         in this FindTorrentPageParameters parameters,
-        Torrent[] currentPage)
+        TorrentDto[] currentPage)
     {
         return currentPage.Length is 0
             ? null
@@ -141,10 +143,10 @@ internal static class FindTorrentPageParametersExtensions
                 AnchorId = currentPage[0].Id,
                 AnchorValue = parameters.OrderBy switch
                 {
-                    TorrentOrder.Id or TorrentOrder.IdDesc => null,
-                    TorrentOrder.Name or TorrentOrder.NameDesc => currentPage[0].Name,
-                    TorrentOrder.WebPage or TorrentOrder.WebPageDesc => currentPage[0].WebPageUri,
-                    TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => currentPage[0].DownloadDir,
+                    Order.Id or Order.IdDesc => null,
+                    Order.Name or Order.NameDesc => currentPage[0].Name,
+                    Order.WebPage or Order.WebPageDesc => currentPage[0].WebPageUri.OriginalString,
+                    Order.DownloadDir or Order.DownloadDirDesc => currentPage[0].DownloadDir,
                     _ => null,
                 },
                 Direction = Direction.Backward

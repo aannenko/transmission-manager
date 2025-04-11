@@ -1,9 +1,9 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TransmissionManager.Api.Services.Transmission;
+namespace TransmissionManager.Api.Shared.Dto.Transmission;
 
 [JsonConverter(typeof(JsonStringEnumConverter<TransmissionAddResult>))]
-internal enum TransmissionAddResult
+public enum TransmissionAddResult
 {
     Added,
     Duplicate

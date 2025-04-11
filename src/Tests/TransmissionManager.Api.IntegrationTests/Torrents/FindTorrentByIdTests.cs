@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.IntegrationTests.Helpers;
+using TransmissionManager.Api.Shared.Dto.Torrents;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
@@ -35,7 +36,7 @@ internal sealed class FindTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var torrent = await response.Content.ReadFromJsonAsync<Torrent>().ConfigureAwait(false);
+        var torrent = await response.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
         var expected = _torrents[0];
 
         Assert.That(torrent, Is.Not.Null);

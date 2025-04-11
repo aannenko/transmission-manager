@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Database.Dto;
+﻿using TransmissionManager.Api.Shared.Dto.Torrents.Add;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Transmission.Dto;
 
 namespace TransmissionManager.Api.Actions.Torrents.Add;

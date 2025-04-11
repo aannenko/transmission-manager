@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using TransmissionManager.Api.Constants;
+using TransmissionManager.Api.Shared.Dto.Torrents.RefreshById;
 
 namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 

@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Database.Models;
+using TransmissionManager.Api.Shared.Dto.Torrents;
+using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.Torrents.FindById;
@@ -16,14 +17,14 @@ internal static class FindTorrentByIdEndpoint
         return builder;
     }
 
-    private static async Task<Results<Ok<Torrent>, ProblemHttpResult, ValidationProblem>> FindTorrentByIdAsync(
+    private static async Task<Results<Ok<TorrentDto>, ProblemHttpResult, ValidationProblem>> FindTorrentByIdAsync(
         [FromServices] TorrentService service,
         long id,
         CancellationToken cancellationToken)
     {
         var torrent = await service.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         return torrent is not null
-            ? TypedResults.Ok(torrent)
+            ? TypedResults.Ok(torrent.ToDto())
             : TypedResults.Problem(
                 string.Format(null, EndpointMessages.IdNotFoundFormat, id),
                 statusCode: StatusCodes.Status404NotFound);

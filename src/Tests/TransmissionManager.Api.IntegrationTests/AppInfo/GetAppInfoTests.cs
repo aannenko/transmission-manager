@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.Actions.AppInfo.Get;
 using TransmissionManager.Api.IntegrationTests.Helpers;
+using TransmissionManager.Api.Shared.Dto.AppInfo.Get;
 
 namespace TransmissionManager.Api.IntegrationTests.AppInfo;
 

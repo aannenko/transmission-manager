@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Api.Shared.Dto.Torrents.DeleteById;
 using TransmissionManager.Database.Services;
 using Result = TransmissionManager.Api.Actions.Torrents.DeleteById.DeleteTorrentByIdResult;
 

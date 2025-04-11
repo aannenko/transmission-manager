@@ -9,6 +9,7 @@ COPY Directory.Packages.props .
 COPY TransmissionManager.Database/. TransmissionManager.Database/
 COPY TransmissionManager.TorrentWebPages/. TransmissionManager.TorrentWebPages/
 COPY TransmissionManager.Transmission/. TransmissionManager.Transmission/
+COPY TransmissionManager.Api.Shared/. TransmissionManager.Api.Shared/
 COPY TransmissionManager.Api/. TransmissionManager.Api/
 RUN (echo "$BINARY_VERSION" | grep -Eq "^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$") && \
     dotnet publish TransmissionManager.Api -a $TARGETARCH -o /app -p:Version=$BINARY_VERSION || \
