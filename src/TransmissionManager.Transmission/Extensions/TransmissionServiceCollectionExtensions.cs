@@ -37,7 +37,7 @@ public static class TransmissionServiceCollectionExtensions
     private static void ConfigureHttpClient(IServiceProvider services, HttpClient client)
     {
         var options = services.GetRequiredService<IOptionsMonitor<TransmissionClientOptions>>().CurrentValue;
-        client.BaseAddress = new(options.BaseAddress);
+        client.BaseAddress = options.BaseAddressUri;
     }
 
     private static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> builder)

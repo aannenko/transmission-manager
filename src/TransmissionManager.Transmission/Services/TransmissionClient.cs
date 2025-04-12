@@ -82,7 +82,7 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
         CancellationToken cancellationToken)
         where TResponse : ITransmissionResponse
     {
-        var endpoint = options.CurrentValue.RpcEndpointAddressSuffix;
+        var endpoint = options.CurrentValue.RpcEndpointAddressSuffixUri;
 
         HttpResponseMessage response;
         try
