@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Common.Dto.Torrents.Delete;
+﻿namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 public enum DeleteTorrentByIdType
 {

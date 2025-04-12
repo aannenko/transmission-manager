@@ -1,6 +1,6 @@
 ﻿using TransmissionManager.Api.Common.Dto.Transmission;
 
-namespace TransmissionManager.Api.Actions.Torrents.Add;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal readonly record struct AddTorrentOutcome(
     AddTorrentResult Result,

@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
+﻿namespace TransmissionManager.Api.Actions.Torrents;
 
 internal enum DeleteTorrentByIdResult
 {

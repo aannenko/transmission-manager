@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Common.Dto.AppInfo;
+using TransmissionManager.Api.Constants;
 
 namespace TransmissionManager.Api.Actions.AppInfo;
 

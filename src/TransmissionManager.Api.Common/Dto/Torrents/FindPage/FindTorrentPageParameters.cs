@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text;
-using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindPage.FindTorrentPageDirection;
-using Order = TransmissionManager.Api.Common.Dto.Torrents.FindPage.FindTorrentPageOrder;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
 
-namespace TransmissionManager.Api.Common.Dto.Torrents.FindPage;
+namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 public readonly record struct FindTorrentPageParameters(
     [property: EnumDataType(typeof(Order))] Order OrderBy = Order.Id,

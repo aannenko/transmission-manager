@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Constants;
-using TransmissionManager.Api.Utilities;
+using TransmissionManager.Api.Extensions;
 using TransmissionManager.Database.Services;
-using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
 
-namespace TransmissionManager.Api.Actions.Torrents.FindPage;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal static class FindTorrentPageEndpoint
 {

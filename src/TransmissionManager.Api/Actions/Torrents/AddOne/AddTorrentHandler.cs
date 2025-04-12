@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Services;
-using Result = TransmissionManager.Api.Actions.Torrents.Add.AddTorrentResult;
-using TransmissionManager.Api.Common.Dto.Torrents.Add;
+using Result = TransmissionManager.Api.Actions.Torrents.AddTorrentResult;
 
-namespace TransmissionManager.Api.Actions.Torrents.Add;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal sealed class AddTorrentHandler(
     TorrentWebPageClientWrapper torrentWebPageService,

@@ -2,7 +2,7 @@
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, TorrentSchedulerService scheduler)
 {

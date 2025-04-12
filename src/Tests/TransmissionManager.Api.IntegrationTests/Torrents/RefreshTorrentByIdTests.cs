@@ -1,10 +1,10 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.IntegrationTests.Helpers;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
+using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
-using TransmissionManager.Api.Common.Dto.Torrents.RefreshById;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
 

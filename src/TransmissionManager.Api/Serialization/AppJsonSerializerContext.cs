@@ -1,9 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using TransmissionManager.Api.Common.Dto.AppInfo;
-using TransmissionManager.Api.Common.Dto.Torrents.Add;
-using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
-using TransmissionManager.Api.Common.Dto.Torrents.RefreshById;
-using TransmissionManager.Api.Common.Dto.Torrents.UpdateById;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.TransmissionInfo;
 
 namespace TransmissionManager.Api.Serialization;

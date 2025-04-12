@@ -1,13 +1,12 @@
 ﻿using System.Net;
-using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
-using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindPage.FindTorrentPageDirection;
-using Order = TransmissionManager.Api.Common.Dto.Torrents.FindPage.FindTorrentPageOrder;
-using TransmissionManager.Api.Common.Dto.Torrents.FindPage;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
 
-namespace TransmissionManager.Api.Actions.Torrents.FindPage;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal static class FindTorrentPageParametersExtensions
 {

@@ -1,8 +1,8 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents.Add;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Transmission.Dto;
 
-namespace TransmissionManager.Api.Actions.Torrents.Add;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal static class AddTorrentRequestExtensions
 {

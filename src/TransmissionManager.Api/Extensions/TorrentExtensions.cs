@@ -1,7 +1,7 @@
 ﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Api.Utilities;
+namespace TransmissionManager.Api.Extensions;
 
 internal static class TorrentExtensions
 {

@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Utilities;
+using TransmissionManager.Api.Constants;
+using TransmissionManager.Api.Extensions;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Actions.Torrents.FindById;
+namespace TransmissionManager.Api.Actions.Torrents;
 
 internal static class FindTorrentByIdEndpoint
 {
