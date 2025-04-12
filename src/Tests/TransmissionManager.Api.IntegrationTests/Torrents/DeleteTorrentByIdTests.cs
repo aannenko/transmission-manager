@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
@@ -76,7 +77,7 @@ internal sealed class DeleteTorrentByIdTests
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenIdExists_DeletesTorrent()
     {
-        const string torrentAddress = $"{TestData.Endpoints.Torrents}/1";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/1";
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
 
@@ -95,7 +96,7 @@ internal sealed class DeleteTorrentByIdTests
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenIdExistsAndRemoveDataFlagUsed_DeletesTorrentAndTransmissionData()
     {
-        const string torrentAddress = $"{TestData.Endpoints.Torrents}/2?deleteType=LocalAndTransmissionAndData";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/2?deleteType=LocalAndTransmissionAndData";
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
 
@@ -114,7 +115,7 @@ internal sealed class DeleteTorrentByIdTests
     [Test]
     public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
-        var response = await _client.DeleteAsync($"{TestData.Endpoints.Torrents}/-1").ConfigureAwait(false);
+        var response = await _client.DeleteAsync($"{EndpointAddresses.Torrents}/-1").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
@@ -129,7 +130,7 @@ internal sealed class DeleteTorrentByIdTests
     [Test]
     public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExistAndFlagToRemoveDataUsed_ReturnsNotFound()
     {
-        const string torrentAddress = $"{TestData.Endpoints.Torrents}/-1?deleteType=LocalAndTransmission";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/-1?deleteType=LocalAndTransmission";
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
 

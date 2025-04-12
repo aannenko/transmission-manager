@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
@@ -32,7 +33,7 @@ internal sealed class FindTorrentByIdTests
     [Test]
     public async Task FindTorrentByIdAsync_WhenIdExists_ReturnsTorrent()
     {
-        var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/1").ConfigureAwait(false);
+        var response = await _client.GetAsync($"{EndpointAddresses.Torrents}/1").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -46,7 +47,7 @@ internal sealed class FindTorrentByIdTests
     [Test]
     public async Task FindTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
-        var response = await _client.GetAsync($"{TestData.Endpoints.Torrents}/999").ConfigureAwait(false);
+        var response = await _client.GetAsync($"{EndpointAddresses.Torrents}/999").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 

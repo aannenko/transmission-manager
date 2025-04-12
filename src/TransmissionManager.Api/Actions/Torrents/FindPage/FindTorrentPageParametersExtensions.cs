@@ -1,6 +1,6 @@
 ﻿using System.Net;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Utilities;
 using TransmissionManager.Database.Dto;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
@@ -43,7 +43,7 @@ internal static class FindTorrentPageParametersExtensions
         const string propertyStartsWithParamKey = $"&{nameof(propertyStartsWith)}=";
         const string cronExistsParamKey = $"&{nameof(cronExists)}=";
 
-        var rentedArraySize = EndpointAddresses.TorrentsApi.Length + takeParamKey.Length + _maxTakeLength;
+        var rentedArraySize = EndpointAddresses.Torrents.Length + takeParamKey.Length + _maxTakeLength;
 
         if (orderBy is not Order.Id)
             rentedArraySize += orderByParamKey.Length + _maxTorrentOrderItemLength;
@@ -67,7 +67,7 @@ internal static class FindTorrentPageParametersExtensions
 
         using var builder = new ValueStringBuilder(rentedArraySize);
 
-        builder.Append(EndpointAddresses.TorrentsApi);
+        builder.Append(EndpointAddresses.Torrents);
         builder.Append(takeParamKey);
         builder.Append(take);
 

@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.AppInfo;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 
@@ -31,7 +32,7 @@ internal sealed class GetAppInfoTests
         var expectedVersion = typeof(Program).Assembly.GetName().Version;
         var before = DateTimeOffset.Now;
 
-        var response = await _client.GetAsync(TestData.Endpoints.AppInfo).ConfigureAwait(false);
+        var response = await _client.GetAsync(EndpointAddresses.AppInfo).ConfigureAwait(false);
 
         var after = DateTimeOffset.Now;
 

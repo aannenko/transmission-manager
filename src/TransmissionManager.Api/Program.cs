@@ -2,7 +2,7 @@ using Coravel;
 using TransmissionManager.Api.Actions.AppInfo;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Actions.TransmissionInfo;
-using TransmissionManager.Api.Constants;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
@@ -62,7 +62,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStatusCodePages();
 
-app.MapGroup(EndpointAddresses.TorrentsApi)
+app.MapGroup(EndpointAddresses.Torrents)
     .MapFindTorrentByIdEndpoint()
     .MapFindTorrentPageEndpoint()
     .MapAddTorrentEndpoint()
@@ -70,10 +70,10 @@ app.MapGroup(EndpointAddresses.TorrentsApi)
     .MapUpdateTorrentByIdEndpoint()
     .MapDeleteTorrentByIdEndpoint();
 
-app.MapGroup(EndpointAddresses.AppInfoApi)
+app.MapGroup(EndpointAddresses.AppInfo)
     .MapGetAppInfoEndpoint();
 
-app.MapGroup(EndpointAddresses.TransmissionInfoApi)
+app.MapGroup(EndpointAddresses.TransmissionInfo)
     .MapGetTransmissionInfoEndpoint();
 
 await app.RunAsync().ConfigureAwait(false);

@@ -188,11 +188,4 @@ internal static class TestData
             ["Date"] = "Sun, 13 Oct 2024 09:25:11 GMT"
         };
     }
-
-    internal static class Endpoints
-    {
-        public const string Torrents = "/api/v1/torrents";
-        public const string AppInfo = "/api/v1/appinfo";
-        public const string TransmissionInfo = "/api/v1/transmissioninfo";
-    }
 }

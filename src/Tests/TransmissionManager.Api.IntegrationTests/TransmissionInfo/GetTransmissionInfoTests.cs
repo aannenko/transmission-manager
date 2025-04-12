@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.TransmissionInfo;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Transmission.Options;
@@ -34,7 +35,7 @@ internal sealed class GetTransmissionInfoTests
         var options = _factory.Services.GetRequiredService<IOptions<TransmissionClientOptions>>().Value;
         var expectedAddress = new Uri(new(options.BaseAddress), options.RpcEndpointAddressSuffix);
 
-        var response = await _client.GetAsync(TestData.Endpoints.TransmissionInfo).ConfigureAwait(false);
+        var response = await _client.GetAsync(EndpointAddresses.TransmissionInfo).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 

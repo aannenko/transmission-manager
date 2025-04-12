@@ -2,8 +2,8 @@
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Actions.Torrents;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
 
@@ -40,8 +40,8 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        const string expectedNextPage = EndpointAddresses.TorrentsApi + "?take=3&anchorId=3";
-        const string expectedPreviousPage = EndpointAddresses.TorrentsApi + "?take=3&anchorId=2&direction=Backward";
+        var expectedNextPage = EndpointAddresses.Torrents + "?take=3&anchorId=3";
+        var expectedPreviousPage = EndpointAddresses.Torrents + "?take=3&anchorId=2&direction=Backward";
 
         AssertTorrentPage(page, 2, expectedNextPage, expectedPreviousPage);
         TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
@@ -61,10 +61,10 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        const string expectedNextPage = EndpointAddresses.TorrentsApi +
+        var expectedNextPage = EndpointAddresses.Torrents +
             "?take=2&anchorId=3&propertyStartsWith=TV+Show&cronExists=True";
 
-        const string expectedPreviousPage = EndpointAddresses.TorrentsApi +
+        var expectedPreviousPage = EndpointAddresses.Torrents +
             "?take=2&anchorId=1&direction=Backward&propertyStartsWith=TV+Show&cronExists=True";
 
         AssertTorrentPage(page, 2, expectedNextPage, expectedPreviousPage);
@@ -87,10 +87,10 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        const string expectedNextPage = $"{EndpointAddresses.TorrentsApi}?take=1&anchorId=2" +
+        var expectedNextPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2" +
             "&propertyStartsWith=https%3A%2F%2FtorrentTracker.com%2Fforum%2Fviewtopic.php%3Ft%3D1234568";
 
-        const string expectedPreviousPage = $"{EndpointAddresses.TorrentsApi}?take=1&anchorId=2&direction=Backward" +
+        var expectedPreviousPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2&direction=Backward" +
             "&propertyStartsWith=https%3A%2F%2FtorrentTracker.com%2Fforum%2Fviewtopic.php%3Ft%3D1234568";
 
         AssertTorrentPage(page, 1, expectedNextPage, expectedPreviousPage);
@@ -112,10 +112,10 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        const string expectedNextPage = $"{EndpointAddresses.TorrentsApi}?take=1&anchorId=2" +
+        var expectedNextPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2" +
             $"&propertyStartsWith={TestData.Database.SecondTorrentHashString}";
 
-        const string expectedPreviousPage = $"{EndpointAddresses.TorrentsApi}?take=1&anchorId=2&direction=Backward" +
+        var expectedPreviousPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2&direction=Backward" +
             $"&propertyStartsWith={TestData.Database.SecondTorrentHashString}";
 
         AssertTorrentPage(page, 1, expectedNextPage, expectedPreviousPage);
@@ -161,10 +161,10 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        const string expectedNextPage1 = EndpointAddresses.TorrentsApi +
+        var expectedNextPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=2&anchorValue=TV+Show+2";
 
-        const string expectedPreviousPage1 = EndpointAddresses.TorrentsApi +
+        var expectedPreviousPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=3&anchorValue=TV+Show+3&direction=Backward";
 
         AssertTorrentPage(page, 2, expectedNextPage1, expectedPreviousPage1);
@@ -173,10 +173,10 @@ internal sealed class FindTorrentPageTests
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
 
-        const string expectedNextPage2 = EndpointAddresses.TorrentsApi +
+        var expectedNextPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=1&anchorValue=TV+Show+1";
 
-        const string expectedPreviousPage2 = expectedNextPage2 + "&direction=Backward";
+        var expectedPreviousPage2 = expectedNextPage2 + "&direction=Backward";
 
         AssertTorrentPage(page, 1, expectedNextPage2, expectedPreviousPage2);
         TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
@@ -198,10 +198,10 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        const string expectedNextPage1 = EndpointAddresses.TorrentsApi +
+        var expectedNextPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=1&anchorValue=TV+Show+1";
 
-        const string expectedPreviousPage1 = EndpointAddresses.TorrentsApi +
+        var expectedPreviousPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=2&anchorValue=TV+Show+2&direction=Backward";
 
         AssertTorrentPage(page, 2, expectedNextPage1, expectedPreviousPage1);
@@ -210,10 +210,10 @@ internal sealed class FindTorrentPageTests
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
 
-        const string expectedNextPage2 = EndpointAddresses.TorrentsApi +
+        var expectedNextPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=3&anchorValue=TV+Show+3";
 
-        const string expectedPreviousPage2 = EndpointAddresses.TorrentsApi +
+        var expectedPreviousPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=3&anchorValue=TV+Show+3&direction=Backward";
 
         AssertTorrentPage(page, 1, expectedNextPage2, expectedPreviousPage2);

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
@@ -129,12 +130,12 @@ internal sealed class AddTorrentTests
             Cron = "0 9,17 * * *"
         };
 
-        var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto).ConfigureAwait(false);
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-            var location = $"{TestData.Endpoints.Torrents}/2";
+            var location = $"{EndpointAddresses.Torrents}/2";
             Assert.That(response.Headers.Location?.OriginalString, Is.EqualTo(location));
         }
     }
@@ -149,7 +150,7 @@ internal sealed class AddTorrentTests
             Cron = _initialTorrents[0].Cron,
         };
 
-        var response = await _client.PostAsJsonAsync(TestData.Endpoints.Torrents, dto).ConfigureAwait(false);
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
 

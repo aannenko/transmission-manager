@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
@@ -39,7 +40,7 @@ internal sealed class UpdateTorrentByIdTests
             Cron = "30 7,19 * * 3"
         };
 
-        const string torrentAddress = $"{TestData.Endpoints.Torrents}/1";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/1";
 
         var response = await _client.PatchAsJsonAsync(torrentAddress, dto).ConfigureAwait(false);
 
@@ -65,7 +66,7 @@ internal sealed class UpdateTorrentByIdTests
     {
         var dto = new UpdateTorrentByIdRequest { DownloadDir = "/videos" };
 
-        var response = await _client.PatchAsJsonAsync($"{TestData.Endpoints.Torrents}/-1", dto).ConfigureAwait(false);
+        var response = await _client.PatchAsJsonAsync($"{EndpointAddresses.Torrents}/-1", dto).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 

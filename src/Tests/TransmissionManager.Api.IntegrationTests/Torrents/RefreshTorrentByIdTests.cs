@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
@@ -220,7 +221,7 @@ internal sealed class RefreshTorrentByIdTests
     [Test]
     public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringExistsInTransmission_RefreshesTorrentAndReturnsDuplicate()
     {
-        var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/1", null).ConfigureAwait(false);
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/1", null).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -232,7 +233,7 @@ internal sealed class RefreshTorrentByIdTests
     [Test]
     public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringIsOutdatedInTransmission_RefreshesTorrentAndReturnsAdded()
     {
-        var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/2", null).ConfigureAwait(false);
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/2", null).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
@@ -244,7 +245,7 @@ internal sealed class RefreshTorrentByIdTests
     [Test]
     public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringDoesNotExistInTransmission_Returns422UnprocessableEntity()
     {
-        var response = await _client.PostAsync($"{TestData.Endpoints.Torrents}/3", null).ConfigureAwait(false);
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/3", null).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.UnprocessableEntity));
     }
