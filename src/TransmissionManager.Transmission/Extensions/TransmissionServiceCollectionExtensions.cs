@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
-using Polly;
-using System.Net;
 using TransmissionManager.Transmission.Options;
 using TransmissionManager.Transmission.Options.Validation;
 using TransmissionManager.Transmission.Services;
@@ -12,7 +11,6 @@ namespace TransmissionManager.Transmission.Extensions;
 public static class TransmissionServiceCollectionExtensions
 {
     private const string _transmissionConfigKey = "Transmission";
-    private const string _resilienceKey = "Transmission-Retry-Timeout";
 
     public static IServiceCollection AddTransmissionServices(
         this IServiceCollection services,
@@ -29,7 +27,7 @@ public static class TransmissionServiceCollectionExtensions
             .AddScoped<SessionHeaderHandler>()
             .AddHttpClient<TransmissionClient>(ConfigureHttpClient)
             .AddHttpMessageHandler<SessionHeaderHandler>()
-            .AddResilienceHandler(_resilienceKey, ConfigureResilience);
+            .AddStandardResilienceHandler(ConfigureResilience);
 
         return services;
     }
@@ -40,16 +38,18 @@ public static class TransmissionServiceCollectionExtensions
         client.BaseAddress = options.BaseAddressUri;
     }
 
-    private static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> builder)
+    private static void ConfigureResilience(HttpStandardResilienceOptions options)
     {
-        builder
-            .AddRetry(new()
-            {
-                ShouldHandle = new PredicateBuilder<HttpResponseMessage>().HandleResult(IsRetryRequired)
-            })
-            .AddTimeout(TimeSpan.FromSeconds(3));
+        options.TotalRequestTimeout = new HttpTimeoutStrategyOptions
+        {
+            Name = "FiveSeconds-TotalRequestTimeout",
+            Timeout = TimeSpan.FromSeconds(5)
+        };
 
-        static bool IsRetryRequired(HttpResponseMessage response) =>
-            response is { IsSuccessStatusCode: false, StatusCode: not HttpStatusCode.Conflict };
+        options.AttemptTimeout = new HttpTimeoutStrategyOptions
+        {
+            Name = "ThreeSeconds-AttemptTimeout",
+            Timeout = TimeSpan.FromSeconds(3)
+        };
     }
 }

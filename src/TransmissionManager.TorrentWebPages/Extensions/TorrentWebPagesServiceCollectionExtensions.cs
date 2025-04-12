@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
-using Polly;
 using TransmissionManager.TorrentWebPages.Options;
 using TransmissionManager.TorrentWebPages.Options.Validation;
 using TransmissionManager.TorrentWebPages.Services;
@@ -11,7 +11,6 @@ namespace TransmissionManager.TorrentWebPages.Extensions;
 public static class TorrentWebPagesServiceCollectionExtensions
 {
     private const string _torrentWebPagesConfigKey = "TorrentWebPages";
-    private const string _resilienceKey = "TorrentWebPages-Retry-Timeout";
 
     public static IServiceCollection AddTorrentWebPagesServices(
         this IServiceCollection services,
@@ -23,19 +22,23 @@ public static class TorrentWebPagesServiceCollectionExtensions
             .Configure<TorrentWebPageClientOptions>(configuration.GetSection(_torrentWebPagesConfigKey))
             .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()
             .AddHttpClient<TorrentWebPageClient>()
-            .AddResilienceHandler(_resilienceKey, ConfigureResilience);
+            .AddStandardResilienceHandler(ConfigureResilience);
 
         return services;
     }
 
-    private static void ConfigureResilience(ResiliencePipelineBuilder<HttpResponseMessage> builder)
+    private static void ConfigureResilience(HttpStandardResilienceOptions options)
     {
-        builder.AddRetry(new()
+        options.TotalRequestTimeout = new HttpTimeoutStrategyOptions
         {
-            ShouldHandle = new PredicateBuilder<HttpResponseMessage>()
-                .HandleResult(static response => !response.IsSuccessStatusCode)
-        });
+            Name = "FifteenSeconds-TotalRequestTimeout",
+            Timeout = TimeSpan.FromSeconds(15)
+        };
 
-        builder.AddTimeout(TimeSpan.FromSeconds(5));
+        options.AttemptTimeout = new HttpTimeoutStrategyOptions
+        {
+            Name = "SevenSeconds-AttemptTimeout",
+            Timeout = TimeSpan.FromSeconds(7)
+        };
     }
 }
