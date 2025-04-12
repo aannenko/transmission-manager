@@ -1,7 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 using TransmissionManager.Api.Common.Dto.AppInfo;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Common.Dto.TransmissionInfo;
 
 namespace TransmissionManager.Api.Serialization;
 
@@ -15,5 +14,4 @@ namespace TransmissionManager.Api.Serialization;
 [JsonSerializable(typeof(AddTorrentResponse))]
 [JsonSerializable(typeof(RefreshTorrentByIdResponse))]
 [JsonSerializable(typeof(GetAppInfoResponse))]
-[JsonSerializable(typeof(GetTransmissionInfoResponse))]
 internal sealed partial class AppJsonSerializerContext : JsonSerializerContext;

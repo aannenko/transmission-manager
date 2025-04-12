@@ -12,7 +12,4 @@ internal static class EndpointNames
 
     // AppInfo
     public const string GetAppInfo = "GetAppInfo";
-
-    // TransmissionInfo
-    public const string GetTransmissionInfo = "GetTransmissionInfo";
 }

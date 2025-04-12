@@ -1,6 +1,0 @@
-@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/transmissioninfo
-
-# Get Transmission address and a flag indicating whether it responds to requests
-GET {{TransmissionManager_Web_HostAddress}}/
-
-###
