@@ -1,4 +1,5 @@
-﻿using TransmissionManager.TorrentWebPages.Services;
+﻿using Polly.Timeout;
+using TransmissionManager.TorrentWebPages.Services;
 
 namespace TransmissionManager.Api.Services.TorrentWebPage;
 
@@ -17,7 +18,11 @@ internal sealed class TorrentWebPageClientWrapper(TorrentWebPageClient torrentWe
                 .FindMagnetUriAsync(webPageUri, magnetRegexPattern, cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch (Exception e) when (e is HttpRequestException or ArgumentException or InvalidOperationException)
+        catch (Exception e) when (e is
+            HttpRequestException or
+            ArgumentException or
+            InvalidOperationException or
+            TimeoutRejectedException)
         {
             error = $": '{e.Message}'";
         }
