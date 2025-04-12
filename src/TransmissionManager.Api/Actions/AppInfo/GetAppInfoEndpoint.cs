@@ -6,18 +6,14 @@ namespace TransmissionManager.Api.Actions.AppInfo;
 
 internal static class GetAppInfoEndpoint
 {
+    private static readonly Version _assemblyVersion = typeof(Program).Assembly.GetName().Version!;
+
     public static IEndpointRouteBuilder MapGetAppInfoEndpoint(this IEndpointRouteBuilder builder)
     {
         builder.MapGet("/", GetAppInfo).WithName(EndpointNames.GetAppInfo);
         return builder;
     }
 
-    private static Ok<GetAppInfoResponse> GetAppInfo()
-    {
-        var appInfo = new GetAppInfoResponse(
-            typeof(Program).Assembly.GetName().Version!,
-            DateTimeOffset.Now);
-
-        return TypedResults.Ok(appInfo);
-    }
+    private static Ok<GetAppInfoResponse> GetAppInfo() =>
+        TypedResults.Ok(new GetAppInfoResponse(_assemblyVersion, DateTimeOffset.Now));
 }
