@@ -16,11 +16,11 @@ public sealed class TransmissionClientOptions
 
     [StringSyntax(StringSyntaxAttribute.Uri)]
     [Required]
-    [RegularExpression(@"^http(s?)://[\w-.]+:\d{1,5}$")]
+    [RegularExpression(@"^http(s?)://[a-zA-Z_0-9\-\.]+:\d{1,5}$", MatchTimeoutInMilliseconds = 50)]
     public required string BaseAddress { get; set; }
 
     [Required]
-    public required string RpcEndpointAddressSuffix { get; set; } = "/transmission/rpc";
+    public required string RpcEndpointAddressSuffix { get; set; }
 
     public Uri BaseAddressUri => _lazyBaseAddressUri.Value;
 

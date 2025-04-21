@@ -17,7 +17,7 @@ public sealed class TorrentWebPageClientOptions
 
     [StringSyntax(StringSyntaxAttribute.Regex)]
     [Required]
-    [RegularExpression(TorrentRegex.IsFindMagnet)]
+    [RegularExpression(TorrentRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)]
     public required string DefaultMagnetRegexPattern { get; set; }
 
     [Required]
