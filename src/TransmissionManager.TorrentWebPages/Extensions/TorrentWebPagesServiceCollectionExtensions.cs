@@ -19,7 +19,7 @@ public static class TorrentWebPagesServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         services
-            .Configure<TorrentWebPageClientOptions>(configuration.GetSection(_torrentWebPagesConfigKey))
+            .Configure<TorrentWebPageClientOptions>(configuration.GetRequiredSection(_torrentWebPagesConfigKey))
             .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()
             .AddHttpClient<TorrentWebPageClient>()
             .AddStandardResilienceHandler(ConfigureResilience);
