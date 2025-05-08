@@ -2,6 +2,7 @@ using Coravel;
 using TransmissionManager.Api.Actions.AppInfo;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Extensions;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
@@ -17,6 +18,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(
     static options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
+builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
 
 builder.Services.AddDatabaseServices();
@@ -55,6 +57,8 @@ using (var scope = app.Services.CreateScope())
         .ScheduleUpdatesForAllTorrentsAsync(lifetime.ApplicationStopping)
         .ConfigureAwait(false);
 }
+
+app.UseCors();
 
 if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler();
