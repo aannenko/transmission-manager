@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Http.Json;
-using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Extensions;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
 

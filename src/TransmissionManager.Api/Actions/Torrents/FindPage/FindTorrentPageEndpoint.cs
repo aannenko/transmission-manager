@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using MiniValidation;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Extensions;
 using TransmissionManager.Api.Constants;
 using TransmissionManager.Api.Extensions;
 using TransmissionManager.Database.Services;

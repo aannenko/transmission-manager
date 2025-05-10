@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace TransmissionManager.Api.Utilities;
+namespace TransmissionManager.Api.Common.Utilities;
 
 internal ref struct ValueStringBuilder
 {
