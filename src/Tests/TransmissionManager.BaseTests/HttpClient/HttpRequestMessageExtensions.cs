@@ -9,7 +9,9 @@ internal static class HttpRequestMessageExtensions
 {
     private static readonly JsonSerializerOptions _serializerOptions = new()
     {
+        // For testing only, prevents escaping of <, >, &, + and some other chars in the requests
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
