@@ -79,18 +79,3 @@ app.MapGroup(EndpointAddresses.AppInfo)
 await app.RunAsync().ConfigureAwait(false);
 
 internal sealed partial class Program;
-
-internal static partial class LoggerStartupExtensions
-{
-    public static void LogStartup(this ILogger logger)
-    {
-        LogStartingApplication(logger, typeof(Program).Assembly.FullName);
-        LogStartTime(logger, DateTime.Now);
-    }
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Starting application {AssemblyFullName}")]
-    private static partial void LogStartingApplication(ILogger logger, string? assemblyFullName);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Start time: {StartTime:o}")]
-    private static partial void LogStartTime(ILogger logger, DateTime startTime);
-}
