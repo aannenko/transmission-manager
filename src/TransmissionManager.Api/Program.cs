@@ -26,7 +26,7 @@ builder.Services.AddTorrentWebPagesServices(builder.Configuration);
 builder.Services.AddTransmissionServices(builder.Configuration);
 
 builder.Services.AddScheduler();
-builder.Services.AddTransient<TorrentSchedulerService>();
+builder.Services.AddSingleton<TorrentSchedulerService>();
 builder.Services.AddTransient<StartupTorrentSchedulerService>();
 
 builder.Services.AddTransient<TorrentWebPageClientWrapper>();
