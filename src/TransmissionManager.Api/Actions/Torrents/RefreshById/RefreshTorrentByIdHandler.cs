@@ -12,7 +12,7 @@ internal sealed class RefreshTorrentByIdHandler(
     TorrentWebPageClientWrapper torrentWebPageService,
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
-    TorrentNameUpdateService torrentNameUpdateService)
+    BackgroundTorrentUpdateService backgroundUpdateService)
 {
     private static readonly CompositeFormat _error =
         CompositeFormat.Parse("Refresh of the torrent with id {0} has failed: '{1}'.");
@@ -60,7 +60,7 @@ internal sealed class RefreshTorrentByIdHandler(
             }
 
             if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
-                _ = torrentNameUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
+                _ = backgroundUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
 
             var transmissionRemoveError = (await transmissionRemoveTask.ConfigureAwait(false)).Error;
             if (transmissionRemoveError is not null)
@@ -68,7 +68,7 @@ internal sealed class RefreshTorrentByIdHandler(
         }
         else if (torrent.Name == torrent.HashString)
         {
-            _ = torrentNameUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
+            _ = backgroundUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
         }
 
         return new(Result.Refreshed, transmissionAddResult, null);

@@ -29,10 +29,9 @@ builder.Services.AddScheduler();
 builder.Services.AddTransient<TorrentSchedulerService>();
 builder.Services.AddTransient<StartupTorrentSchedulerService>();
 
-builder.Services.AddTransient<BackgroundTaskService>();
 builder.Services.AddTransient<TorrentWebPageClientWrapper>();
 builder.Services.AddTransient<TransmissionClientWrapper>();
-builder.Services.AddSingleton<TorrentNameUpdateService>();
+builder.Services.AddSingleton<BackgroundTorrentUpdateService>();
 
 builder.Services.AddTransient<AddTorrentHandler>();
 builder.Services.AddTransient<RefreshTorrentByIdHandler>();

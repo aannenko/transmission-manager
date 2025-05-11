@@ -15,7 +15,7 @@ internal sealed class AddTorrentHandler(
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
     TorrentSchedulerService schedulerService,
-    TorrentNameUpdateService torrentNameUpdateService)
+    BackgroundTorrentUpdateService backgroundUpdateService)
 {
     private static readonly CompositeFormat _error =
         CompositeFormat.Parse("Addition of a torrent from the web page '{0}' has failed: '{1}'.");
@@ -53,7 +53,7 @@ internal sealed class AddTorrentHandler(
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = torrentNameUpdateService.UpdateTorrentNameAsync(torrentId, transmissionTorrent.HashString);
+            _ = backgroundUpdateService.UpdateTorrentNameAsync(torrentId, transmissionTorrent.HashString);
 
         return new(Result.Added, torrentId, transmissionResult, null);
     }

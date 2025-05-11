@@ -6,7 +6,7 @@ using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Services.Background;
 
-internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundTaskService)
+internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory serviceScopeFactory)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
         [TransmissionTorrentGetRequestFields.Name];
@@ -22,6 +22,7 @@ internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundT
             try
             {
                 oldCts.Cancel();
+                oldCts.Dispose();
             }
             catch (ObjectDisposedException)
             {
@@ -31,11 +32,10 @@ internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundT
         }
 
         using var cts = _runningNameUpdates.AddOrUpdate(id, AddCts, UpdateCts);
-
         try
         {
-            await backgroundTaskService
-                .RunScopedAsync(UpdateTorrentNameWithRetriesAsync, (id, hashString), cts.Token)
+            using var serviceScope = serviceScopeFactory.CreateScope();
+            await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, cts.Token)
                 .ConfigureAwait(false);
         }
         finally
@@ -46,10 +46,10 @@ internal sealed class TorrentNameUpdateService(BackgroundTaskService backgroundT
 
     private static async Task UpdateTorrentNameWithRetriesAsync(
         IServiceProvider serviceProvider,
-        (long, string) torrentIdAndHashString,
+        long id,
+        string hashString,
         CancellationToken cancellationToken)
     {
-        var (id, hashString) = torrentIdAndHashString;
         string[] singleHashArray = [hashString];
 
         var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
