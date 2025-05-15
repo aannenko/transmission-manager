@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using TransmissionManager.TorrentWebPages.Constants;
-using TransmissionManager.TorrentWebPages.Extensions;
 using TransmissionManager.TorrentWebPages.Options;
 using TransmissionManager.TorrentWebPages.Utils;
 

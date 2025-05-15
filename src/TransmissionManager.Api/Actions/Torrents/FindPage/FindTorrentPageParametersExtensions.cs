@@ -1,9 +1,8 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Database.Dto;
+﻿using TransmissionManager.Database.Dto;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 internal static class FindTorrentPageParametersExtensions
 {

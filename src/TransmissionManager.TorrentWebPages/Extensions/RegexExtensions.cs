@@ -1,6 +1,4 @@
-﻿using System.Text.RegularExpressions;
-
-namespace TransmissionManager.TorrentWebPages.Extensions;
+﻿namespace System.Text.RegularExpressions;
 
 internal static class RegexExtensions
 {

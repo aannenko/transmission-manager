@@ -1,7 +1,7 @@
 ﻿using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Database.Extensions;
+namespace System.Linq;
 
 internal static class QueryableTorrentExtensions
 {

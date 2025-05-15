@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using TransmissionManager.TorrentWebPages.Extensions;
 
 namespace TransmissionManager.TorrentWebPages.Tests;
 

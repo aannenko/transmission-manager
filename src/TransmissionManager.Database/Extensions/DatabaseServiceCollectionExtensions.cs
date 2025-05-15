@@ -1,9 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Database.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class DatabaseServiceCollectionExtensions
 {

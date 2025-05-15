@@ -2,16 +2,12 @@ using Coravel;
 using TransmissionManager.Api.Actions.AppInfo;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Constants;
-using TransmissionManager.Api.Extensions;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
-using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Services;
-using TransmissionManager.TorrentWebPages.Extensions;
-using TransmissionManager.Transmission.Extensions;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 

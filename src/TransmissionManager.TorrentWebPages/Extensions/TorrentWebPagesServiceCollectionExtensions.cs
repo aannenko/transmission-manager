@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using TransmissionManager.TorrentWebPages.Options;
 using TransmissionManager.TorrentWebPages.Options.Validation;
 using TransmissionManager.TorrentWebPages.Services;
 
-namespace TransmissionManager.TorrentWebPages.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
 public static class TorrentWebPagesServiceCollectionExtensions
 {

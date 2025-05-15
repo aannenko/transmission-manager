@@ -1,11 +1,10 @@
 ﻿using System.Net;
 using TransmissionManager.Api.Common.Constants;
-using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Utilities;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
 
-namespace TransmissionManager.Api.Common.Extensions;
+namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 public static class FindTorrentPageParametersExtensions
 {

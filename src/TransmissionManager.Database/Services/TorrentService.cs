@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
-using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Services;

@@ -1,6 +1,4 @@
-﻿using TransmissionManager.Database.Dto;
-
-namespace TransmissionManager.Database.Extensions;
+﻿namespace TransmissionManager.Database.Dto;
 
 internal static class TorrentOrderExtensions
 {

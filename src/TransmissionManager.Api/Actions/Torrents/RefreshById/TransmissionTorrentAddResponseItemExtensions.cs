@@ -1,7 +1,6 @@
 ﻿using TransmissionManager.Database.Dto;
-using TransmissionManager.Transmission.Dto;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Transmission.Dto;
 
 internal static class TransmissionTorrentAddResponseItemExtensions
 {

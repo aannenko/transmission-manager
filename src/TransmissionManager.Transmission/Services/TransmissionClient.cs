@@ -2,7 +2,6 @@
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
 using TransmissionManager.Transmission.Dto;
-using TransmissionManager.Transmission.Extensions;
 using TransmissionManager.Transmission.Options;
 using TransmissionManager.Transmission.Serialization;
 

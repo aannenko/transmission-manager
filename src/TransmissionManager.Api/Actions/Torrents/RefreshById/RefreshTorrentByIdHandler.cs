@@ -4,6 +4,7 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Services;
+using TransmissionManager.Transmission.Dto;
 using Result = TransmissionManager.Api.Actions.Torrents.RefreshTorrentByIdResult;
 
 namespace TransmissionManager.Api.Actions.Torrents;

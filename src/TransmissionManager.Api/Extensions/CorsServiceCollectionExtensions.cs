@@ -2,7 +2,7 @@
 using TransmissionManager.Api.Options;
 using TransmissionManager.Api.Options.Validation;
 
-namespace TransmissionManager.Api.Extensions;
+namespace Microsoft.Extensions.DependencyInjection;
 
 internal static class CorsServiceCollectionExtensions
 {

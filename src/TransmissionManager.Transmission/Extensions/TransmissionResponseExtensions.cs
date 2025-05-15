@@ -1,6 +1,4 @@
-﻿using TransmissionManager.Transmission.Dto;
-
-namespace TransmissionManager.Transmission.Extensions;
+﻿namespace TransmissionManager.Transmission.Dto;
 
 internal static class TransmissionResponseExtensions
 {

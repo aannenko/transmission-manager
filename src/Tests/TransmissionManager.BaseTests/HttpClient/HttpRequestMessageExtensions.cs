@@ -2,8 +2,9 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using TransmissionManager.BaseTests.HttpClient;
 
-namespace TransmissionManager.BaseTests.HttpClient;
+namespace System.Net.Http;
 
 internal static class HttpRequestMessageExtensions
 {
@@ -11,7 +12,7 @@ internal static class HttpRequestMessageExtensions
     {
         // For testing only, prevents escaping of <, >, &, + and some other chars in the requests
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
-        
+
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };

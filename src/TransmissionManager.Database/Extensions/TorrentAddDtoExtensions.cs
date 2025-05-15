@@ -1,7 +1,6 @@
-﻿using TransmissionManager.Database.Dto;
-using TransmissionManager.Database.Models;
+﻿using TransmissionManager.Database.Models;
 
-namespace TransmissionManager.Database.Extensions;
+namespace TransmissionManager.Database.Dto;
 
 internal static class TorrentAddDtoExtensions
 {
