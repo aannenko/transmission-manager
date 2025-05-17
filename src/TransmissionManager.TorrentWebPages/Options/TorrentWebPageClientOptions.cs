@@ -21,9 +21,8 @@ public sealed class TorrentWebPageClientOptions
     public required string DefaultMagnetRegexPattern { get; set; }
 
     [Required]
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code - tested after trimming
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
     [Range(typeof(TimeSpan), "00:00:00.01", "00:00:00.5")]
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
     public required TimeSpan RegexMatchTimeout { get; set; }
 
     public Regex DefaultMagnetRegex => _lazyDefaultMagnetRegex.Value;

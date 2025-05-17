@@ -1,19 +1,19 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
+[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
 public readonly record struct FindTorrentPageParameters(
     [property: EnumDataType(typeof(Order))] Order OrderBy = Order.Id,
     long? AnchorId = null,
     string? AnchorValue = null,
     [property: Range(1, FindTorrentPageParameters._maxTake)] int Take = 20,
     [property: EnumDataType(typeof(Direction))] Direction Direction = Direction.Forward,
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code - tested after trimming
     [property: MinLength(1)] string? PropertyStartsWith = null,
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
     bool? CronExists = null) : IValidatableObject
 {
     private const int _maxTake = 1000;

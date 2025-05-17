@@ -10,9 +10,8 @@ namespace TransmissionManager.Database.Services;
 #pragma warning disable EF1001 // Internal EF Core API usage - required to prevent required class members from being trimmed
 [method: DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(NullableClassCurrentProviderValueComparer<,>))]
 #pragma warning restore EF1001 // Internal EF Core API usage.
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code - tested after trimming
+[UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
 {
     private const string _noCaseCollation = "NOCASE";
 
