@@ -213,11 +213,7 @@ internal ref struct ValueStringBuilder
         if (_pos > _chars.Length - count)
             Grow(count);
 
-        var dst = _chars.Slice(_pos, count);
-        for (var i = 0; i < dst.Length; i++)
-        {
-            dst[i] = c;
-        }
+        _chars.Slice(_pos, count).Fill(c);
         _pos += count;
     }
 
