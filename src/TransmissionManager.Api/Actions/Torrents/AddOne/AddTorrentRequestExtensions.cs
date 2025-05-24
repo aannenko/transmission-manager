@@ -7,7 +7,8 @@ internal static class AddTorrentRequestExtensions
 {
     public static TorrentAddDto ToTorrentAddDto(
         this AddTorrentRequest dto,
-        TransmissionTorrentAddResponseItem transmissionTorrent)
+        TransmissionTorrentAddResponseItem transmissionTorrent,
+        DateTime date)
     {
         return new(
             hashString: transmissionTorrent.HashString,
@@ -15,6 +16,7 @@ internal static class AddTorrentRequestExtensions
             webPageUri: dto.WebPageUri,
             downloadDir: dto.DownloadDir,
             magnetRegexPattern: dto.MagnetRegexPattern,
-            cron: dto.Cron);
+            cron: dto.Cron,
+            hashStringDate: date);
     }
 }

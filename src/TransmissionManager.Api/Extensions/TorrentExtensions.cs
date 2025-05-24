@@ -9,6 +9,7 @@ internal static class TorrentExtensions
         return new(
             Id: torrent.Id,
             HashString: torrent.HashString,
+            HashStringDate: torrent.HashStringDate,
             Name: torrent.Name,
             WebPageUri: new(torrent.WebPageUri),
             DownloadDir: torrent.DownloadDir,

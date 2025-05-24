@@ -16,6 +16,7 @@ internal abstract class BaseTorrentServiceTests
         {
             Id = default,
             HashString = "0bda511316a069e86dd8ee8a3610475d2013a7fa",
+            HashStringDate = new DateTime(2022, 10, 1, 12, 34, 56, 777, DateTimeKind.Utc),
             Name = "TV show name",
             WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
             DownloadDir = "/tvshows",
@@ -25,6 +26,7 @@ internal abstract class BaseTorrentServiceTests
         {
             Id = default,
             HashString = "738c60cbd44f0e9457ba2afdad9e9231d76243fe",
+            HashStringDate = new DateTime(2023, 11, 2, 11, 22, 33, 444, DateTimeKind.Utc),
             Name = "Movie name",
             WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234568"),
             DownloadDir = "/movies",
@@ -34,6 +36,7 @@ internal abstract class BaseTorrentServiceTests
         {
             Id = default,
             HashString = "5713cc1aeb2ec4a371c2412dc04e0a60d710862e",
+            HashStringDate = new DateTime(2024, 12, 3, 10, 20, 30, 400, DateTimeKind.Utc),
             Name = "Music video name",
             WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234569"),
             DownloadDir = "/videos",

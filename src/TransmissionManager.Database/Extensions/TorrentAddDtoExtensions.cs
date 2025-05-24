@@ -10,6 +10,7 @@ internal static class TorrentAddDtoExtensions
         {
             Id = default,
             HashString = dto.HashString,
+            HashStringDate = dto.HashStringDate,
             Name = dto.Name,
             DownloadDir = dto.DownloadDir,
             WebPageUri = dto.WebPageUri.OriginalString,

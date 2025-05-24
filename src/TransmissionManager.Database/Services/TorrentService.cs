@@ -61,6 +61,9 @@ public sealed class TorrentService(AppDbContext dbContext)
                         static torrent => torrent.HashString,
                         torrent => dto.HashString ?? torrent.HashString)
                     .SetProperty(
+                        static torrent => torrent.HashStringDate,
+                        torrent => dto.HashStringDate ?? torrent.HashStringDate)
+                    .SetProperty(
                         static torrent => torrent.Name,
                         torrent => dto.Name ?? torrent.Name)
                     .SetProperty(

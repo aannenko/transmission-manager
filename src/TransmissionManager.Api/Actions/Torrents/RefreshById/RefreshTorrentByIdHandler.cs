@@ -50,8 +50,9 @@ internal sealed class RefreshTorrentByIdHandler(
             var transmissionRemoveTask = transmissionService
                 .RemoveTorrentAsync(torrent.HashString, false, cancellationToken);
 
+            var torrentUpdateDto = transmissionAddTorrent.ToTorrentUpdateDto(DateTime.UtcNow);
             var isTorrentUpdated = await torrentService
-                .TryUpdateOneByIdAsync(torrent.Id, transmissionAddTorrent.ToTorrentUpdateDto(), cancellationToken)
+                .TryUpdateOneByIdAsync(torrent.Id, torrentUpdateDto, cancellationToken)
                 .ConfigureAwait(false);
 
             if (!isTorrentUpdated)

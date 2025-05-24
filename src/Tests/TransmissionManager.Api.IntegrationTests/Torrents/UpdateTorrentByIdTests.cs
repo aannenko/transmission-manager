@@ -50,7 +50,7 @@ internal sealed class UpdateTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var torrent = await response.Content.ReadFromJsonAsync<Torrent>().ConfigureAwait(false);
+        var torrent = await response.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
 
         Assert.That(torrent, Is.Not.Null);
         using (Assert.EnterMultipleScope())

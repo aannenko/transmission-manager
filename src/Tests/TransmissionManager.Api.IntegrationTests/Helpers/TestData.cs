@@ -14,12 +14,14 @@ internal static class TestData
         public const string FirstTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
         public const string FirstTorrentDownloadDir = "/tvshows";
         public const string FirstTorrentCron = "0 11,17 * * *";
+        public static DateTime FirstTorrentHashStringDate = new(2022, 10, 1, 12, 34, 56, 777, DateTimeKind.Utc);
 
         public const string SecondTorrentHashString = "98ad2e3a694dfc69571c25241bd4042b94a55cf5";
         public const string SecondTorrentName = "TV Show 2";
         public const string SecondTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234568";
         public const string SecondTorrentDownloadDir = "/tvshows";
         public const string SecondTorrentMagnetRegexPattern = @"magnet:\?xt=[^""]+";
+        public static DateTime SecondTorrentHashStringDate = new(2023, 11, 2, 11, 22, 33, 444, DateTimeKind.Utc);
 
         public const string ThirdTorrentHashString = "10824f01cccd5d4088d8fa04f3d46b7d319744b2";
         public const string ThirdTorrentName = "TV Show 3";
@@ -27,6 +29,7 @@ internal static class TestData
         public const string ThirdTorrentDownloadDir = "/tvshows";
         public const string ThirdTorrentMagnetRegexPattern = @"magnet:\?xt=urn:[^""]+";
         public const string ThirdTorrentCron = "30 9,15 * * *";
+        public static DateTime ThirdTorrentHashStringDate = new(2024, 12, 3, 10, 20, 30, 400, DateTimeKind.Utc);
 
         public static Torrent[] CreateInitialTorrents() =>
             [
@@ -38,6 +41,7 @@ internal static class TestData
                     WebPageUri = FirstTorrentWebPageAddress,
                     DownloadDir = FirstTorrentDownloadDir,
                     Cron = FirstTorrentCron,
+                    HashStringDate = FirstTorrentHashStringDate,
                 },
                 new()
                 {
@@ -47,6 +51,7 @@ internal static class TestData
                     WebPageUri = SecondTorrentWebPageAddress,
                     DownloadDir = SecondTorrentDownloadDir,
                     MagnetRegexPattern = SecondTorrentMagnetRegexPattern,
+                    HashStringDate = SecondTorrentHashStringDate,
                 },
                 new()
                 {
@@ -57,6 +62,7 @@ internal static class TestData
                     DownloadDir = ThirdTorrentDownloadDir,
                     MagnetRegexPattern = ThirdTorrentMagnetRegexPattern,
                     Cron = ThirdTorrentCron,
+                    HashStringDate = ThirdTorrentHashStringDate,
                 },
             ];
     }

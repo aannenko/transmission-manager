@@ -40,7 +40,7 @@ internal sealed class AddTorrentHandler(
         try
         {
             torrentId = await torrentService
-                .AddOneAsync(dto.ToTorrentAddDto(transmissionTorrent), cancellationToken)
+                .AddOneAsync(dto.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
                 .ConfigureAwait(false);
 
             if (!string.IsNullOrEmpty(dto.Cron))
