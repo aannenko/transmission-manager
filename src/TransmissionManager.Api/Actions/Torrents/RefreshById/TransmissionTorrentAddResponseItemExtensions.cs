@@ -6,11 +6,11 @@ internal static class TransmissionTorrentAddResponseItemExtensions
 {
     public static TorrentUpdateDto ToTorrentUpdateDto(
         this TransmissionTorrentAddResponseItem transmissionTorrent,
-        DateTime? hashStringDate)
+        DateTime? refreshDate)
     {
         return new(
             hashString: transmissionTorrent.HashString,
-            hashStringDate: hashStringDate,
+            refreshDate: refreshDate,
             name: transmissionTorrent.Name);
     }
 }

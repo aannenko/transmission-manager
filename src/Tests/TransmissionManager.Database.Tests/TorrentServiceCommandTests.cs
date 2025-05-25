@@ -15,7 +15,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var dto = new TorrentAddDto(
             hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
-            hashStringDate: DateTime.UtcNow,
+            refreshDate: DateTime.UtcNow,
             name: "New TV show",
             webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
             downloadDir: "/tvshows",
@@ -37,7 +37,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         {
             Assert.That(actual!.Id, Is.EqualTo(torrentId));
             Assert.That(actual.HashString, Is.EqualTo(dto.HashString));
-            Assert.That(actual.HashStringDate, Is.EqualTo(dto.HashStringDate));
+            Assert.That(actual.RefreshDate, Is.EqualTo(dto.RefreshDate));
             Assert.That(actual.Name, Is.EqualTo(dto.Name));
             Assert.That(actual.WebPageUri, Is.EqualTo(dto.WebPageUri.OriginalString));
             Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
@@ -54,7 +54,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var dto = new TorrentAddDto(
             hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
-            hashStringDate: DateTime.UtcNow,
+            refreshDate: DateTime.UtcNow,
             name: "New TV show 2",
             webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
             downloadDir: "/tvshows");
@@ -72,7 +72,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var dto = new TorrentAddDto(
             hashString: "96a76b68b91ccf8929c5476e35ce42ff39101d2a",
-            hashStringDate: DateTime.UtcNow,
+            refreshDate: DateTime.UtcNow,
             name: "New TV show 3",
             webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
             downloadDir: "/tvshows");
@@ -90,7 +90,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var dto = new TorrentUpdateDto(
             hashString: "98ad2e3a694dfc69571c25241bd4042b94a55cf5",
-            hashStringDate: DateTime.UtcNow,
+            refreshDate: DateTime.UtcNow,
             name: "New torrent name",
             downloadDir: "/videos",
             magnetRegexPattern: @"magnet:\?xt=[^""]+",
@@ -110,7 +110,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(dto.Cron));
-            Assert.That(actual.HashStringDate, Is.EqualTo(dto.HashStringDate));
+            Assert.That(actual.RefreshDate, Is.EqualTo(dto.RefreshDate));
         }
     }
 

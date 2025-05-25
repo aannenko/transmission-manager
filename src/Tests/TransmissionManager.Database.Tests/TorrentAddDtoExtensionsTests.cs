@@ -10,7 +10,7 @@ internal sealed class TorrentAddDtoExtensionsTests
     {
         var dto = new TorrentAddDto(
             hashString: "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
-            hashStringDate: DateTime.UtcNow,
+            refreshDate: DateTime.UtcNow,
             name: "Test name",
             webPageUri: new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
             downloadDir: "/tvshows",
@@ -24,7 +24,7 @@ internal sealed class TorrentAddDtoExtensionsTests
         {
             Assert.That(torrent.Id, Is.Zero);
             Assert.That(torrent.HashString, Is.EqualTo(dto.HashString));
-            Assert.That(torrent.HashStringDate, Is.EqualTo(dto.HashStringDate));
+            Assert.That(torrent.RefreshDate, Is.EqualTo(dto.RefreshDate));
             Assert.That(torrent.Name, Is.EqualTo(dto.Name));
             Assert.That(torrent.WebPageUri, Is.EqualTo(dto.WebPageUri.OriginalString));
             Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));

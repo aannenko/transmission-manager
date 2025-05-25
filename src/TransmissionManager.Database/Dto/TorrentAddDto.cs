@@ -6,7 +6,7 @@ public sealed class TorrentAddDto
 {
     public TorrentAddDto(
         string hashString,
-        DateTime hashStringDate,
+        DateTime refreshDate,
         string name,
         Uri webPageUri,
         string downloadDir,
@@ -25,7 +25,7 @@ public sealed class TorrentAddDto
             ArgumentException.ThrowIfNullOrWhiteSpace(cron);
 
         HashString = hashString;
-        HashStringDate = hashStringDate;
+        RefreshDate = refreshDate;
         Name = name;
         WebPageUri = webPageUri;
         DownloadDir = downloadDir;
@@ -35,7 +35,7 @@ public sealed class TorrentAddDto
 
     public string HashString { get; }
 
-    public DateTime HashStringDate { get; }
+    public DateTime RefreshDate { get; }
 
     public string Name { get; }
 

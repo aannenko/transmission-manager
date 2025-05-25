@@ -6,7 +6,7 @@ public sealed class Torrent
 
     public required string HashString { get; set; }
 
-    public required DateTime HashStringDate { get; set; }
+    public required DateTime RefreshDate { get; set; }
 
     public required string Name { get; set; }
 

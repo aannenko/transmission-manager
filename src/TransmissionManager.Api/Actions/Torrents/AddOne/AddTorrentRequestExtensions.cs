@@ -12,11 +12,11 @@ internal static class AddTorrentRequestExtensions
     {
         return new(
             hashString: transmissionTorrent.HashString,
+            refreshDate: date,
             name: transmissionTorrent.Name,
             webPageUri: dto.WebPageUri,
             downloadDir: dto.DownloadDir,
             magnetRegexPattern: dto.MagnetRegexPattern,
-            cron: dto.Cron,
-            hashStringDate: date);
+            cron: dto.Cron);
     }
 }

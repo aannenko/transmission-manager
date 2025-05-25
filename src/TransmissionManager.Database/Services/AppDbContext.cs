@@ -26,8 +26,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         torrentBuilder.HasIndex(static torrent => torrent.HashString).IsUnique(true);
         torrentBuilder.Property(static torrent => torrent.HashString).UseCollation(_noCaseCollation);
 
-        torrentBuilder.HasIndex(static torrent => torrent.HashStringDate);
-        torrentBuilder.Property(static torrent => torrent.HashStringDate).HasConversion(
+        torrentBuilder.HasIndex(static torrent => torrent.RefreshDate);
+        torrentBuilder.Property(static torrent => torrent.RefreshDate).HasConversion(
             static date => date.ToUniversalTime(),
             static date => DateTime.SpecifyKind(date, DateTimeKind.Utc));
 

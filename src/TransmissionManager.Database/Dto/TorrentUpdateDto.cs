@@ -4,7 +4,7 @@ public sealed class TorrentUpdateDto
 {
     public TorrentUpdateDto(
         string? hashString = null,
-        DateTime? hashStringDate = null,
+        DateTime? refreshDate = null,
         string? name = null,
         string? downloadDir = null,
         string? magnetRegexPattern = null,
@@ -20,7 +20,7 @@ public sealed class TorrentUpdateDto
             ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
         HashString = hashString;
-        HashStringDate = hashStringDate;
+        RefreshDate = refreshDate;
         Name = name;
         DownloadDir = downloadDir;
         MagnetRegexPattern = magnetRegexPattern;
@@ -31,7 +31,7 @@ public sealed class TorrentUpdateDto
     public string? HashString { get; }
     
     // null is ignored
-    public DateTime? HashStringDate { get; }
+    public DateTime? RefreshDate { get; }
 
     // null is ignored
     public string? Name { get; }
