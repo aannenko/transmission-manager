@@ -46,18 +46,14 @@ internal static class FindTorrentPageEndpoint
         if (!MiniValidator.TryValidate(parameters, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        var pageDescriptor = parameters.ToTorrentPageDescriptor();
-        var filter = parameters.ToTorrentFilter();
-
-        var torrents = await service.FindPageAsync(pageDescriptor, filter, cancellationToken).ConfigureAwait(false);
+        var torrents = await service
+            .FindPageAsync(parameters.ToTorrentPageDescriptor(), parameters.ToTorrentFilter(), cancellationToken)
+            .ConfigureAwait(false);
+        
         var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
-
-        var nextPage = parameters.ToNextPageParameters(dtos)?.ToPathAndQueryString();
-        var previousPage = parameters.ToPreviousPageParameters(dtos)?.ToPathAndQueryString();
-
         return TypedResults.Ok(new FindTorrentPageResponse(
-            [.. torrents.Select(static torrent => torrent.ToDto())],
-            nextPage,
-            previousPage));
+            dtos,
+            parameters.ToNextPageParameters(dtos)?.ToPathAndQueryString(),
+            parameters.ToPreviousPageParameters(dtos)?.ToPathAndQueryString()));
     }
 }
