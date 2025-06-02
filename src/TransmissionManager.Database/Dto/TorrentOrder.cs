@@ -4,6 +4,8 @@ public enum TorrentOrder
 {
     Id,
     IdDesc,
+    RefreshDate,
+    RefreshDateDesc,
     Name,
     NameDesc,
     WebPage,

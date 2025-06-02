@@ -46,9 +46,7 @@ internal static class FindTorrentPageEndpoint
         if (!MiniValidator.TryValidate(parameters, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        var torrents = await service
-            .FindPageAsync(parameters.ToTorrentPageDescriptor(), parameters.ToTorrentFilter(), cancellationToken)
-            .ConfigureAwait(false);
+        var torrents = await service.FindPageAsync(parameters, cancellationToken).ConfigureAwait(false);
         
         var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
         return TypedResults.Ok(new FindTorrentPageResponse(

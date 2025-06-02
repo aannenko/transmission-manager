@@ -43,12 +43,15 @@ internal sealed class AddTorrentTests
         TestData.Transmission.FilledRequestHeaders,
         _addNewTorrentRequestBody);
 
+    private const string _addNewTorrentResponseHashString = "3A81AAA70E75439D332C146ABDE899E546356BE2";
+    private const int _addNewTorrentResponseId = 26;
+    private const string _addNewTorrentResponseName = "TV Show 4";
     private static readonly string _addNewTorrentResponseBody = string.Format(
         null,
         TestData.Transmission.AddTorrentAddedResponseBodyFormat,
-        "3A81AAA70E75439D332C146ABDE899E546356BE2",
-        26,
-        "TV Show 4");
+        _addNewTorrentResponseHashString,
+        _addNewTorrentResponseId,
+        _addNewTorrentResponseName);
 
     private static readonly TestResponse _addNewTorrentValidHeaderResponse = new(
         HttpStatusCode.Created,
@@ -132,12 +135,26 @@ internal sealed class AddTorrentTests
 
         var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
 
+        var expectedLocation = $"{EndpointAddresses.Torrents}/2";
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-            var location = $"{EndpointAddresses.Torrents}/2";
-            Assert.That(response.Headers.Location?.OriginalString, Is.EqualTo(location));
+            Assert.That(response.Headers.Location?.OriginalString, Is.EqualTo(expectedLocation));
         }
+
+        var newTorrent = await _client.GetFromJsonAsync<TorrentDto>(expectedLocation).ConfigureAwait(false);
+
+        Assert.That(newTorrent, Is.Not.Null);
+        TorrentAssertions.AssertEqual(newTorrent, 2, new Torrent
+        {
+            Id = default,
+            HashString = _addNewTorrentResponseHashString,
+            RefreshDate = DateTime.UtcNow,
+            Name = _addNewTorrentResponseName,
+            WebPageUri = dto.WebPageUri.OriginalString,
+            DownloadDir = dto.DownloadDir,
+            Cron = dto.Cron,
+        }, TimeSpan.FromSeconds(2));
     }
 
     [Test]

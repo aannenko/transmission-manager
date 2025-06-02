@@ -53,6 +53,8 @@ public sealed class TorrentService(AppDbContext dbContext)
         TorrentUpdateDto dto,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(dto);
+
         var updatedRows = await dbContext.Torrents
             .Where(torrent => torrent.Id == id)
             .ExecuteUpdateAsync(

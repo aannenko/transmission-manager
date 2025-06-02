@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Services.Background;
@@ -59,5 +60,5 @@ internal sealed class AddTorrentHandler(
     }
 
     private static string GetError(Uri webPageUri, string? message) =>
-        string.Format(null, _error, webPageUri, message);
+        string.Format(CultureInfo.InvariantCulture, _error, webPageUri, message);
 }

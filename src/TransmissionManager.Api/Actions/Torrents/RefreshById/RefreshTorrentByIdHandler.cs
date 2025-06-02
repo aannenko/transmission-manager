@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.TorrentWebPage;
@@ -77,5 +78,5 @@ internal sealed class RefreshTorrentByIdHandler(
     }
 
     private static string GetError(long id, string? message) =>
-        string.Format(null, _error, id, message);
+        string.Format(CultureInfo.InvariantCulture, _error, id, message);
 }

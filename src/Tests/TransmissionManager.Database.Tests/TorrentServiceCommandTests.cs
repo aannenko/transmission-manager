@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
+using TransmissionManager.Database.Tests.Helpers;
 
 namespace TransmissionManager.Database.Tests;
 
@@ -23,27 +24,14 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             cron: "0 10,18 * * *");
 
         var torrentId = await service.AddOneAsync(dto).ConfigureAwait(false);
+        
+        Assert.That(torrentId, Is.GreaterThan(0));
+        
         var actual = await context.Torrents
             .FirstOrDefaultAsync(torrent => torrent.Id == torrentId)
             .ConfigureAwait(false);
 
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(torrentId, Is.GreaterThan(0));
-            Assert.That(actual, Is.Not.Null);
-        }
-
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(actual!.Id, Is.EqualTo(torrentId));
-            Assert.That(actual.HashString, Is.EqualTo(dto.HashString));
-            Assert.That(actual.RefreshDate, Is.EqualTo(dto.RefreshDate));
-            Assert.That(actual.Name, Is.EqualTo(dto.Name));
-            Assert.That(actual.WebPageUri, Is.EqualTo(dto.WebPageUri.OriginalString));
-            Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
-            Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
-            Assert.That(actual.Cron, Is.EqualTo(dto.Cron));
-        }
+        TorrentAssertions.AssertEqual(actual, torrentId, dto);
     }
 
     [Test]
@@ -102,16 +90,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
 
-        Assert.That(actual, Is.Not.Null);
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(actual!.HashString, Is.EqualTo(dto.HashString));
-            Assert.That(actual.Name, Is.EqualTo(dto.Name));
-            Assert.That(actual.DownloadDir, Is.EqualTo(dto.DownloadDir));
-            Assert.That(actual.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
-            Assert.That(actual.Cron, Is.EqualTo(dto.Cron));
-            Assert.That(actual.RefreshDate, Is.EqualTo(dto.RefreshDate));
-        }
+        TorrentAssertions.AssertEqual(actual, 1, dto);
     }
 
     [Test]
@@ -128,12 +107,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
 
-        Assert.That(actual, Is.Not.Null);
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(actual!.MagnetRegexPattern, Is.Null);
-            Assert.That(actual.Cron, Is.Null);
-        }
+        TorrentAssertions.AssertEqual(actual, 1, dto);
     }
 
     [Test]

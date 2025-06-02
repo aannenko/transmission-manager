@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Database.Dto;
+﻿using System.Globalization;
+using TransmissionManager.Database.Dto;
 
 namespace TransmissionManager.Database.Tests;
 
@@ -45,18 +46,26 @@ internal sealed class TorrentPageDescriptorTests
         using (Assert.EnterMultipleScope())
         {
             const string error1 = $"Incompatible arguments OrderBy 'Id' " +
-                $"and AnchorValue 'abc' were provided. (Parameter 'AnchorValue')";
+                $"and AnchorValue System.String 'abc' were provided. (Parameter 'AnchorValue')";
 
             Assert.That(
                 () => new TorrentPageDescriptor<string>(OrderBy: TorrentOrder.Id, AnchorValue: "abc"),
                 Throws.InstanceOf<ArgumentException>().With.Message.EqualTo(error1));
 
             const string error2 = $"Incompatible arguments OrderBy 'Name' " +
-                $"and AnchorValue '0' were provided. (Parameter 'AnchorValue')";
+                $"and AnchorValue System.Int32 '0' were provided. (Parameter 'AnchorValue')";
 
             Assert.That(
                 () => new TorrentPageDescriptor<int>(OrderBy: TorrentOrder.Name, AnchorValue: 0),
                 Throws.InstanceOf<ArgumentException>().With.Message.EqualTo(error2));
+
+            var utcNow = DateTime.UtcNow;
+            var error3 = $"Incompatible arguments OrderBy 'Name' and AnchorValue System.DateTime " +
+                $"'{utcNow.ToString(CultureInfo.InvariantCulture)}' were provided. (Parameter 'AnchorValue')";
+
+            Assert.That(
+                () => new TorrentPageDescriptor<DateTime>(OrderBy: TorrentOrder.Name, AnchorValue: utcNow),
+                Throws.InstanceOf<ArgumentException>().With.Message.EqualTo(error3));
         }
     }
 

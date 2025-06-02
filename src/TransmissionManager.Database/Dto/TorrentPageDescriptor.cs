@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace TransmissionManager.Database.Dto;
 
@@ -20,7 +21,12 @@ public readonly record struct TorrentPageDescriptor<TAnchor>(
     public TAnchor? AnchorValue { get; } = OrderBy.IsCompatibleWith(AnchorValue)
         ? AnchorValue
         : throw new ArgumentException(
-            string.Format(null, OrderByAndAnchorValueErrorFormat, OrderBy, AnchorValue),
+            string.Format(
+                CultureInfo.InvariantCulture,
+                OrderByAndAnchorValueErrorFormat,
+                OrderBy,
+                typeof(TAnchor),
+                AnchorValue),
             nameof(AnchorValue));
 
     public int Take { get; } = Take > 0
@@ -28,5 +34,5 @@ public readonly record struct TorrentPageDescriptor<TAnchor>(
         : throw new ArgumentOutOfRangeException(nameof(Take));
 
     internal static CompositeFormat OrderByAndAnchorValueErrorFormat { get; } = CompositeFormat.Parse(
-        $"Incompatible arguments {nameof(OrderBy)} '{{0}}' and {nameof(AnchorValue)} '{{1}}' were provided.");
+        $"Incompatible arguments {nameof(OrderBy)} '{{0}}' and {nameof(AnchorValue)} {{1}} '{{2}}' were provided.");
 }

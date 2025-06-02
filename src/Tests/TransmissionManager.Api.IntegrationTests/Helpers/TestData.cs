@@ -14,7 +14,7 @@ internal static class TestData
         public const string FirstTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234567";
         public const string FirstTorrentDownloadDir = "/tvshows";
         public const string FirstTorrentCron = "0 11,17 * * *";
-        public static DateTime FirstTorrentRefreshDate = new(2022, 10, 1, 12, 34, 56, 777, DateTimeKind.Utc);
+        public static DateTime FirstTorrentRefreshDate = new(2024, 12, 3, 10, 20, 30, 400, DateTimeKind.Utc);
 
         public const string SecondTorrentHashString = "98ad2e3a694dfc69571c25241bd4042b94a55cf5";
         public const string SecondTorrentName = "TV Show 2";
@@ -29,7 +29,7 @@ internal static class TestData
         public const string ThirdTorrentDownloadDir = "/tvshows";
         public const string ThirdTorrentMagnetRegexPattern = @"magnet:\?xt=urn:[^""]+";
         public const string ThirdTorrentCron = "30 9,15 * * *";
-        public static DateTime ThirdTorrentRefreshDate = new(2024, 12, 3, 10, 20, 30, 400, DateTimeKind.Utc);
+        public static DateTime ThirdTorrentRefreshDate = new(2022, 10, 1, 12, 34, 56, 777, DateTimeKind.Utc);
 
         public static Torrent[] CreateInitialTorrents() =>
             [
@@ -91,7 +91,7 @@ internal static class TestData
         public const string SecondPageMagnetUpdated =
             "magnet:?xt=urn:btih:9EBC251E08FB1AECB7B24D26385341875473919A&dn=TV+Show+2";
 
-        public const string ThirdPageMagnetRemovedFromTransmission =
+        public const string ThirdPageMagnetNotInTansmission =
             "magnet:?xt=urn:btih:10824F01CCCD5D4088D8FA04F3D46B7D319744B2&dn=TV+Show+3";
 
         public const string FourthPageMagnetNew =
@@ -99,20 +99,21 @@ internal static class TestData
 
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
 
-        public static readonly Dictionary<TestRequest, TestResponse> RequestResponseMap = new()
-        {
-            [new(HttpMethod.Get, new(Database.FirstTorrentWebPageAddress))] =
-                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FirstPageMagnetExisting)),
+        public static readonly IReadOnlyDictionary<TestRequest, TestResponse> RequestResponseMap =
+            new Dictionary<TestRequest, TestResponse>
+            {
+                [new(HttpMethod.Get, new(Database.FirstTorrentWebPageAddress))] =
+                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FirstPageMagnetExisting)),
 
-            [new(HttpMethod.Get, new(Database.SecondTorrentWebPageAddress))] =
-                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, SecondPageMagnetUpdated)),
+                [new(HttpMethod.Get, new(Database.SecondTorrentWebPageAddress))] =
+                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, SecondPageMagnetUpdated)),
 
-            [new(HttpMethod.Get, new(Database.ThirdTorrentWebPageAddress))] =
-                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, ThirdPageMagnetRemovedFromTransmission)),
+                [new(HttpMethod.Get, new(Database.ThirdTorrentWebPageAddress))] =
+                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, ThirdPageMagnetNotInTansmission)),
 
-            [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
-                new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FourthPageMagnetNew)),
-        };
+                [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
+                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FourthPageMagnetNew)),
+            };
     }
 
     internal static class Transmission
@@ -121,25 +122,25 @@ internal static class TestData
         public const string SessionHeaderValue = "FctoNpkk6eYSSgmBV0B2DXI4SsLLSYc0lA5MdYkLpc9fDA59";
 
         public const string GetOneTorrentRequestBody =
-            "{{\"method\":\"torrent-get\",\"arguments\":{{\"ids\":[\"{0}\"],\"fields\":[\"hashString\",\"name\",\"sizeWhenDone\",\"percentDone\",\"downloadDir\"]}}}}";
+            """{{"method":"torrent-get","arguments":{{"ids":["{0}"],"fields":["hashString","name","sizeWhenDone","percentDone","downloadDir"]}}}}""";
 
         public const string GetOneTorrentResponseBody =
-            "{{\"arguments\":{{\"torrents\":[{{\"downloadDir\":\"{0}\",\"hashString\":\"{1}\",\"name\":\"{2}\",\"percentDone\":1,\"sizeWhenDone\":34008064679}}]}},\"result\":\"success\"}}";
+            """{{"arguments":{{"torrents":[{{"downloadDir":"{0}","hashString":"{1}","name":"{2}","percentDone":1,"sizeWhenDone":34008064679}}]}},"result":"success"}}""";
 
         public const string GetOneTorrentNotFoundResponseBody =
             """{"arguments":{"torrents":[]},"result":"success"}""";
 
         public const string AddTorrentRequestBody =
-            "{{\"method\":\"torrent-add\",\"arguments\":{{\"filename\":\"{0}\",\"download-dir\":\"{1}\"}}}}";
+            """{{"method":"torrent-add","arguments":{{"filename":"{0}","download-dir":"{1}"}}}}""";
 
         public const string AddTorrentAddedResponseBody =
-            "{{\"arguments\":{{\"torrent-added\":{{\"hashString\":\"{0}\",\"id\":{1},\"name\":\"{2}\"}}}},\"result\":\"success\"}}";
+            """{{"arguments":{{"torrent-added":{{"hashString":"{0}","id":{1},"name":"{2}"}}}},"result":"success"}}""";
 
         public const string AddTorrentDuplicateResponseBody =
-            "{{\"arguments\":{{\"torrent-duplicate\":{{\"hashString\":\"{0}\",\"id\":{1},\"name\":\"{2}\"}}}},\"result\":\"success\"}}";
+            """{{"arguments":{{"torrent-duplicate":{{"hashString":"{0}","id":{1},"name":"{2}"}}}},"result":"success"}}""";
 
         public const string DeleteTorrentRequestBody =
-            "{{\"method\":\"torrent-remove\",\"arguments\":{{\"ids\":[\"{0}\"],\"delete-local-data\":{1}}}}}";
+            """{{"method":"torrent-remove","arguments":{{"ids":["{0}"],"delete-local-data":{1}}}}}""";
 
         public const string DeleteTorrentResponseBody =
             """{"arguments":{},"result":"success"}""";
@@ -168,30 +169,34 @@ internal static class TestData
 
         public static readonly Uri ApiUri = new("http://transmission:9091/transmission/rpc");
 
-        public static readonly Dictionary<string, string> EmptyRequestHeaders = new()
-        {
-            [SessionHeaderName] = string.Empty
-        };
+        public static readonly IReadOnlyDictionary<string, string> EmptyRequestHeaders =
+            new Dictionary<string, string>
+            {
+                [SessionHeaderName] = string.Empty
+            };
 
-        public static readonly Dictionary<string, string> FilledRequestHeaders = new()
-        {
-            [SessionHeaderName] = SessionHeaderValue
-        };
+        public static readonly IReadOnlyDictionary<string, string> FilledRequestHeaders =
+            new Dictionary<string, string>
+            {
+                [SessionHeaderName] = SessionHeaderValue
+            };
 
-        public static readonly Dictionary<string, string> DefaultResponseHeaders = new()
-        {
-            ["Server"] = "Transmission",
-            ["Access-Control-Allow-Origin"] = "*",
-            ["Date"] = "Sun, 13 Oct 2024 09:25:11 GMT"
-        };
+        public static readonly IReadOnlyDictionary<string, string> DefaultResponseHeaders =
+            new Dictionary<string, string>
+            {
+                ["Server"] = "Transmission",
+                ["Access-Control-Allow-Origin"] = "*",
+                ["Date"] = "Sun, 13 Oct 2024 09:25:11 GMT"
+            };
 
-        public static readonly Dictionary<string, string> ConflictResponseHeaders = new()
-        {
-            ["Server"] = "Transmission",
-            ["Access-Control-Allow-Origin"] = "*",
-            [SessionHeaderName] = SessionHeaderValue,
-            ["Access-Control-Expose-Headers"] = SessionHeaderName,
-            ["Date"] = "Sun, 13 Oct 2024 09:25:11 GMT"
-        };
+        public static readonly IReadOnlyDictionary<string, string> ConflictResponseHeaders =
+            new Dictionary<string, string>
+            {
+                ["Server"] = "Transmission",
+                ["Access-Control-Allow-Origin"] = "*",
+                [SessionHeaderName] = SessionHeaderValue,
+                ["Access-Control-Expose-Headers"] = SessionHeaderName,
+                ["Date"] = "Sun, 13 Oct 2024 09:25:11 GMT"
+            };
     }
 }

@@ -4,6 +4,8 @@ public enum FindTorrentPageOrder
 {
     Id,
     IdDesc,
+    RefreshDate,
+    RefreshDateDesc,
     Name,
     NameDesc,
     WebPage,

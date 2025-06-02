@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Constants;
 
@@ -26,7 +27,7 @@ internal static class UpdateTorrentByIdEndpoint
         return await handler.TryUpdateTorrentByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
             ? TypedResults.NoContent()
             : TypedResults.Problem(
-                string.Format(null, EndpointMessages.IdNotFoundFormat, id),
+                string.Format(CultureInfo.InvariantCulture, EndpointMessages.IdNotFoundFormat, id),
                 statusCode: StatusCodes.Status404NotFound);
     }
 }

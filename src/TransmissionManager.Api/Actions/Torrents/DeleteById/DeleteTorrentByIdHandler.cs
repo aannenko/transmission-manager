@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.Transmission;
@@ -48,5 +49,5 @@ internal sealed class DeleteTorrentByIdHandler(
     }
 
     private static string GetError(long id, string? message) =>
-        string.Format(null, _error, id, message);
+        string.Format(CultureInfo.InvariantCulture, _error, id, message);
 }

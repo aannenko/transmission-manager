@@ -6,6 +6,7 @@ internal static class TorrentOrderExtensions
     {
         return orderBy is
             TorrentOrder.IdDesc or
+            TorrentOrder.RefreshDateDesc or
             TorrentOrder.NameDesc or
             TorrentOrder.WebPageDesc or
             TorrentOrder.DownloadDirDesc;
@@ -17,6 +18,8 @@ internal static class TorrentOrderExtensions
         {
             TorrentOrder.Id => TorrentOrder.IdDesc,
             TorrentOrder.IdDesc => TorrentOrder.Id,
+            TorrentOrder.RefreshDate => TorrentOrder.RefreshDateDesc,
+            TorrentOrder.RefreshDateDesc => TorrentOrder.RefreshDate,
             TorrentOrder.Name => TorrentOrder.NameDesc,
             TorrentOrder.NameDesc => TorrentOrder.Name,
             TorrentOrder.WebPage => TorrentOrder.WebPageDesc,
@@ -32,6 +35,7 @@ internal static class TorrentOrderExtensions
         return orderBy switch
         {
             TorrentOrder.Id or TorrentOrder.IdDesc => anchorValue is null,
+            TorrentOrder.RefreshDate or TorrentOrder.RefreshDateDesc => anchorValue is null or DateTime,
             TorrentOrder.Name or TorrentOrder.NameDesc => anchorValue is null or string,
             TorrentOrder.WebPage or TorrentOrder.WebPageDesc => anchorValue is null or string,
             TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => anchorValue is null or string,

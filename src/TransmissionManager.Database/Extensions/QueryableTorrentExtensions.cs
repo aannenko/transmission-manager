@@ -1,13 +1,14 @@
-﻿using TransmissionManager.Database.Dto;
+﻿using System.Globalization;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
 namespace System.Linq;
 
 internal static class QueryableTorrentExtensions
 {
-    public static IQueryable<Torrent> WhereOrderByTake<T>(
+    public static IQueryable<Torrent> WhereOrderByTake<TAnchor>(
         this IQueryable<Torrent> query,
-        in TorrentPageDescriptor<T> page)
+        in TorrentPageDescriptor<TAnchor> page)
     {
         var isWhereRequired = page.AnchorId is not null || page.AnchorValue is not null;
 
@@ -29,11 +30,11 @@ internal static class QueryableTorrentExtensions
         }
     }
 
-    private static IQueryable<Torrent> Where<T>(
+    private static IQueryable<Torrent> Where<TAnchor>(
         this IQueryable<Torrent> query,
         TorrentOrder orderBy,
         long? anchorId,
-        T? anchorValue)
+        TAnchor? anchorValue)
     {
         if (anchorValue is null)
             orderBy = orderBy.IsDescending() ? TorrentOrder.IdDesc : TorrentOrder.Id;
@@ -46,6 +47,14 @@ internal static class QueryableTorrentExtensions
                 query.Where(torrent => torrent.Id > anchorId),
             (TorrentOrder.IdDesc, _) =>
                 query.Where(torrent => torrent.Id < anchorId),
+            (TorrentOrder.RefreshDate, DateTime date) =>
+                query.Where(torrent =>
+                    torrent.RefreshDate > date ||
+                    (torrent.RefreshDate == date && torrent.Id > anchorId)),
+            (TorrentOrder.RefreshDateDesc, DateTime date) =>
+                query.Where(torrent =>
+                    torrent.RefreshDate < date ||
+                    (torrent.RefreshDate == date && torrent.Id < anchorId)),
             (TorrentOrder.Name, string name) =>
                 query.Where(torrent =>
                     torrent.Name.CompareTo(name) > 0 ||
@@ -71,7 +80,12 @@ internal static class QueryableTorrentExtensions
                     torrent.DownloadDir.CompareTo(downloadDir) < 0 ||
                     (torrent.DownloadDir.CompareTo(downloadDir) == 0 && torrent.Id < anchorId)),
             _ => throw new ArgumentException( // Should never happen due to validation in the TorrentPageDescriptor
-                string.Format(null, TorrentPageDescriptor<T>.OrderByAndAnchorValueErrorFormat, orderBy, anchorId),
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    TorrentPageDescriptor<TAnchor>.OrderByAndAnchorValueErrorFormat,
+                    orderBy,
+                    typeof(TAnchor),
+                    anchorValue),
                 nameof(anchorValue))
         };
     }
@@ -82,6 +96,8 @@ internal static class QueryableTorrentExtensions
         {
             TorrentOrder.Id => query.OrderBy(static torrent => torrent.Id),
             TorrentOrder.IdDesc => query.OrderByDescending(static torrent => torrent.Id),
+            TorrentOrder.RefreshDate => query.OrderBy(static torrent => torrent.RefreshDate),
+            TorrentOrder.RefreshDateDesc => query.OrderByDescending(static torrent => torrent.RefreshDate),
             TorrentOrder.Name => query.OrderBy(static torrent => torrent.Name),
             TorrentOrder.NameDesc => query.OrderByDescending(static torrent => torrent.Name),
             TorrentOrder.WebPage => query.OrderBy(static torrent => torrent.WebPageUri),
