@@ -25,7 +25,7 @@ internal static class TorrentServiceExtensions
         }
     }
 
-    public static TorrentPageDescriptor<TAnchor> GetPageDescriptor<TAnchor>(
+    private static TorrentPageDescriptor<TAnchor> GetPageDescriptor<TAnchor>(
         in FindTorrentPageParameters parameters,
         TAnchor? anchorValue)
     {
@@ -37,7 +37,7 @@ internal static class TorrentServiceExtensions
             Take: parameters.Take);
     }
 
-    public static TorrentFilter GetFilter(in FindTorrentPageParameters parameters)
+    private static TorrentFilter GetFilter(in FindTorrentPageParameters parameters)
     {
         return new(
             PropertyStartsWith: parameters.PropertyStartsWith,
