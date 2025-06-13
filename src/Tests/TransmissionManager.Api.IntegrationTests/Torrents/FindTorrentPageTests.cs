@@ -323,7 +323,7 @@ internal sealed class FindTorrentPageTests
         }
     }
 
-    private static IEnumerable<TestCaseData<FindTorrentPageParameters, string, string>> 
+    private static IEnumerable<TestCaseData<FindTorrentPageParameters, string, string>>
         GetFindTorrentPageAsyncBadRequestTestCases()
     {
         yield return new(

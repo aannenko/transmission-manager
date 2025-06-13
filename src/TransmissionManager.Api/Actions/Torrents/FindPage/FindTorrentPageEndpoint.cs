@@ -47,7 +47,7 @@ internal static class FindTorrentPageEndpoint
             return TypedResults.ValidationProblem(errors);
 
         var torrents = await service.FindPageAsync(parameters, cancellationToken).ConfigureAwait(false);
-        
+
         var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
         return TypedResults.Ok(new FindTorrentPageResponse(
             dtos,

@@ -48,7 +48,7 @@ internal static class TorrentAssertions
 
             if (expected.RefreshDate is not null)
                 Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate.Value));
-            
+
             if (expected.Name is not null)
                 Assert.That(actual.Name, Is.EqualTo(expected.Name));
 

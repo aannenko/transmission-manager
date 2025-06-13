@@ -24,9 +24,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             cron: "0 10,18 * * *");
 
         var torrentId = await service.AddOneAsync(dto).ConfigureAwait(false);
-        
+
         Assert.That(torrentId, Is.GreaterThan(0));
-        
+
         var actual = await context.Torrents
             .FirstOrDefaultAsync(torrent => torrent.Id == torrentId)
             .ConfigureAwait(false);

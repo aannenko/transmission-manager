@@ -22,7 +22,7 @@ public readonly partial record struct FindTorrentPageParameters(
         @"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d{1,7})?Z$";
 
     public static int MaxTake => _maxTake;
-    
+
     public static string Iso8601DateRegexPattern => _iso8601DateRegexPattern;
 
     private static readonly CompositeFormat _orderByAndAnchorValueErrorFormat = CompositeFormat.Parse(

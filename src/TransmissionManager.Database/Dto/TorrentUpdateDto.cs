@@ -29,7 +29,7 @@ public sealed class TorrentUpdateDto
 
     // null is ignored
     public string? HashString { get; }
-    
+
     // null is ignored
     public DateTime? RefreshDate { get; }
 
