@@ -75,7 +75,7 @@
             return;
         }
 
-        using var httpClient = HttpClientFactory.CreateClient(nameof(TransmissionManagerClient));
+        var httpClient = HttpClientFactory.CreateClient(nameof(TransmissionManagerClient));
         httpClient.BaseAddress = baseAddress;
         var transmissionManagerClient = new TransmissionManagerClient(httpClient);
         _connectionStatus = ConnectionStatus.Connecting;

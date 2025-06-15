@@ -49,12 +49,7 @@ else
         const string error = "Connection to Transmission Manager cannot be established";
         try
         {
-            var pageParameters = new FindTorrentPageParameters
-            {
-                Take = 1000
-            };
-
-            var page = await Client.GetTorrentPageAsync(pageParameters);
+            var page = await Client.GetTorrentPageAsync(new() { Take = 1000 });
             _torrents = page.Torrents as TorrentDto[] ?? page.Torrents.ToArray();
             _connectionError = string.Empty;
             _connectionStatus = ConnectionStatus.Connected;
