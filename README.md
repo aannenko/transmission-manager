@@ -6,7 +6,7 @@ Do more with [Transmission](https://transmissionbt.com/)!<br>
 - Automatically download new TV show episodes on a schedule
 
 ## How-to
-The steps outlined below assume you have a Raspberry Pi with LibreELEC and a Docker add-on installed.
+The steps outlined below assume you have a Raspberry Pi with [LibreELEC](https://libreelec.tv/) and a Docker add-on installed.
 
 By following these steps, you will set up both Transmission and Transmission Manager to run in Docker on your Raspberry Pi. Transmission will then save files directly to the Raspberry Pi's storage (an SSD is recommended for optimal performance).
 
