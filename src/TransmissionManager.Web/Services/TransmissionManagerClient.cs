@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.AppInfo;
@@ -6,7 +5,6 @@ using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Web.Services;
 
-[method: DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TransmissionManagerBaseAddressProvider))]
 internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
     public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
