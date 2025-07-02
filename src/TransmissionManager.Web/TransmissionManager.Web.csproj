@@ -16,10 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\css\font\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\TransmissionManager.Api.Common\TransmissionManager.Api.Common.csproj" />
   </ItemGroup>
 

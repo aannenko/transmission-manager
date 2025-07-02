@@ -34,15 +34,27 @@
     private async Task RefreshTorrentsAsync()
     {
         _isRefreshDisabled = true;
-        await RefreshAsync(Torrent.Id);
-        await Task.Delay(TimeSpan.FromSeconds(3));
-        _isRefreshDisabled = false;
+        try
+        {
+            await RefreshAsync(Torrent.Id);
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+        finally
+        {
+            _isRefreshDisabled = false;
+        }
     }
 
     private async Task DeleteTorrentAndDataAsync()
     {
         _isDeleteDisabled = true;
-        await DeleteAsync(Torrent.Id);
-        _isDeleteDisabled = false;
+        try
+        {
+            await DeleteAsync(Torrent.Id);
+        }
+        finally
+        {
+            _isDeleteDisabled = false;
+        }
     }
 }

@@ -16,12 +16,15 @@
             <InputText id="host" class="form-input" @bind-Value="Host" />
             <ValidationMessage For="@(() => Host)" />
         </div>
+        
         <div>
             <label for="port">Port:</label>
             <InputNumber id="port" class="form-input" @bind-Value="Port" />
             <ValidationMessage For="@(() => Port)" />
         </div>
+        
         <button class="form-button" type="submit" disabled="@(_connectionStatus is ConnectionStatus.Connecting)">Connect</button>
+        
         @if (_connectionStatus is ConnectionStatus.Connecting)
         {
             <p>Connecting...</p>
@@ -78,6 +81,7 @@
         var httpClient = HttpClientFactory.CreateClient(nameof(TransmissionManagerClient));
         httpClient.BaseAddress = baseAddress;
         var transmissionManagerClient = new TransmissionManagerClient(httpClient);
+        _connectionMessage = string.Empty;
         _connectionStatus = ConnectionStatus.Connecting;
 
         GetAppInfoResponse appInfo = default;
