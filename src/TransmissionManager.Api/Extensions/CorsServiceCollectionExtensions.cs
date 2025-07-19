@@ -30,8 +30,11 @@ internal static class CorsServiceCollectionExtensions
             options.AddDefaultPolicy(builder =>
             {
                 builder.WithOrigins(corsConfig.Origins)
-                    .WithHeaders(corsConfig.Headers)
-                    .WithMethods(corsConfig.Methods);
+                    .WithMethods(corsConfig.Methods)
+                    .WithHeaders(corsConfig.Headers);
+
+                if (corsConfig.ExposedHeaders.Length > 0)
+                    builder.WithExposedHeaders(corsConfig.ExposedHeaders);
 
                 if (corsConfig.AllowCredentials)
                     builder.AllowCredentials();
