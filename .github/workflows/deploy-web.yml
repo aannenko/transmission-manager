@@ -54,7 +54,7 @@ jobs:
         uses: SteveSandersonMS/ghaction-rewrite-base-href@v1
         with:
           html_path: ${{ env.PUBLISH_DIR }}/index.html
-          base_href: '/transmission-manager/'
+          base_href: /transmission-manager/
 
       - name: Cat index.html
         run: cat ${{ env.PUBLISH_DIR }}/index.html
