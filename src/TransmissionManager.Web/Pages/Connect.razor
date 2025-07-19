@@ -16,15 +16,15 @@
             <InputText id="host" class="form-input" @bind-Value="Host" />
             <ValidationMessage For="@(() => Host)" />
         </div>
-        
+
         <div>
             <label for="port">Port:</label>
             <InputNumber id="port" class="form-input" @bind-Value="Port" />
             <ValidationMessage For="@(() => Port)" />
         </div>
-        
+
         <button class="form-button" type="submit" disabled="@(_connectionStatus is ConnectionStatus.Connecting)">Connect</button>
-        
+
         @if (_connectionStatus is ConnectionStatus.Connecting)
         {
             <p>Connecting...</p>
@@ -56,7 +56,7 @@
     public string Host { get; set; } = string.Empty;
 
     [Required, Range(0, 65535)]
-    public int Port { get; set; } = 9092;
+    public int Port { get; set; } = 9093;
 
     protected override void OnInitialized()
     {
@@ -69,7 +69,7 @@
         Uri baseAddress;
         try
         {
-            baseAddress = new UriBuilder("http", Host, Port).Uri;
+            baseAddress = new UriBuilder("https", Host, Port).Uri;
         }
         catch (UriFormatException e)
         {

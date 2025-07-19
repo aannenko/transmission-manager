@@ -11,6 +11,8 @@ using TransmissionManager.Database.Services;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
+builder.WebHost.UseKestrelHttpsConfiguration();
+
 builder.Services.ConfigureHttpJsonOptions(
     static options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
