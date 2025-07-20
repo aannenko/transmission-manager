@@ -10,19 +10,19 @@
 
 <div class="item-card">
     <h3>Connect to Transmission Manager</h3>
-    <EditForm Model="Address" OnValidSubmit="ConnectAsync">
+    <EditForm Model="this" OnValidSubmit="ConnectAsync">
         <DataAnnotationsValidator />
 
         <div>
             <label for="host">Host:</label>
-            <InputText id="host" class="form-input" @bind-Value="Address.Host" />
-            <ValidationMessage For="@(() => Address.Host)" />
+            <InputText id="host" class="form-input" @bind-Value="Host" />
+            <ValidationMessage For="@(() => Host)" />
         </div>
 
         <div>
             <label for="port">Port:</label>
-            <InputNumber id="port" class="form-input" @bind-Value="Address.Port" />
-            <ValidationMessage For="@(() => Address.Port)" />
+            <InputNumber id="port" class="form-input" @bind-Value="Port" />
+            <ValidationMessage For="@(() => Port)" />
         </div>
 
         <button class="form-button" type="submit" disabled="@IsConnecting">Connect</button>
@@ -39,15 +39,6 @@
 </div>
 
 @code {
-    private sealed class BaseAddressModel
-    {
-        [Required, HostName]
-        public string Host { get; set; } = string.Empty;
-        
-        [Required, Range(0, 65535)]
-        public int Port { get; set; } = 9093;
-    }
-
     private enum ConnectionStatus
     {
         Connecting,
@@ -58,13 +49,18 @@
     private ConnectionStatus _connectionStatus = ConnectionStatus.Error;
     private string _connectionMessage = string.Empty;
 
-    private BaseAddressModel Address { get; set; } = new();
+    [Required, HostName]
+    public string Host { get; set; } = string.Empty;
+
+    [Required, Range(0, 65535)]
+    public int Port { get; set; } = 9093;
+
     private bool IsConnecting => _connectionStatus is ConnectionStatus.Connecting;
 
     protected override void OnInitialized()
     {
-        Address.Host = BaseAddressProvider.BaseAddress.Host;
-        Address.Port = BaseAddressProvider.BaseAddress.Port;
+        Host = BaseAddressProvider.BaseAddress.Host;
+        Port = BaseAddressProvider.BaseAddress.Port;
     }
 
     private async Task ConnectAsync()
@@ -72,7 +68,7 @@
         Uri baseAddress;
         try
         {
-            baseAddress = new UriBuilder("https", Address.Host, Address.Port).Uri;
+            baseAddress = new UriBuilder("https", Host, Port).Uri;
         }
         catch (UriFormatException e)
         {
@@ -99,8 +95,7 @@
         }
         catch (OperationCanceledException)
         {
-            _connectionMessage =
-                $"Connection attempt timed out. Please check the {nameof(Address.Host)} and {nameof(Address.Port)}.";
+            _connectionMessage = $"Connection attempt timed out. Please check the {nameof(Host)} and {nameof(Port)}.";
         }
         catch (Exception e)
         {
@@ -110,6 +105,7 @@
         if (appInfo != default)
         {
             BaseAddressProvider.BaseAddress = baseAddress;
+
             _connectionMessage = $"Connected to {baseAddress} " +
                 $"| Version: {appInfo.Version} " +
                 $"| Local time: {appInfo.LocalTime.ToString("yyyy-MM-dd HH:mm:ss zzz")}";
