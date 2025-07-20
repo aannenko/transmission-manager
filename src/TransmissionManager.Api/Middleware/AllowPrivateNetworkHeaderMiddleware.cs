@@ -1,7 +1,7 @@
 ﻿
 namespace TransmissionManager.Api.Middleware;
 
-internal sealed class AllowPrivateNetworkPreflightResponseHeaderMiddleware : IMiddleware
+internal sealed class AllowPrivateNetworkHeaderMiddleware : IMiddleware
 {
     public Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

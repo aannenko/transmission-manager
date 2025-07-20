@@ -17,7 +17,8 @@ builder.WebHost.UseKestrelHttpsConfiguration();
 builder.Services.ConfigureHttpJsonOptions(
     static options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
-builder.Services.AddSingleton<AllowPrivateNetworkPreflightResponseHeaderMiddleware>();
+builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
+builder.Services.AddSingleton<XContentTypeOptionsNoSniffMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
 
@@ -57,7 +58,8 @@ using (var scope = app.Services.CreateScope())
         .ConfigureAwait(false);
 }
 
-app.UseMiddleware<AllowPrivateNetworkPreflightResponseHeaderMiddleware>();
+app.UseMiddleware<XContentTypeOptionsNoSniffMiddleware>();
+app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
 app.UseCors();
 
 if (!app.Environment.IsDevelopment())
