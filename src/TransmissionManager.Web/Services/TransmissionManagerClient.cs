@@ -2,16 +2,19 @@ using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.AppInfo;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Web.Serialization;
 
 namespace TransmissionManager.Web.Services;
 
 internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
+    private static readonly AppJsonSerializerContext _serializerContext = AppJsonSerializerContext.Default;
+
     public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.AppInfo, UriKind.Relative);
         var response = await httpClient
-            .GetFromJsonAsync<GetAppInfoResponse>(requestUri, cancellationToken)
+            .GetFromJsonAsync(requestUri, _serializerContext.GetAppInfoResponse, cancellationToken)
             .ConfigureAwait(false);
 
         return response ?? throw new HttpRequestException("Failed to retrieve app info.");
@@ -26,7 +29,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
 
         var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
         return await httpClient
-            .GetFromJsonAsync<FindTorrentPageResponse>(requestUri, cancellationToken)
+            .GetFromJsonAsync(requestUri, _serializerContext.FindTorrentPageResponse, cancellationToken)
             .ConfigureAwait(false);
     }
 
