@@ -83,7 +83,7 @@
         _connectionMessage = string.Empty;
         _connectionStatus = ConnectionStatus.Connecting;
 
-        GetAppInfoResponse appInfo = default;
+        GetAppInfoResponse? appInfo = null;
         try
         {
             using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
@@ -102,7 +102,7 @@
             _connectionMessage = e.Message;
         }
 
-        if (appInfo != default)
+        if (appInfo is not null)
         {
             BaseAddressProvider.BaseAddress = baseAddress;
 
@@ -114,6 +114,9 @@
         }
         else
         {
+            if (string.IsNullOrEmpty(_connectionMessage))
+                _connectionMessage = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
+
             _connectionStatus = ConnectionStatus.Error;
         }
     }

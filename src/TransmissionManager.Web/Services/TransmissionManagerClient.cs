@@ -10,9 +10,11 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
     public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.AppInfo, UriKind.Relative);
-        return await httpClient
+        var response = await httpClient
             .GetFromJsonAsync<GetAppInfoResponse>(requestUri, cancellationToken)
             .ConfigureAwait(false);
+
+        return response ?? throw new HttpRequestException("Failed to retrieve app info.");
     }
 
     public async Task<FindTorrentPageResponse> GetTorrentPageAsync(

@@ -1,3 +1,3 @@
 ﻿namespace TransmissionManager.Api.Common.Dto.AppInfo;
 
-public readonly record struct GetAppInfoResponse(Version Version, DateTimeOffset LocalTime);
+public sealed record GetAppInfoResponse(Version Version, DateTimeOffset LocalTime);
