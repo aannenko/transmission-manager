@@ -28,9 +28,11 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
             request = new FindTorrentPageParameters(OrderBy: FindTorrentPageOrder.RefreshDateDesc);
 
         var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
-        return await httpClient
+        var response = await httpClient
             .GetFromJsonAsync(requestUri, _serializerContext.FindTorrentPageResponse, cancellationToken)
             .ConfigureAwait(false);
+
+        return response ?? throw new HttpRequestException("Failed to retrieve torrent page.");
     }
 
     public async Task<RefreshTorrentByIdResponse> RefreshTorrentByIdAsync(
