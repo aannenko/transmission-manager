@@ -2,6 +2,7 @@
 @inject IHttpClientFactory HttpClientFactory
 @inject TransmissionManagerBaseAddressProvider BaseAddressProvider
 @using System.ComponentModel.DataAnnotations
+@using System.Diagnostics.CodeAnalysis
 @using TransmissionManager.Api.Common.Dto.AppInfo
 @using TransmissionManager.Web.Services
 @using TransmissionManager.Web.Validation
@@ -63,6 +64,7 @@
         Port = BaseAddressProvider.BaseAddress.Port;
     }
 
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(GetAppInfoResponse))]
     private async Task ConnectAsync()
     {
         Uri baseAddress;
