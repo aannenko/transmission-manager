@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.AppInfo;
@@ -10,6 +11,8 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
     private static readonly AppJsonSerializerContext _serializerContext = AppJsonSerializerContext.Default;
 
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(GetAppInfoResponse))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(DateTimeOffset))]
     public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.AppInfo, UriKind.Relative);

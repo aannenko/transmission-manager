@@ -64,7 +64,6 @@
         Port = BaseAddressProvider.BaseAddress.Port;
     }
 
-    [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(GetAppInfoResponse))]
     private async Task ConnectAsync()
     {
         Uri baseAddress;
