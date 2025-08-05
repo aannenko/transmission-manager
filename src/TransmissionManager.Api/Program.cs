@@ -2,6 +2,7 @@ using Coravel;
 using TransmissionManager.Api.Actions.AppInfo;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Middleware;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
@@ -14,6 +15,7 @@ var builder = WebApplication.CreateSlimBuilder(args);
 builder.Services.ConfigureHttpJsonOptions(
     static options => options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default));
 
+builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
 
@@ -53,6 +55,7 @@ using (var scope = app.Services.CreateScope())
         .ConfigureAwait(false);
 }
 
+app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
 app.UseCors();
 
 if (!app.Environment.IsDevelopment())
