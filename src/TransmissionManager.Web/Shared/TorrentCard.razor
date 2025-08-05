@@ -2,18 +2,18 @@
 @using TransmissionManager.Web.Services
 
 <div class="item-card">
-    <h3>@Torrent.Name</h3>
+    <h4 class="text-header">@Torrent.Name</h4>
     <p class="text-secondary">Refreshed on: @Torrent.RefreshDate.ToString("yyyy-MM-dd HH:mm:ss zzz")</p>
 
     <a class="item-button" target="_blank" href="@Torrent.WebPageUri">
         <img src="img/visit.svg" alt="Go to torrent page" title="Go to torrent page" />
     </a>
 
-    <button class="item-button" disabled="@_isRefreshDisabled" @onclick="RefreshTorrentsAsync">
+    <button class="item-button" type="button" disabled="@_isRefreshDisabled" @onclick="RefreshTorrentsAsync">
         <img src="img/restart.svg" alt="Refresh" title="Refresh" />
     </button>
 
-    <button class="item-button" disabled="@_isDeleteDisabled" @onclick="DeleteTorrentAndDataAsync">
+    <button class="item-button" type="button" disabled="@_isDeleteDisabled" @onclick="DeleteTorrentAndDataAsync">
         <img src="img/bin.svg" alt="Remove" title="Remove" />
     </button>
 </div>
@@ -37,7 +37,7 @@
         try
         {
             await RefreshAsync(Torrent.Id);
-            await Task.Delay(TimeSpan.FromSeconds(3));
+            await Task.Delay(TimeSpan.FromSeconds(5));
         }
         finally
         {
