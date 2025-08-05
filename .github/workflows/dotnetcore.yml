@@ -18,14 +18,14 @@ jobs:
       with:
         dotnet-version: '9.x'
 
-    - name: Restore dependencies
-      run: dotnet restore src/TransmissionManager.slnx
+    - name: Restore API dependencies
+      run: dotnet restore src/TransmissionManager.Api.slnx
 
-    - name: Build solution
-      run: dotnet build src/TransmissionManager.slnx --no-restore
+    - name: Build API solution
+      run: dotnet build src/TransmissionManager.Api.slnx --no-restore
 
-    - name: Run all tests
-      run: dotnet test src/TransmissionManager.slnx --no-build --verbosity normal
+    - name: Run all API tests
+      run: dotnet test src/TransmissionManager.Api.slnx --no-build --verbosity normal
 
     - name: Publish API
       run: dotnet publish src/TransmissionManager.Api -c Release -o published
@@ -39,3 +39,12 @@ jobs:
 
     - name: Health-check published API
       run: curl localhost:9092/api/v1/torrents
+
+    - name: Install wasm-tools workload
+      run: dotnet workload install wasm-tools
+
+    - name: Restore WEB dependencies
+      run: dotnet restore src/TransmissionManager.Web.slnx
+
+    - name: Build WEB solution
+      run: dotnet build src/TransmissionManager.Web.slnx --no-restore

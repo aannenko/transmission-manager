@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../.gitignore" />
+    <File Path="../README.md" />
+    <File Path=".editorconfig" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Project Path="TransmissionManager.Api.Common/TransmissionManager.Api.Common.csproj" />
+  <Project Path="TransmissionManager.Web/TransmissionManager.Web.csproj" />
+</Solution>
