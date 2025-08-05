@@ -10,11 +10,6 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(DtoJsonSerializerContext.Default);
 
-builder.Services.AddScoped(static services => new HttpClient
-{
-    BaseAddress = new Uri(services.GetRequiredService<IWebAssemblyHostEnvironment>().BaseAddress)
-});
-
 builder.Services.AddSingleton<TransmissionManagerBaseAddressProvider>();
 builder.Services.AddHttpClient<TransmissionManagerClient>(static (services, client) =>
 {
