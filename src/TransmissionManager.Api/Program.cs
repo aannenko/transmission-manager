@@ -19,6 +19,7 @@ builder.Services.ConfigureHttpJsonOptions(static options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(1, ApiJsonSerializerContext.Default);
 });
 
+builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
 builder.Services.AddSingleton<XContentTypeOptionsNoSniffMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
@@ -60,6 +61,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<XContentTypeOptionsNoSniffMiddleware>();
+app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
 app.UseCors();
 
 if (!app.Environment.IsDevelopment())
