@@ -3,6 +3,7 @@ using TransmissionManager.Api.Actions.AppInfo;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Serialization;
+using TransmissionManager.Api.Middleware;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
@@ -18,6 +19,7 @@ builder.Services.ConfigureHttpJsonOptions(static options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(1, ApiJsonSerializerContext.Default);
 });
 
+builder.Services.AddSingleton<XContentTypeOptionsNoSniffMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
 
@@ -57,6 +59,7 @@ using (var scope = app.Services.CreateScope())
         .ConfigureAwait(false);
 }
 
+app.UseMiddleware<XContentTypeOptionsNoSniffMiddleware>();
 app.UseCors();
 
 if (!app.Environment.IsDevelopment())
