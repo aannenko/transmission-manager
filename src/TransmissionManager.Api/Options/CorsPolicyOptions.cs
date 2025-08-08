@@ -13,12 +13,16 @@ internal sealed class CorsPolicyOptions
     [Required]
     [MinLength(1)]
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
-    public string[] Headers { get; set; } = [];
+    public string[] Methods { get; set; } = [];
 
     [Required]
     [MinLength(1)]
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
-    public string[] Methods { get; set; } = [];
+    public string[] Headers { get; set; } = [];
+
+    [Required]
+    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
+    public string[] ExposedHeaders { get; set; } = [];
 
     [Required]
     public bool AllowCredentials { get; set; } = false;
