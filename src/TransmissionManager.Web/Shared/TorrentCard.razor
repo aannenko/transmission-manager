@@ -1,0 +1,60 @@
+﻿@using TransmissionManager.Api.Common.Dto.Torrents
+@using TransmissionManager.Web.Extensions
+@using TransmissionManager.Web.Services
+
+<div class="item-card">
+    <h4 class="text-header">@Torrent.Name</h4>
+    <p class="text-secondary">Refreshed on: @Torrent.RefreshDate.ToLocalTimeString()</p>
+
+    <a class="item-button" target="_blank" href="@Torrent.WebPageUri">
+        <img src="img/visit.svg" alt="Go to torrent page" title="Go to torrent page" />
+    </a>
+
+    <button class="item-button" type="button" disabled="@_areActionsDisabled" @onclick="RefreshTorrentsAsync">
+        <img src="img/restart.svg" alt="Refresh" title="Refresh" />
+    </button>
+
+    <button class="item-button" type="button" disabled="@_areActionsDisabled" @onclick="DeleteTorrentAndDataAsync">
+        <img src="img/bin.svg" alt="Remove" title="Remove" />
+    </button>
+</div>
+
+@code {
+    private bool _areActionsDisabled = false;
+
+    [Parameter, EditorRequired]
+    public TorrentDto Torrent { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<long, Task> RefreshAsync { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<long, Task> DeleteAsync { get; set; }
+
+    private async Task RefreshTorrentsAsync()
+    {
+        _areActionsDisabled = true;
+        try
+        {
+            await RefreshAsync(Torrent.Id);
+            await Task.Delay(TimeSpan.FromSeconds(5));
+        }
+        finally
+        {
+            _areActionsDisabled = false;
+        }
+    }
+
+    private async Task DeleteTorrentAndDataAsync()
+    {
+        _areActionsDisabled = true;
+        try
+        {
+            await DeleteAsync(Torrent.Id);
+        }
+        finally
+        {
+            _areActionsDisabled = false;
+        }
+    }
+}

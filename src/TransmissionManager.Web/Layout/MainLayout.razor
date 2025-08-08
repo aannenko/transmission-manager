@@ -1,0 +1,18 @@
+﻿@using TransmissionManager.Web.Services
+@inherits LayoutComponentBase
+
+<div class="layout-container">
+    <header class="layout-header">
+        <NavLink href="" class="nav-tab" Match="NavLinkMatch.All">
+            <img src="img/home.svg" title="Home" alt="Home icon"/>
+        </NavLink>
+
+        <NavLink href="connect" class="nav-tab">
+            <img src="img/link.svg" title="Connect" alt="Link icon" />
+        </NavLink>
+    </header>
+
+    <main class="layout-main">
+        @Body
+    </main>
+</div>

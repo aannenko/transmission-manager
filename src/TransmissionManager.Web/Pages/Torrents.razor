@@ -1,0 +1,92 @@
+﻿@page "/"
+@using System.Globalization
+@using TransmissionManager.Api.Common.Dto.Torrents
+@using TransmissionManager.Api.Common.Dto.Transmission
+@using TransmissionManager.Web.Services
+@using TransmissionManager.Web.Shared
+@inject TransmissionManagerClient Client
+
+<PageTitle>Transmission Manager - Torrents</PageTitle>
+
+@if (_connectionStatus is ConnectionStatus.Loading)
+{
+    <p>Loading...</p>
+}
+else if (_connectionStatus is ConnectionStatus.Connected)
+{
+    <Virtualize @ref="_virtualize" TItem="TorrentDto" Items="_torrents" Context="torrent">
+        <ItemContent>
+            <TorrentCard Torrent="torrent" RefreshAsync="RefreshTorrentsAsync" DeleteAsync="DeleteTorrentAndDataAsync"/>
+        </ItemContent>
+    </Virtualize>
+}
+else
+{
+    <p>@_connectionError</p>
+    <a href="connect">Connect to Transmission Manager</a>
+}
+
+@code
+{
+    private enum ConnectionStatus
+    {
+        Loading,
+        Connected,
+        Error
+    }
+
+    private Virtualize<TorrentDto> _virtualize = null!;
+    private ConnectionStatus _connectionStatus = ConnectionStatus.Loading;
+    private string _connectionError = string.Empty;
+    private TorrentDto[] _torrents = [];
+
+    protected override Task OnInitializedAsync()
+    {
+        return LoadTorrentsAsync();
+    }
+
+    private async Task LoadTorrentsAsync()
+    {
+        const string error = "Connection to Transmission Manager cannot be established";
+        try
+        {
+            var page = await Client.GetTorrentPageAsync(new()
+            {
+                Take = 1000,
+                OrderBy = FindTorrentPageOrder.RefreshDateDesc
+            });
+
+            _torrents = page.Torrents as TorrentDto[] ?? page.Torrents.ToArray();
+            _connectionError = string.Empty;
+            _connectionStatus = ConnectionStatus.Connected;
+            return;
+        }
+        catch (HttpRequestException e)
+        {
+            _connectionError = $"{error}: {e.Message}";
+        }
+        catch (Exception)
+        {
+            _connectionError = $"{error}.";
+        }
+
+        _connectionStatus = ConnectionStatus.Error;
+    }
+
+    private async Task RefreshTorrentsAsync(long id)
+    {
+        var response = await Client.RefreshTorrentByIdAsync(id);
+        if (response.TransmissionResult is TransmissionAddResult.Added)
+        {
+            await LoadTorrentsAsync();
+            StateHasChanged();
+        }
+    }
+
+    private async Task DeleteTorrentAndDataAsync(long id)
+    {
+        await Client.DeleteTorrentByIdAsync(id, DeleteTorrentByIdType.LocalAndTransmissionAndData);
+        await LoadTorrentsAsync();
+        StateHasChanged();
+    }
+}
