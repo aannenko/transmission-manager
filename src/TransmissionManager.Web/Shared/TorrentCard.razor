@@ -4,7 +4,7 @@
 
 <div class="item-card">
     <h4 class="text-header">@Torrent.Name</h4>
-    <p class="text-secondary">Refreshed on: @Torrent.RefreshDate.ToLocalTimeString()</p>
+    <p class="text-secondary">Refreshed on: @Torrent.RefreshDate.ToServerTimeString()</p>
 
     <a class="item-button" target="_blank" href="@Torrent.WebPageUri">
         <img src="img/visit.svg" alt="Go to torrent page" title="Go to torrent page" />

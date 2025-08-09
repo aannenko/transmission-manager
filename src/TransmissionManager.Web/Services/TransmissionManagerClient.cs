@@ -6,13 +6,13 @@ using TransmissionManager.Api.Common.Serialization;
 
 namespace TransmissionManager.Web.Services;
 
-internal sealed class TransmissionManagerClient(HttpClient httpClient, DtoJsonSerializerContext serializerContext)
+internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
     public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.AppInfo, UriKind.Relative);
         var response = await httpClient
-            .GetFromJsonAsync(requestUri, serializerContext.GetAppInfoResponse, cancellationToken)
+            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.GetAppInfoResponse, cancellationToken)
             .ConfigureAwait(false);
 
         return response == default
@@ -29,7 +29,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient, DtoJsonSe
 
         var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
         var response = await httpClient
-            .GetFromJsonAsync(requestUri, serializerContext.FindTorrentPageResponse, cancellationToken)
+            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.FindTorrentPageResponse, cancellationToken)
             .ConfigureAwait(false);
 
         return response ?? throw new HttpRequestException("Failed to retrieve torrent page.");
@@ -40,7 +40,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient, DtoJsonSe
         CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
-        var response = await httpClient
+        using var response = await httpClient
             .PostAsJsonAsync(requestUri, string.Empty, cancellationToken)
             .ConfigureAwait(false);
 
@@ -56,7 +56,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient, DtoJsonSe
         CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}?deleteType={deleteType}", UriKind.Relative);
-        var response = await httpClient.DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        using var response = await httpClient.DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
     }
 }

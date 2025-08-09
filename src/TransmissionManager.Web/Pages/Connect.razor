@@ -1,6 +1,5 @@
 ﻿@page "/connect"
-@inject IHttpClientFactory HttpClientFactory
-@inject TransmissionManagerInfoProvider ApiInfoProvider
+@inject ConnectionService ConnectionService
 @using System.ComponentModel.DataAnnotations
 @using System.Diagnostics.CodeAnalysis
 @using TransmissionManager.Api.Common.Dto.AppInfo
@@ -62,8 +61,8 @@
 
     protected override void OnInitialized()
     {
-        Host = ApiInfoProvider.BaseAddress.Host;
-        Port = ApiInfoProvider.BaseAddress.Port;
+        Host = ConnectionService.BaseAddress.Host;
+        Port = ConnectionService.BaseAddress.Port;
     }
 
     private async Task ConnectAsync()
@@ -80,17 +79,13 @@
             return;
         }
 
-        var httpClient = HttpClientFactory.CreateClient(nameof(TransmissionManagerClient));
-        httpClient.BaseAddress = baseAddress;
-        var transmissionManagerClient = new TransmissionManagerClient(httpClient, DtoJsonSerializerContext.Default);
         _connectionMessage = string.Empty;
         _connectionStatus = ConnectionStatus.Connecting;
 
         GetAppInfoResponse appInfo = default;
         try
         {
-            using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-            appInfo = await transmissionManagerClient.GetAppInfoAsync(cancellationTokenSource.Token);
+            appInfo = await ConnectionService.ConnectAsync(baseAddress).ConfigureAwait(false);
         }
         catch (HttpRequestException e)
         {
@@ -114,12 +109,9 @@
             return;
         }
 
-        ApiInfoProvider.BaseAddress = baseAddress;
-        ApiInfoProvider.Offset = appInfo.LocalTime.Offset;
-
         _connectionMessage = $"Connected to {baseAddress} " +
             $"| Version: {appInfo.Version} " +
-            $"| Local time: {appInfo.LocalTime.ToLocalTimeString()}";
+            $"| Server time: {appInfo.LocalTime.ToServerTimeString()}";
 
         _connectionStatus = ConnectionStatus.Connected;
     }

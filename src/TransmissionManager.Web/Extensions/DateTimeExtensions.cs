@@ -4,12 +4,12 @@ namespace TransmissionManager.Web.Extensions;
 
 internal static class DateTimeExtensions
 {
-    public static TransmissionManagerInfoProvider? InfoProvider { get; set; }
+    public static ServerTimeZoneService? ServerTimeZoneService { get; set; }
 
-    public static string ToLocalTimeString(this DateTime dateTime)
+    public static string ToServerTimeString(this DateTime dateTime)
     {
         return new DateTimeOffset(dateTime)
-            .ToOffset(InfoProvider?.Offset ?? TimeSpan.Zero)
-            .ToLocalTimeString();
+            .ToOffset(ServerTimeZoneService?.Offset ?? TimeSpan.Zero)
+            .ToServerTimeString();
     }
 }
