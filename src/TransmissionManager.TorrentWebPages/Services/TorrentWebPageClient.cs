@@ -81,7 +81,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
         try
         {
-            var chars = charBuffer.AsSpan();
+            var chars = charBuffer.AsSpan(0, bytes.Length);
             if (Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) &&
                 regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
             {
