@@ -1,21 +1,24 @@
-﻿using TransmissionManager.Web.Services;
+﻿using TransmissionManager.Api.Common.Dto.AppInfo;
+using TransmissionManager.Web.Services;
 
 namespace TransmissionManager.Web.Extensions;
 
 internal static class ConnectionServiceExtensions
 {
-    public static async Task InitializeAsync(
+    public static async Task<GetAppInfoResponse> TryConnectAsync(
         this ConnectionService connectionService,
+        Uri? baseAddress = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            await connectionService
-                .ConnectAsync(connectionService.BaseAddress, cancellationToken)
+            return await connectionService
+                .ConnectAsync(baseAddress ?? connectionService.BaseAddress, cancellationToken)
                 .ConfigureAwait(false);
         }
         catch
         {
+            return default;
         }
     }
 }

@@ -17,6 +17,6 @@ builder.Services.AddHttpClient<TransmissionManagerClient>(static (services, clie
 
 var app = builder.Build();
 
-await app.Services.GetRequiredService<ConnectionService>().InitializeAsync().ConfigureAwait(false);
+await app.Services.GetRequiredService<ConnectionService>().TryConnectAsync().ConfigureAwait(false);
 
 await app.RunAsync().ConfigureAwait(false);
