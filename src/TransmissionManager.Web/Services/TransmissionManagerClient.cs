@@ -24,9 +24,6 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         FindTorrentPageParameters request = default,
         CancellationToken cancellationToken = default)
     {
-        if (request == default)
-            request = new FindTorrentPageParameters(OrderBy: FindTorrentPageOrder.RefreshDateDesc);
-
         var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
         var response = await httpClient
             .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.FindTorrentPageResponse, cancellationToken)
