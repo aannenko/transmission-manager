@@ -41,7 +41,7 @@ internal sealed class FindTorrentByIdTests
         var expected = _torrents[0];
 
         Assert.That(torrent, Is.Not.Null);
-        TorrentAssertions.AssertEqual(torrent, 1, expected);
+        TorrentAssertions.AssertEqual(torrent, expected);
     }
 
     [Test]
@@ -54,6 +54,6 @@ internal sealed class FindTorrentByIdTests
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem!.Detail, Is.EqualTo("Torrent with id 999 was not found."));
+        Assert.That(problem.Detail, Is.EqualTo("Torrent with id 999 was not found."));
     }
 }

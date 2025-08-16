@@ -55,7 +55,7 @@ internal sealed class UpdateTorrentByIdTests
         Assert.That(torrent, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(torrent!.DownloadDir, Is.EqualTo(dto.DownloadDir));
+            Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));
             Assert.That(torrent.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
             Assert.That(torrent.Cron, Is.EqualTo(dto.Cron));
         }
@@ -73,6 +73,6 @@ internal sealed class UpdateTorrentByIdTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails!.Detail, Is.EqualTo("Torrent with id -1 was not found."));
+        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id -1 was not found."));
     }
 }

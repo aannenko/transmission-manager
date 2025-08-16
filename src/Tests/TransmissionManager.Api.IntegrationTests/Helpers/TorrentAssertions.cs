@@ -7,14 +7,13 @@ internal static class TorrentAssertions
 {
     public static void AssertEqual(
         TorrentDto? actual,
-        long expectedId,
         Torrent expected,
         TimeSpan refreshDateTolerance = default)
     {
         Assert.That(actual, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(actual!.Id, Is.EqualTo(expectedId));
+            Assert.That(actual.Id, Is.EqualTo(expected.Id));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
 
             if (refreshDateTolerance == default)

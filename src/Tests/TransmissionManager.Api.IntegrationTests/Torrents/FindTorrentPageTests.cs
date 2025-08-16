@@ -42,13 +42,11 @@ internal sealed class FindTorrentPageTests
         var expectedNextPage = EndpointAddresses.Torrents + "?take=3&anchorId=3";
         var expectedPreviousPage = EndpointAddresses.Torrents + "?take=3&anchorId=2&direction=Backward";
 
-        AssertTorrentPage(page, 2, expectedNextPage, expectedPreviousPage);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
-        TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
+        AssertTorrentPage(page, _torrents[1..], expectedNextPage, expectedPreviousPage);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -66,13 +64,11 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage = EndpointAddresses.Torrents +
             "?take=2&anchorId=1&direction=Backward&propertyStartsWith=TV+Show&cronExists=True";
 
-        AssertTorrentPage(page, 2, expectedNextPage, expectedPreviousPage);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
-        TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
+        AssertTorrentPage(page, [_torrents[0], _torrents[2]], expectedNextPage, expectedPreviousPage);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -92,12 +88,11 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2&direction=Backward" +
             "&propertyStartsWith=https%3A%2F%2FtorrentTracker.com%2Fforum%2Fviewtopic.php%3Ft%3D1234568";
 
-        AssertTorrentPage(page, 1, expectedNextPage, expectedPreviousPage);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
+        AssertTorrentPage(page, _torrents[1..2], expectedNextPage, expectedPreviousPage);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -117,12 +112,11 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2&direction=Backward" +
             $"&propertyStartsWith={TestData.Database.SecondTorrentHashString}";
 
-        AssertTorrentPage(page, 1, expectedNextPage, expectedPreviousPage);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
+        AssertTorrentPage(page, _torrents[1..2], expectedNextPage, expectedPreviousPage);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -134,7 +128,7 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -146,7 +140,7 @@ internal sealed class FindTorrentPageTests
             .GetFromJsonAsync<FindTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -166,9 +160,7 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=3&anchorValue=TV+Show+3&direction=Backward";
 
-        AssertTorrentPage(page, 2, expectedNextPage1, expectedPreviousPage1);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 3, _torrents[2]);
-        TorrentAssertions.AssertEqual(page.Torrents[1], 2, _torrents[1]);
+        AssertTorrentPage(page, [_torrents[2], _torrents[1]], expectedNextPage1, expectedPreviousPage1);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
 
@@ -177,12 +169,11 @@ internal sealed class FindTorrentPageTests
 
         var expectedPreviousPage2 = expectedNextPage2 + "&direction=Backward";
 
-        AssertTorrentPage(page, 1, expectedNextPage2, expectedPreviousPage2);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
+        AssertTorrentPage(page, _torrents[0..1], expectedNextPage2, expectedPreviousPage2);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage2).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -203,9 +194,7 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=2&anchorValue=TV+Show+2&direction=Backward";
 
-        AssertTorrentPage(page, 2, expectedNextPage1, expectedPreviousPage1);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
-        TorrentAssertions.AssertEqual(page.Torrents[1], 1, _torrents[0]);
+        AssertTorrentPage(page, [_torrents[1], _torrents[0]], expectedNextPage1, expectedPreviousPage1);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
 
@@ -215,12 +204,11 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=3&anchorValue=TV+Show+3&direction=Backward";
 
-        AssertTorrentPage(page, 1, expectedNextPage2, expectedPreviousPage2);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 3, _torrents[2]);
+        AssertTorrentPage(page, [_torrents[2]], expectedNextPage2, expectedPreviousPage2);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedPreviousPage2).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -240,9 +228,7 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=RefreshDate&anchorId=3&anchorValue=2022-10-01T12%3A34%3A56.7770000Z&direction=Backward";
 
-        AssertTorrentPage(page, 2, expectedNextPage1, expectedPreviousPage1);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 3, _torrents[2]);
-        TorrentAssertions.AssertEqual(page.Torrents[1], 2, _torrents[1]);
+        AssertTorrentPage(page, [_torrents[2], _torrents[1]], expectedNextPage1, expectedPreviousPage1);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
 
@@ -252,12 +238,11 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=RefreshDate&anchorId=1&anchorValue=2024-12-03T10%3A20%3A30.4000000Z&direction=Backward";
 
-        AssertTorrentPage(page, 1, expectedNextPage2, expectedPreviousPage2);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
+        AssertTorrentPage(page, [_torrents[0]], expectedNextPage2, expectedPreviousPage2);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedNextPage2).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [Test]
@@ -278,9 +263,7 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=RefreshDateDesc&anchorId=2&anchorValue=2023-11-02T11%3A22%3A33.4440000Z&direction=Backward";
 
-        AssertTorrentPage(page, 2, expectedNextPage1, expectedPreviousPage1);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 2, _torrents[1]);
-        TorrentAssertions.AssertEqual(page.Torrents[1], 3, _torrents[2]);
+        AssertTorrentPage(page, [_torrents[1], _torrents[2]], expectedNextPage1, expectedPreviousPage1);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
 
@@ -290,12 +273,11 @@ internal sealed class FindTorrentPageTests
         var expectedPreviousPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=RefreshDateDesc&anchorId=1&anchorValue=2024-12-03T10%3A20%3A30.4000000Z&direction=Backward";
 
-        AssertTorrentPage(page, 1, expectedNextPage2, expectedPreviousPage2);
-        TorrentAssertions.AssertEqual(page.Torrents[0], 1, _torrents[0]);
+        AssertTorrentPage(page, [_torrents[0]], expectedNextPage2, expectedPreviousPage2);
 
         page = await _client.GetFromJsonAsync<FindTorrentPageResponse>(expectedPreviousPage2).ConfigureAwait(false);
 
-        AssertTorrentPage(page, 0, null, null);
+        AssertTorrentPage(page, [], null, null);
     }
 
     [TestCaseSource(nameof(GetFindTorrentPageAsyncBadRequestTestCases))]
@@ -313,7 +295,7 @@ internal sealed class FindTorrentPageTests
         Assert.That(problem, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problem!.Errors, Has.Count.EqualTo(1));
+            Assert.That(problem.Errors, Has.Count.EqualTo(1));
             Assert.That(problem.Errors, Contains.Key(problematicParameterName));
             if (problem.Errors.TryGetValue(problematicParameterName, out var errors))
             {
@@ -384,17 +366,20 @@ internal sealed class FindTorrentPageTests
     }
 
     private static void AssertTorrentPage(
-        FindTorrentPageResponse page,
-        int expectedCount,
+        FindTorrentPageResponse? page,
+        Torrent[] expectedTorrents,
         string? expectedNextPage,
         string? expectedPreviousPage)
     {
-        Assert.That(page, Is.Not.Default);
+        Assert.That(page, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(page.Torrents, Has.Count.EqualTo(expectedCount));
+            Assert.That(page.Torrents, Has.Count.EqualTo(expectedTorrents.Length));
             Assert.That(page.NextPageAddress, Is.EqualTo(expectedNextPage));
             Assert.That(page.PreviousPageAddress, Is.EqualTo(expectedPreviousPage));
         }
+
+        for (var i = 0; i < expectedTorrents.Length; i++)
+            TorrentAssertions.AssertEqual(page.Torrents[i], expectedTorrents[i]);
     }
 }

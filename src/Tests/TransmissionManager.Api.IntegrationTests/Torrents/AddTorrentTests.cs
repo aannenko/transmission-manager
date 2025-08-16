@@ -145,9 +145,9 @@ internal sealed class AddTorrentTests
         var newTorrent = await _client.GetFromJsonAsync<TorrentDto>(expectedLocation).ConfigureAwait(false);
 
         Assert.That(newTorrent, Is.Not.Null);
-        TorrentAssertions.AssertEqual(newTorrent, 2, new Torrent
+        TorrentAssertions.AssertEqual(newTorrent, new Torrent
         {
-            Id = default,
+            Id = 2,
             HashString = _addNewTorrentResponseHashString,
             RefreshDate = DateTime.UtcNow,
             Name = _addNewTorrentResponseName,
@@ -179,7 +179,7 @@ internal sealed class AddTorrentTests
             var error =
                 $"Addition of a torrent from the web page '{dto.WebPageUri}' has failed: 'Torrent already exists.'.";
 
-            Assert.That(problemDetails!.Detail, Is.EqualTo(error));
+            Assert.That(problemDetails.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
         }

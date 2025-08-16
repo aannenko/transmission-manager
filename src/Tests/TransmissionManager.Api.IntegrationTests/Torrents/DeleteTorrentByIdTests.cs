@@ -90,7 +90,7 @@ internal sealed class DeleteTorrentByIdTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails!.Detail, Is.EqualTo("Torrent with id 1 was not found."));
+        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id 1 was not found."));
     }
 
     [Test]
@@ -109,7 +109,7 @@ internal sealed class DeleteTorrentByIdTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails!.Detail, Is.EqualTo("Torrent with id 2 was not found."));
+        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id 2 was not found."));
     }
 
     [Test]
@@ -123,7 +123,7 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(
-            problemDetails!.Detail,
+            problemDetails.Detail,
             Is.EqualTo("Removal of the torrent with id -1 has failed: 'No such torrent.'."));
     }
 
@@ -140,7 +140,7 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(
-            problemDetails!.Detail,
+            problemDetails.Detail,
             Is.EqualTo("Removal of the torrent with id -1 has failed: 'No such torrent.'."));
     }
 }

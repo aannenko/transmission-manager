@@ -49,7 +49,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
 
         Assert.That(torrents, Is.Not.Null);
         Assert.That(torrents, Has.Length.EqualTo(expectedTorrents.Length));
-        for (var i = 0; i < torrents!.Length; i++)
+        for (var i = 0; i < torrents.Length; i++)
             TorrentAssertions.AssertEqual(torrents[i], expectedTorrents[i].Id, expectedTorrents[i]);
     }
 

@@ -10,7 +10,7 @@ internal static class TorrentAssertions
         Assert.That(actual, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(actual!.Id, Is.EqualTo(expectedId));
+            Assert.That(actual.Id, Is.EqualTo(expectedId));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
             Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate));
             Assert.That(actual.Name, Is.EqualTo(expected.Name));
@@ -26,7 +26,7 @@ internal static class TorrentAssertions
         Assert.That(actual, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(actual!.Id, Is.EqualTo(expectedId));
+            Assert.That(actual.Id, Is.EqualTo(expectedId));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
             Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate));
             Assert.That(actual.Name, Is.EqualTo(expected.Name));
@@ -42,7 +42,7 @@ internal static class TorrentAssertions
         Assert.That(actual, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(actual!.Id, Is.EqualTo(expectedId));
+            Assert.That(actual.Id, Is.EqualTo(expectedId));
             if (expected.HashString is not null)
                 Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
 
