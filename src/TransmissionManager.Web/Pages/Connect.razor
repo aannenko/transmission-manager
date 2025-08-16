@@ -67,6 +67,9 @@
 
     private async Task ConnectAsync()
     {
+        if (_connectionStatus is ConnectionStatus.Connecting)
+            return;
+
         Uri baseAddress;
         try
         {

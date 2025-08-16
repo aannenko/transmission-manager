@@ -16,7 +16,7 @@ else if (_connectionStatus is ConnectionStatus.Connected)
 {
     <Virtualize @ref="_virtualize" TItem="TorrentDto" Items="_torrents" Context="torrent">
         <ItemContent>
-            <TorrentCard Torrent="torrent" RefreshAsync="RefreshTorrentsAsync" DeleteAsync="DeleteTorrentAndDataAsync"/>
+            <TorrentCard Torrent="torrent" RefreshAsync="RefreshTorrentsAsync" DeleteAsync="DeleteTorrentAsync"/>
         </ItemContent>
     </Virtualize>
 }
@@ -83,9 +83,9 @@ else
         }
     }
 
-    private async Task DeleteTorrentAndDataAsync(long id)
+    private async Task DeleteTorrentAsync(long id, DeleteTorrentByIdType deleteType)
     {
-        await Client.DeleteTorrentByIdAsync(id, DeleteTorrentByIdType.LocalAndTransmissionAndData);
+        await Client.DeleteTorrentByIdAsync(id, deleteType);
         await LoadTorrentsAsync();
         StateHasChanged();
     }
