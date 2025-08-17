@@ -104,7 +104,8 @@
         else if (string.IsNullOrEmpty(_connectionMessage))
         {
             _connectionMessage = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
-            _connectionStatus = ConnectionStatus.Error;
         }
+
+        _connectionStatus = ConnectionStatus.Error;
     }
 }
