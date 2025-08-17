@@ -30,7 +30,9 @@ internal static class AddTorrentEndpoint
         return result switch
         {
             AddTorrentResult.Added =>
-                TypedResults.Created(GetTorrentUri(linker, id), new AddTorrentResponse(transmissionResult!.Value)),
+                TypedResults.Created(
+                    linker.GetPathByName(EndpointNames.FindTorrentById, new() { [nameof(id)] = id!.Value }),
+                    new AddTorrentResponse(id!.Value, transmissionResult!.Value)),
             AddTorrentResult.Exists =>
                 TypedResults.Problem(
                     error,
@@ -41,7 +43,4 @@ internal static class AddTorrentEndpoint
             _ => throw new NotImplementedException()
         };
     }
-
-    private static string? GetTorrentUri(LinkGenerator linker, long? id) =>
-        linker.GetPathByName(EndpointNames.FindTorrentById, new() { [nameof(id)] = id });
 }

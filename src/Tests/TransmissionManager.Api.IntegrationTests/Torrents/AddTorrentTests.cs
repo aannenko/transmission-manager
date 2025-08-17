@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
@@ -135,11 +136,20 @@ internal sealed class AddTorrentTests
 
         var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
 
-        var expectedLocation = $"{EndpointAddresses.Torrents}/2";
+        const long expectedId = 2;
+        var expectedLocation = $"{EndpointAddresses.Torrents}/{expectedId}";
         using (Assert.EnterMultipleScope())
         {
             Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
             Assert.That(response.Headers.Location?.OriginalString, Is.EqualTo(expectedLocation));
+        }
+
+        var addTorrentResponse = await response.Content.ReadFromJsonAsync<AddTorrentResponse>().ConfigureAwait(false);
+        
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(addTorrentResponse.Id, Is.EqualTo(expectedId));
+            Assert.That(addTorrentResponse.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
         }
 
         var newTorrent = await _client.GetFromJsonAsync<TorrentDto>(expectedLocation).ConfigureAwait(false);
@@ -147,7 +157,7 @@ internal sealed class AddTorrentTests
         Assert.That(newTorrent, Is.Not.Null);
         TorrentAssertions.AssertEqual(newTorrent, new Torrent
         {
-            Id = 2,
+            Id = expectedId,
             HashString = _addNewTorrentResponseHashString,
             RefreshDate = DateTime.UtcNow,
             Name = _addNewTorrentResponseName,
