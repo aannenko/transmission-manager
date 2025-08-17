@@ -63,7 +63,7 @@ else
         }
         catch (HttpRequestException e)
         {
-            _connectionError = $"{error}: {e.Message}";
+            _connectionError = $"{error}: '{e.Message}'.";
         }
         catch (Exception)
         {

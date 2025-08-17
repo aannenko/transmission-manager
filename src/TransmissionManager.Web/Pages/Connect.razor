@@ -12,6 +12,7 @@
 
 <div class="item-card">
     <h4 class="text-header">Connect to Transmission Manager</h4>
+
     <EditForm Model="this" OnValidSubmit="ConnectAsync">
         <DataAnnotationsValidator />
 
@@ -29,14 +30,7 @@
 
         <button class="form-button" type="submit" disabled="@IsConnecting">Connect</button>
 
-        @if (IsConnecting)
-        {
-            <p>Connecting...</p>
-        }
-        else
-        {
-            <p>@_connectionMessage</p>
-        }
+        <p>@_connectionMessage</p>
     </EditForm>
 </div>
 
@@ -55,7 +49,7 @@
     public string Host { get; set; } = string.Empty;
 
     [Required, Range(0, 65535)]
-    public int Port { get; set; } = 9093;
+    public int Port { get; set; } = 9092;
 
     private bool IsConnecting => _connectionStatus is ConnectionStatus.Connecting;
 
@@ -82,17 +76,13 @@
             return;
         }
 
-        _connectionMessage = string.Empty;
+        _connectionMessage = "Connecting...";
         _connectionStatus = ConnectionStatus.Connecting;
 
-        GetAppInfoResponse appInfo = default;
+        GetAppInfoResponse? appInfo = null;
         try
         {
             appInfo = await ConnectionService.ConnectAsync(baseAddress).ConfigureAwait(false);
-        }
-        catch (HttpRequestException e)
-        {
-            _connectionMessage = e.Message;
         }
         catch (OperationCanceledException)
         {
@@ -103,19 +93,18 @@
             _connectionMessage = e.Message;
         }
 
-        if (appInfo == default)
+        if (appInfo is not null)
         {
-            if (string.IsNullOrEmpty(_connectionMessage))
-                _connectionMessage = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
+            _connectionMessage = $"Connected to {baseAddress} " +
+                $"| Version: {appInfo.Value.Version} " +
+                $"| Server time: {appInfo.Value.LocalTime.ToServerTimeString()}";
 
-            _connectionStatus = ConnectionStatus.Error;
-            return;
+            _connectionStatus = ConnectionStatus.Connected;
         }
-
-        _connectionMessage = $"Connected to {baseAddress} " +
-            $"| Version: {appInfo.Version} " +
-            $"| Server time: {appInfo.LocalTime.ToServerTimeString()}";
-
-        _connectionStatus = ConnectionStatus.Connected;
+        else if (string.IsNullOrEmpty(_connectionMessage))
+        {
+            _connectionMessage = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
+            _connectionStatus = ConnectionStatus.Error;
+        }
     }
 }
