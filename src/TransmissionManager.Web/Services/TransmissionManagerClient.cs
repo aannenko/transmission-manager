@@ -32,6 +32,21 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         return response ?? throw new HttpRequestException("Failed to retrieve torrent page.");
     }
 
+    public async Task<AddTorrentResponse> AddTorrentAsync(
+        AddTorrentRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var requestUri = new Uri(EndpointAddresses.Torrents, UriKind.Relative);
+        var response = await httpClient
+            .PostAsJsonAsync(requestUri, request, cancellationToken)
+            .ConfigureAwait(false);
+
+        return await response
+            .EnsureSuccessStatusCode()
+            .Content.ReadFromJsonAsync<AddTorrentResponse>(cancellationToken)
+            .ConfigureAwait(false);
+    }
+
     public async Task<RefreshTorrentByIdResponse> RefreshTorrentByIdAsync(
         long torrentId,
         CancellationToken cancellationToken = default)

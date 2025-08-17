@@ -1,0 +1,109 @@
+﻿@page "/add-torrent"
+@using System.ComponentModel.DataAnnotations
+@using TransmissionManager.Api.Common.Attributes
+@using TransmissionManager.Api.Common.Constants
+@using TransmissionManager.Api.Common.Dto.Torrents
+@using TransmissionManager.Web.Services
+@inject TransmissionManagerClient Client
+
+<div class="item-card">
+    <h4 class="text-header">Add a torrent</h4>
+
+    <EditForm Model="this" OnValidSubmit="AddTorrentAsync">
+        <DataAnnotationsValidator />
+        
+        <div>
+            <label for="webPageUri">Torrent webpage:</label>
+            <InputText id="webPageUri" class="form-input" @bind-Value="WebPageUri" />
+            <ValidationMessage For="@(() => WebPageUri)" />
+        </div>
+
+        <div>
+            <label for="downloadDir">Download directory:</label>
+            <InputText id="downloadDir" class="form-input" @bind-Value="DownloadDir" />
+            <ValidationMessage For="@(() => DownloadDir)" />
+        </div>
+
+        <div>
+            <label for="magnetRegexPattern">Magnet link regex (optional):</label>
+            <InputText id="magnetRegexPattern" class="form-input" @bind-Value="MagnetRegexPattern" />
+            <ValidationMessage For="@(() => MagnetRegexPattern)" />
+        </div>
+
+        <div>
+            <label for="cron">
+                Refresh schedule <a target="_blank" href="https://crontab.guru/#0_9,19_*_*_*">cron</a> (optional):
+            </label>
+            <InputText id="cron" class="form-input" @bind-Value="Cron" />
+            <ValidationMessage For="@(() => Cron)" />
+        </div>
+
+        <button class="form-button" type="submit" disabled="@_isAdding">Add torrent</button>
+
+        <p>@_message</p>
+    </EditForm>
+</div>
+
+@code {
+    private bool _isAdding = false;
+    private string _message = string.Empty;
+
+    [Required(ErrorMessage = "Value required.")]
+    [Url(ErrorMessage = "The value is not a valid http or https URL.")]
+    public string WebPageUri { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "Value required.")]
+    public string DownloadDir { get; set; } = "/videos";
+
+    [MagnetRegex]
+    public string? MagnetRegexPattern { get; set; } = null;
+
+    [Cron]
+    public string? Cron { get; set; } = "0 9,19 * * *";
+
+    public async Task AddTorrentAsync()
+    {
+        if (_isAdding)
+            return;
+
+        _message = "Adding torrent...";
+        _isAdding = true;
+
+        var request = new AddTorrentRequest
+        {
+            WebPageUri = new(WebPageUri),
+            DownloadDir = DownloadDir,
+            MagnetRegexPattern = MagnetRegexPattern,
+            Cron = Cron
+        };
+
+        AddTorrentResponse? response = null;
+        try
+        {
+            response = await Client.AddTorrentAsync(request);
+        }
+        catch (HttpRequestException e) when (e.StatusCode is null)
+        {
+            _message = $"Connection to Transmission Manager cannot be established: '{e.Message}'.";
+        }
+        catch (OperationCanceledException)
+        {
+            _message = "Operation was canceled.";
+        }
+        catch (Exception e)
+        {
+            _message = $"Failed to add torrent: '{e.Message}'.";
+        }
+
+        if (response is not null)
+        {
+            _message = $"Torrent added: {response.Value.Id}.";
+        }
+        else if (string.IsNullOrEmpty(_message))
+        {
+            _message = $"Failed to add torrent, please check the input fields.";
+        }
+
+        _isAdding = false;
+    }
+}
