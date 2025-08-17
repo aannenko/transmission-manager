@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Common.Attributes;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
@@ -10,9 +10,9 @@ public sealed class UpdateTorrentByIdRequest
     [MinLength(1)]
     public string? DownloadDir { get; init; }
 
-    [RegularExpression(RegexPatterns.IsFindMagnet, MatchTimeoutInMilliseconds = 50)] // empty strings are valid
+    [MagnetRegex] // empty strings are valid
     public string? MagnetRegexPattern { get; init; }
 
-    [RegularExpression(RegexPatterns.IsCron, MatchTimeoutInMilliseconds = 50)] // empty strings are valid
+    [Cron] // empty strings are valid
     public string? Cron { get; init; }
 }

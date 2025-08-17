@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Common.Attributes;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
@@ -11,9 +11,9 @@ public sealed class AddTorrentRequest
     [Required]
     public required string DownloadDir { get; init; }
 
-    [RegularExpression(RegexPatterns.IsFindMagnet, MatchTimeoutInMilliseconds = 50)]
+    [MagnetRegex]
     public string? MagnetRegexPattern { get; init; }
 
-    [RegularExpression(RegexPatterns.IsCron, MatchTimeoutInMilliseconds = 50)]
+    [Cron]
     public string? Cron { get; init; }
 }
