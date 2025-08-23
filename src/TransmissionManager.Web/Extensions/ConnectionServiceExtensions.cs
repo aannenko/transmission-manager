@@ -16,7 +16,7 @@ internal static class ConnectionServiceExtensions
                 .ConnectAsync(baseAddress ?? connectionService.BaseAddress, cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch
+        catch (Exception e) when (e is HttpRequestException or OperationCanceledException)
         {
             return default;
         }
