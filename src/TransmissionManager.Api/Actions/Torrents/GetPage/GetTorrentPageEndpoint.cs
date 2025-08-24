@@ -8,13 +8,13 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.Torrents;
 
-internal static class FindTorrentPageEndpoint
+internal static class GetTorrentPageEndpoint
 {
-    public static IEndpointRouteBuilder MapFindTorrentPageEndpoint(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapGetTorrentPageEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/", FindTorrentPageAsync)
+        builder.MapGet("/", GetTorrentPageAsync)
             //.WithParameterValidation() // Commented out until the bugs described below are fixed
-            .WithName(EndpointNames.FindTorrentPage);
+            .WithName(EndpointNames.GetTorrentPage);
 
         return builder;
     }
@@ -22,19 +22,19 @@ internal static class FindTorrentPageEndpoint
     // Using [AsParameters] class or struct has these bugs:
     // - a class cannot have nullable reference type constructor parameters https://github.com/dotnet/aspnetcore/issues/58953
     // - default values of a struct's constructor parameters are ignored https://github.com/dotnet/aspnetcore/issues/56396
-    private static async Task<Results<Ok<FindTorrentPageResponse>, ValidationProblem>> FindTorrentPageAsync(
+    private static async Task<Results<Ok<GetTorrentPageResponse>, ValidationProblem>> GetTorrentPageAsync(
         [FromServices] TorrentService service,
-        //[AsParameters] FindTorrentPageParameters parameters,
-        FindTorrentPageOrder orderBy = FindTorrentPageOrder.Id,
+        //[AsParameters] GetTorrentPageParameters parameters,
+        GetTorrentPageOrder orderBy = GetTorrentPageOrder.Id,
         int take = 20,
         long? anchorId = null,
         string? anchorValue = null,
-        FindTorrentPageDirection direction = FindTorrentPageDirection.Forward,
+        GetTorrentPageDirection direction = GetTorrentPageDirection.Forward,
         string? propertyStartsWith = null,
         bool? cronExists = null,
         CancellationToken cancellationToken = default)
     {
-        var parameters = new FindTorrentPageParameters(
+        var parameters = new GetTorrentPageParameters(
             orderBy,
             anchorId,
             anchorValue,
@@ -46,10 +46,10 @@ internal static class FindTorrentPageEndpoint
         if (!MiniValidator.TryValidate(parameters, out var errors))
             return TypedResults.ValidationProblem(errors);
 
-        var torrents = await service.FindPageAsync(parameters, cancellationToken).ConfigureAwait(false);
+        var torrents = await service.GetPageAsync(parameters, cancellationToken).ConfigureAwait(false);
 
         var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
-        return TypedResults.Ok(new FindTorrentPageResponse(
+        return TypedResults.Ok(new GetTorrentPageResponse(
             dtos,
             parameters.ToNextPageParameters(dtos)?.ToPathAndQueryString(),
             parameters.ToPreviousPageParameters(dtos)?.ToPathAndQueryString()));

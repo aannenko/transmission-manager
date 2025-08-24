@@ -31,7 +31,7 @@ internal static class AddTorrentEndpoint
         {
             AddTorrentResult.Added =>
                 TypedResults.Created(
-                    linker.GetPathByName(EndpointNames.FindTorrentById, new() { [nameof(id)] = id!.Value }),
+                    linker.GetPathByName(EndpointNames.GetTorrentById, new() { [nameof(id)] = id!.Value }),
                     new AddTorrentResponse(id!.Value, transmissionResult!.Value)),
             AddTorrentResult.Exists =>
                 TypedResults.Problem(

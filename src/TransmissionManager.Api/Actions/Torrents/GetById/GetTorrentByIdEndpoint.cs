@@ -8,17 +8,17 @@ using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.Torrents;
 
-internal static class FindTorrentByIdEndpoint
+internal static class GetTorrentByIdEndpoint
 {
-    public static IEndpointRouteBuilder MapFindTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
+    public static IEndpointRouteBuilder MapGetTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/{id}", FindTorrentByIdAsync)
-            .WithName(EndpointNames.FindTorrentById);
+        builder.MapGet("/{id}", GetTorrentByIdAsync)
+            .WithName(EndpointNames.GetTorrentById);
 
         return builder;
     }
 
-    private static async Task<Results<Ok<TorrentDto>, ProblemHttpResult, ValidationProblem>> FindTorrentByIdAsync(
+    private static async Task<Results<Ok<TorrentDto>, ProblemHttpResult, ValidationProblem>> GetTorrentByIdAsync(
         [FromServices] TorrentService service,
         long id,
         CancellationToken cancellationToken)

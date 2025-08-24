@@ -1,12 +1,12 @@
-﻿using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
-using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
+﻿using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
-internal static class FindTorrentPageParametersExtensions
+internal static class GetTorrentPageParametersExtensions
 {
-    public static FindTorrentPageParameters? ToNextPageParameters(
-        in this FindTorrentPageParameters parameters,
+    public static GetTorrentPageParameters? ToNextPageParameters(
+        in this GetTorrentPageParameters parameters,
         TorrentDto[] currentPage)
     {
         return currentPage.Length is 0
@@ -27,8 +27,8 @@ internal static class FindTorrentPageParametersExtensions
             };
     }
 
-    public static FindTorrentPageParameters? ToPreviousPageParameters(
-        in this FindTorrentPageParameters parameters,
+    public static GetTorrentPageParameters? ToPreviousPageParameters(
+        in this GetTorrentPageParameters parameters,
         TorrentDto[] currentPage)
     {
         return currentPage.Length is 0

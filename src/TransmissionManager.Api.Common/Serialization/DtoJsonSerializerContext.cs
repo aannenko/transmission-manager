@@ -10,7 +10,7 @@ namespace TransmissionManager.Api.Common.Serialization;
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(AddTorrentRequest))]
 [JsonSerializable(typeof(UpdateTorrentByIdRequest))]
-[JsonSerializable(typeof(FindTorrentPageResponse))]
+[JsonSerializable(typeof(GetTorrentPageResponse))]
 [JsonSerializable(typeof(AddTorrentResponse))]
 [JsonSerializable(typeof(RefreshTorrentByIdResponse))]
 [JsonSerializable(typeof(GetAppInfoResponse))]

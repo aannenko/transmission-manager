@@ -8,7 +8,7 @@ namespace TransmissionManager.Database.Tests;
 [Parallelizable(ParallelScope.Self)]
 internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
 {
-    internal readonly record struct FindPageAsyncTestData<TAnchor>(
+    internal readonly record struct GetPageAsyncTestData<TAnchor>(
         TorrentPageDescriptor<TAnchor> Page,
         TorrentFilter Filter,
         Torrent[] ExpectedTorrents);
@@ -35,17 +35,17 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
         Assert.That(torrent, Is.Null);
     }
 
-    [TestCaseSource(nameof(GetFindPageAsyncStringTestCases))]
-    [TestCaseSource(nameof(GetFindPageAsyncDateTimeTestCases))]
-    public async Task FindPageAsync_WhenCalledWithParameters_ReturnsExpectedTorrents<TAnchor>(
-        FindPageAsyncTestData<TAnchor> data)
+    [TestCaseSource(nameof(GetGetPageAsyncStringTestCases))]
+    [TestCaseSource(nameof(GetGetPageAsyncDateTimeTestCases))]
+    public async Task GetPageAsync_WhenCalledWithParameters_ReturnsExpectedTorrents<TAnchor>(
+        GetPageAsyncTestData<TAnchor> data)
     {
         var (page, filter, expectedTorrents) = data;
 
         using var context = CreateContext();
         var service = new TorrentService(context);
 
-        var torrents = await service.FindPageAsync(page, filter).ConfigureAwait(false);
+        var torrents = await service.GetPageAsync(page, filter).ConfigureAwait(false);
 
         Assert.That(torrents, Is.Not.Null);
         Assert.That(torrents, Has.Length.EqualTo(expectedTorrents.Length));
@@ -53,471 +53,471 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
             TorrentAssertions.AssertEqual(torrents[i], expectedTorrents[i].Id, expectedTorrents[i]);
     }
 
-    private static IEnumerable<TestCaseData<FindPageAsyncTestData<string>>> GetFindPageAsyncStringTestCases()
+    private static IEnumerable<TestCaseData<GetPageAsyncTestData<string>>> GetGetPageAsyncStringTestCases()
     {
         yield return new(new(default, default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenDefaultPaginationValuesAreUsed_ReturnsArrayOfTorrents"
+            TestName = "GetPageAsync_WhenDefaultPaginationValuesAreUsed_ReturnsArrayOfTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenForwardPaginationIsFalse_ReturnsArrayOfTorrents"
+            TestName = "GetPageAsync_WhenForwardPaginationIsFalse_ReturnsArrayOfTorrents"
         };
 
         yield return new(new(new(Take: 2), default, InitialTorrents[..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenTakeIsTwo_ReturnsArrayWithTwoTorrents"
+            TestName = "GetPageAsync_WhenTakeIsTwo_ReturnsArrayWithTwoTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false, Take: 2), default, InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenTakeIsTwoAndIsForwardPaginationIsFalse_ReturnsArrayWithTwoTorrents"
+            TestName = "GetPageAsync_WhenTakeIsTwoAndIsForwardPaginationIsFalse_ReturnsArrayWithTwoTorrents"
         };
 
         yield return new(new(new(AnchorId: 1), default, InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsOne_ReturnsArrayOfTorrentsWithIdGreaterThanOne"
+            TestName = "GetPageAsync_WhenAnchorIdIsOne_ReturnsArrayOfTorrentsWithIdGreaterThanOne"
         };
 
         yield return new(new(new(AnchorId: 2, IsForwardPagination: false), default, InitialTorrents[..1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsTwoAndIsForwardPaginationIsFalse_ReturnsArrayOfTorrentsWithIdLessThanTwo"
+            TestName = "GetPageAsync_WhenAnchorIdIsTwoAndIsForwardPaginationIsFalse_ReturnsArrayOfTorrentsWithIdLessThanTwo"
         };
 
         yield return new(new(new(AnchorId: 3), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsLargestExistingId_ReturnsEmptyArray"
+            TestName = "GetPageAsync_WhenAnchorIdIsLargestExistingId_ReturnsEmptyArray"
         };
 
         yield return new(new(new(AnchorId: 1, IsForwardPagination: false), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsSmallestExistingIdAndIsForwardPaginationIsFalse_ReturnsEmptyArray"
+            TestName = "GetPageAsync_WhenAnchorIdIsSmallestExistingIdAndIsForwardPaginationIsFalse_ReturnsEmptyArray"
         };
 
         yield return new(new(new(AnchorId: long.MaxValue), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsGreaterThanAnyTorrentId_ReturnsEmptyArray"
+            TestName = "GetPageAsync_WhenAnchorIdIsGreaterThanAnyTorrentId_ReturnsEmptyArray"
         };
 
         yield return new(new(new(AnchorId: long.MinValue, IsForwardPagination: false), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsSmallerThanAnyTorrentIdAndIsForwardPaginationIsFalse_ReturnsEmptyArray"
+            TestName = "GetPageAsync_WhenAnchorIdIsSmallerThanAnyTorrentIdAndIsForwardPaginationIsFalse_ReturnsEmptyArray"
         };
 
         yield return new(new(new(AnchorId: long.MinValue), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsNegative_ReturnsArrayOfTorrents"
+            TestName = "GetPageAsync_WhenAnchorIdIsNegative_ReturnsArrayOfTorrents"
         };
 
         yield return new(new(new(AnchorId: long.MaxValue, IsForwardPagination: false), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenAnchorIdIsMaxPossibleValueAndIsForwardPaginationIsFalse_ReturnsArrayOfTorrents"
+            TestName = "GetPageAsync_WhenAnchorIdIsMaxPossibleValueAndIsForwardPaginationIsFalse_ReturnsArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].HashString), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsFullHashString_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullHashString_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].HashString.ToUpperInvariant()), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsFullUppercasedHashString_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullUppercasedHashString_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].HashString[..20]), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsPartialHashString_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialHashString_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false), new(InitialTorrents[1].HashString[..20]), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsPartialHashStringAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialHashStringAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].WebPageUri), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsFullWebPageUri_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullWebPageUri_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].WebPageUri.ToUpperInvariant()), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsFullUppercasedWebPageUri_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullUppercasedWebPageUri_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].WebPageUri[..^1]), InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsPartialWebPageUri_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialWebPageUri_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false, Take: 2), new(InitialTorrents[1].WebPageUri[..^1]), InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsPartialWebPageUriAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialWebPageUriAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].Name), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsFullName_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullName_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].Name.ToUpperInvariant()), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsFullUppercasedName_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullUppercasedName_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].Name[..^1]), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsPartialName_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialName_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false), new(InitialTorrents[1].Name[..^1]), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenPropertyStartsWithIsPartialNameAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialNameAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(CronExists: true), [InitialTorrents[0], InitialTorrents[2]]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenCronExistsIsTrue_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenCronExistsIsTrue_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false, Take: 1), new(CronExists: true), InitialTorrents[2..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenCronExistsIsTrueAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenCronExistsIsTrueAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[2].Name[..1], true), InitialTorrents[2..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenMultipleFiltersAreUsed_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenMultipleFiltersAreUsed_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(new(IsForwardPagination: false), new(InitialTorrents[2].Name[..1], true), InitialTorrents[2..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenMultipleFiltersAreUsedAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenMultipleFiltersAreUsedAndIsForwardPaginationIsFalse_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Id), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsId_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsId_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Id, IsForwardPagination: false, Take: 2), default, InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsIdAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsIdAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.IdDesc), default, [.. InitialTorrents.Reverse()]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsIdDesc_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsIdDesc_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.IdDesc, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents[..^1].Reverse()]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsIdDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsIdDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Name), default, [.. InitialTorrents.OrderBy(static torrent => torrent.Name)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsName_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsName_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Name, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.OrderBy(static torrent => torrent.Name).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.Name)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDesc_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDesc_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.Name).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPage), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPage_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPage_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPage, IsForwardPagination: false, Take: 2), default, InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPageDesc), default, [.. InitialTorrents.Reverse()]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageDesc_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageDesc_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPageDesc, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.Reverse().Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDir_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDir_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDirDesc), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.DownloadDir)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirDesc_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirDesc_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDirDesc, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.DownloadDir).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirDescAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Name, AnchorValue: string.Empty), default, [.. InitialTorrents.OrderBy(static torrent => torrent.Name)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Name, AnchorValue: string.Empty, IsForwardPagination: false), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsEmptyPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Name, 2, InitialTorrents[1].Name), default, [.. InitialTorrents.OrderBy(static torrent => torrent.Name).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameAndAnchorValueIsExistingName_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameAndAnchorValueIsExistingName_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.Name, 3, InitialTorrents[2].Name, IsForwardPagination: false), default, [.. InitialTorrents.OrderBy(static torrent => torrent.Name).Take(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameAndAnchorValueIsExistingNameAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameAndAnchorValueIsExistingNameAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc, AnchorValue: string.Empty), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDescAndAnchorValueIsEmptyString_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDescAndAnchorValueIsEmptyString_ReturnsEmptyPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc, AnchorValue: string.Empty, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.Name).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDescAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDescAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc, 1, InitialTorrents[0].Name), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.Name).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingName_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingName_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc, 2, InitialTorrents[1].Name, IsForwardPagination: false), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.Name).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingNameAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingNameAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPage, AnchorValue: string.Empty), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPage, AnchorValue: string.Empty, IsForwardPagination: false), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsEmptyPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPage, 1, InitialTorrents[0].WebPageUri), default, [.. InitialTorrents.OrderBy(static torrent => torrent.WebPageUri).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageAndAnchorValueIsExistingWebPage_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsExistingWebPage_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPage, 3, InitialTorrents[2].WebPageUri, IsForwardPagination: false), default, [.. InitialTorrents.OrderBy(static torrent => torrent.WebPageUri).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageAndAnchorValueIsExistingWebPageAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsExistingWebPageAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPageDesc, AnchorValue: string.Empty), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsEmptyString_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsEmptyString_ReturnsEmptyPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPageDesc, AnchorValue: string.Empty, IsForwardPagination: false, Take: 2), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.WebPageUri).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPageDesc, 3, InitialTorrents[2].WebPageUri), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.WebPageUri).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsExistingWebPage_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsExistingWebPage_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.WebPageDesc, 1, InitialTorrents[0].WebPageUri, IsForwardPagination: false), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.WebPageUri).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsExistingWebPageAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsExistingWebPageAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir, AnchorValue: string.Empty), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir, AnchorValue: string.Empty, IsForwardPagination: false), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsEmptyStringAndIsForwardPaginationIsFalse_ReturnsEmptyPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir, 2, InitialTorrents[1].DownloadDir), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsExistingDownloadDir_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsExistingDownloadDir_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir, 3, InitialTorrents[2].DownloadDir, IsForwardPagination: false), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsExistingDownloadDirAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirAndAnchorValueIsExistingDownloadDirAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDirDesc, 3, InitialTorrents[2].DownloadDir), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.DownloadDir).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirDescAndAnchorValueIsExistingDownloadDir_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirDescAndAnchorValueIsExistingDownloadDir_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDirDesc, 2, InitialTorrents[1].DownloadDir, IsForwardPagination: false), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.DownloadDir).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsDownloadDirDescAndAnchorValueIsExistingDownloadDirAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsDownloadDirDescAndAnchorValueIsExistingDownloadDirAndIsForwardPaginationIsFalse_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.NameDesc, 1, InitialTorrents[0].Name), new("m", true), [InitialTorrents[2]]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "FindPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingValueAndPropertyStartsWithIsM_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingValueAndPropertyStartsWithIsM_ReturnsPageOfTorrents"
         };
     }
 
-    private static IEnumerable<TestCaseData<FindPageAsyncTestData<DateTime?>>> GetFindPageAsyncDateTimeTestCases()
+    private static IEnumerable<TestCaseData<GetPageAsyncTestData<DateTime?>>> GetGetPageAsyncDateTimeTestCases()
     {
         yield return new(new(new(TorrentOrder.RefreshDate), default, [.. InitialTorrents.OrderBy(static torrent => torrent.RefreshDate)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDate_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDate_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDate, 3, InitialTorrents[2].RefreshDate), default, [.. InitialTorrents.OrderBy(static torrent => torrent.RefreshDate).Skip(1)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDate_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDate_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDate, 3, InitialTorrents[2].RefreshDate, Take: 1), default, [.. InitialTorrents.OrderBy(static torrent => torrent.RefreshDate).Skip(1).Take(1)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDateAndTakeIsOne_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDateAndTakeIsOne_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDate, 1, InitialTorrents[0].RefreshDate, false), default, [.. InitialTorrents.OrderBy(static torrent => torrent.RefreshDate).Take(2)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDate, 1, InitialTorrents[0].RefreshDate, false, 1), default, [.. InitialTorrents.OrderBy(static torrent => torrent.RefreshDate).Skip(1).Take(1)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalseAndTakeIsOne_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalseAndTakeIsOne_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDateDesc), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.RefreshDate)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateDesc_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateDesc_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDateDesc, 1, InitialTorrents[0].RefreshDate), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.RefreshDate).Skip(1)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDate_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDate_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDateDesc, 1, InitialTorrents[0].RefreshDate, Take: 1), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.RefreshDate).Skip(1).Take(1)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDateAndTakeIsOne_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDateAndTakeIsOne_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDateDesc, 3, InitialTorrents[2].RefreshDate, false), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.RefreshDate).Take(2)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalse_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.RefreshDateDesc, 3, InitialTorrents[2].RefreshDate, false, 1), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.RefreshDate).Skip(1).Take(1)]))
         {
             TypeArgs = [typeof(DateTime?)],
-            TestName = "FindPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalseAndTakeIsOne_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsExistingRefreshDateAndIsForwardPaginationIsFalseAndTakeIsOne_ReturnsSortedArrayOfTorrents"
         };
     }
 }

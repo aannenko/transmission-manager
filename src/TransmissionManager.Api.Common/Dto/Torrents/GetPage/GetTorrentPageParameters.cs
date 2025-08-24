@@ -2,17 +2,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
-using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
-using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
-public readonly partial record struct FindTorrentPageParameters(
+public readonly partial record struct GetTorrentPageParameters(
     [property: EnumDataType(typeof(Order))] Order OrderBy = Order.Id,
     long? AnchorId = null,
     string? AnchorValue = null,
-    [property: Range(1, FindTorrentPageParameters._maxTake)] int Take = 20,
+    [property: Range(1, GetTorrentPageParameters._maxTake)] int Take = 20,
     [property: EnumDataType(typeof(Direction))] Direction Direction = Direction.Forward,
     [property: MinLength(1)] string? PropertyStartsWith = null,
     bool? CronExists = null) : IValidatableObject

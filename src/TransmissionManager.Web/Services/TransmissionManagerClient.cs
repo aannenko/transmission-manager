@@ -11,25 +11,25 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
     public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.AppInfo, UriKind.Relative);
-        var response = await httpClient
+        var appInfo = await httpClient
             .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.GetAppInfoResponse, cancellationToken)
             .ConfigureAwait(false);
 
-        return response == default
+        return appInfo == default
             ? throw new HttpRequestException("Failed to retrieve app info.")
-            : response;
+            : appInfo;
     }
 
-    public async Task<FindTorrentPageResponse> GetTorrentPageAsync(
-        FindTorrentPageParameters request = default,
+    public async Task<GetTorrentPageResponse> GetTorrentPageAsync(
+        GetTorrentPageParameters request = default,
         CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
-        var response = await httpClient
-            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.FindTorrentPageResponse, cancellationToken)
+        var torrentPage = await httpClient
+            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.GetTorrentPageResponse, cancellationToken)
             .ConfigureAwait(false);
 
-        return response ?? throw new HttpRequestException("Failed to retrieve torrent page.");
+        return torrentPage ?? throw new HttpRequestException("Failed to retrieve torrent page.");
     }
 
     public async Task<AddTorrentResponse> AddTorrentAsync(

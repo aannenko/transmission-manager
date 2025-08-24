@@ -1,18 +1,18 @@
 ﻿using System.Net;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Utilities;
-using Direction = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageDirection;
-using Order = TransmissionManager.Api.Common.Dto.Torrents.FindTorrentPageOrder;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
-public static class FindTorrentPageParametersExtensions
+public static class GetTorrentPageParametersExtensions
 {
-    private static readonly int _maxTakeLength = (int)Math.Floor(Math.Log10(FindTorrentPageParameters.MaxTake)) + 1;
+    private static readonly int _maxTakeLength = (int)Math.Floor(Math.Log10(GetTorrentPageParameters.MaxTake)) + 1;
     private static readonly int _maxTorrentOrderItemLength = Enum.GetNames<Order>().Max(static i => i.Length);
     private static readonly int _maxDirectionItemLength = Enum.GetNames<Direction>().Max(static i => i.Length);
 
-    public static string ToPathAndQueryString(in this FindTorrentPageParameters parameters)
+    public static string ToPathAndQueryString(in this GetTorrentPageParameters parameters)
     {
         var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;
 

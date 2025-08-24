@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Api.Common.Dto.Torrents;
 
-public enum FindTorrentPageDirection
+public enum GetTorrentPageDirection
 {
     Forward,
     Backward

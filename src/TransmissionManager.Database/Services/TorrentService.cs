@@ -13,7 +13,7 @@ public sealed class TorrentService(AppDbContext dbContext)
             .ConfigureAwait(false);
     }
 
-    public async Task<Torrent[]> FindPageAsync<T>(
+    public async Task<Torrent[]> GetPageAsync<T>(
         TorrentPageDescriptor<T> page = default,
         TorrentFilter filter = default,
         CancellationToken cancellationToken = default)

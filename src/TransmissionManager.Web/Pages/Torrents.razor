@@ -53,7 +53,7 @@ else
             var page = await Client.GetTorrentPageAsync(new()
             {
                 Take = 1000,
-                OrderBy = FindTorrentPageOrder.RefreshDateDesc
+                OrderBy = GetTorrentPageOrder.RefreshDateDesc
             });
 
             _torrents = page.Torrents as TorrentDto[] ?? page.Torrents.ToArray();

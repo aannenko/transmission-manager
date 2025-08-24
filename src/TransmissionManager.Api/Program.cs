@@ -70,8 +70,8 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePages();
 
 app.MapGroup(EndpointAddresses.Torrents)
-    .MapFindTorrentByIdEndpoint()
-    .MapFindTorrentPageEndpoint()
+    .MapGetTorrentByIdEndpoint()
+    .MapGetTorrentPageEndpoint()
     .MapAddTorrentEndpoint()
     .MapRefreshTorrentByIdEndpoint()
     .MapUpdateTorrentByIdEndpoint()

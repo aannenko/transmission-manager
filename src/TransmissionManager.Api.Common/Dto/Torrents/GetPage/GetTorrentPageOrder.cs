@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Api.Common.Dto.Torrents;
 
-public enum FindTorrentPageOrder
+public enum GetTorrentPageOrder
 {
     Id,
     IdDesc,
