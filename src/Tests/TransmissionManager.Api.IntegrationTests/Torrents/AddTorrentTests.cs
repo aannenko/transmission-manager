@@ -145,17 +145,11 @@ internal sealed class AddTorrentTests
         }
 
         var addTorrentResponse = await response.Content.ReadFromJsonAsync<AddTorrentResponse>().ConfigureAwait(false);
-        
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(addTorrentResponse.Id, Is.EqualTo(expectedId));
-            Assert.That(addTorrentResponse.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
-        }
 
-        var newTorrent = await _client.GetFromJsonAsync<TorrentDto>(expectedLocation).ConfigureAwait(false);
+        Assert.That(addTorrentResponse, Is.Not.Null);
+        Assert.That(addTorrentResponse.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
 
-        Assert.That(newTorrent, Is.Not.Null);
-        TorrentAssertions.AssertEqual(newTorrent, new Torrent
+        var expectedTorrent = new Torrent
         {
             Id = expectedId,
             HashString = _addNewTorrentResponseHashString,
@@ -164,7 +158,13 @@ internal sealed class AddTorrentTests
             WebPageUri = dto.WebPageUri.OriginalString,
             DownloadDir = dto.DownloadDir,
             Cron = dto.Cron,
-        }, TimeSpan.FromSeconds(2));
+        };
+
+        TorrentAssertions.AssertEqual(addTorrentResponse.TorrentDto, expectedTorrent, TimeSpan.FromSeconds(1));
+
+        var newTorrent = await _client.GetFromJsonAsync<TorrentDto>(expectedLocation).ConfigureAwait(false);
+
+        TorrentAssertions.AssertEqual(newTorrent, expectedTorrent, TimeSpan.FromSeconds(2));
     }
 
     [Test]

@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using System.Text;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 using TransmissionManager.Transmission.Dto;
 using Result = TransmissionManager.Api.Actions.Torrents.RefreshTorrentByIdResult;
@@ -23,28 +25,28 @@ internal sealed class RefreshTorrentByIdHandler(
     {
         var torrent = await torrentService.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         if (torrent is null)
-            return new(Result.NotFoundLocally, null, GetError(id, "No such torrent."));
+            return new(Result.NotFoundLocally, null, null, GetError(id, "No such torrent."));
 
         var (_, transmissionGetError) = await transmissionService
             .GetTorrentAsync(torrent.HashString, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionGetError is not null)
-            return new(Result.NotFoundInTransmission, null, GetError(id, transmissionGetError));
+            return new(Result.NotFoundInTransmission, null, null, GetError(id, transmissionGetError));
 
         var (magnetUri, getMagnetError) = await torrentWebPageService
             .GetMagnetUriAsync(new(torrent.WebPageUri), torrent.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)
-            return new(Result.DependencyFailed, null, GetError(id, getMagnetError));
+            return new(Result.DependencyFailed, null, null, GetError(id, getMagnetError));
 
         var (transmissionAddResult, transmissionAddTorrent, transmissionAddError) = await transmissionService
             .AddTorrentUsingMagnetAsync(magnetUri, torrent.DownloadDir, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionAddTorrent is null)
-            return new(Result.DependencyFailed, transmissionAddResult, GetError(id, transmissionAddError));
+            return new(Result.DependencyFailed, null, transmissionAddResult, GetError(id, transmissionAddError));
 
         if (transmissionAddResult is TransmissionAddResult.Added)
         {
@@ -59,7 +61,7 @@ internal sealed class RefreshTorrentByIdHandler(
             if (!isTorrentUpdated)
             {
                 const string message = "The torrent was removed before it could be updated.";
-                return new(Result.Removed, transmissionAddResult, GetError(id, message));
+                return new(Result.Removed, null, transmissionAddResult, GetError(id, message));
             }
 
             if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
@@ -67,14 +69,18 @@ internal sealed class RefreshTorrentByIdHandler(
 
             var transmissionRemoveError = (await transmissionRemoveTask.ConfigureAwait(false)).Error;
             if (transmissionRemoveError is not null)
-                return new(Result.DependencyFailed, transmissionAddResult, GetError(id, transmissionRemoveError));
+                return new(Result.DependencyFailed, null, transmissionAddResult, GetError(id, transmissionRemoveError));
+
+            torrent.HashString = torrentUpdateDto.HashString!;
+            torrent.RefreshDate = torrentUpdateDto.RefreshDate!.Value;
+            torrent.Name = torrentUpdateDto.Name!;
         }
         else if (torrent.Name == torrent.HashString)
         {
             _ = backgroundUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
         }
 
-        return new(Result.Refreshed, transmissionAddResult, null);
+        return new(Result.Refreshed, torrent.ToDto(), transmissionAddResult, null);
     }
 
     private static string GetError(long id, string? message) =>

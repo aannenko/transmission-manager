@@ -1,9 +1,10 @@
-﻿using TransmissionManager.Api.Common.Dto.Transmission;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Dto.Transmission;
 
 namespace TransmissionManager.Api.Actions.Torrents;
 
 internal readonly record struct AddTorrentOutcome(
     AddTorrentResult Result,
-    long? Id,
+    TorrentDto? TorrentDto,
     TransmissionAddResult? TransmissionResult,
     string? Error);

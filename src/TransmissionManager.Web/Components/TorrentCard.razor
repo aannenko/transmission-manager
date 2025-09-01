@@ -1,0 +1,116 @@
+﻿@using TransmissionManager.Api.Common.Dto.Torrents
+@using TransmissionManager.Web.Constants
+@using TransmissionManager.Web.Extensions
+@using TransmissionManager.Web.Services
+@inherits CommonComponentBase
+@inject NavigationManager Navigation
+
+<div class="item-card">
+    <div class="clickable" @onclick="OpenTorrentDetails">
+        <h4 class="text-block">@Torrent.Name</h4>
+        <p class="text-block text-secondary">Refreshed on: @Torrent.RefreshDate.ToServerTimeString()</p>
+    </div>
+
+    <a class="item-button" target="_blank" href="@Torrent.WebPageUri">
+        <img src="img/visit.svg" alt="Go to torrent page" title="Go to torrent page" />
+    </a>
+
+    <button class="item-button" type="button" disabled="@_isRefreshDisabled" @onclick="RefreshTorrentsAsync">
+        <img src="img/restart.svg" alt="Refresh" title="Refresh" />
+    </button>
+
+    <div class="dropdown">
+        <button class="item-button" type="button" disabled="@IsBusy">
+            <img src="img/bin.svg" alt="Remove" title="Remove" />
+        </button>
+        <div class="dropdown-content">
+            <a @onclick="DeleteLocalTorrentAsync">Remove torrent locally</a>
+            <a @onclick="DeleteLocalAndTransmissionTorrentAsync">...and from Transmission</a>
+            <a @onclick="DeleteTorrentAndDataAsync">...and delete data</a>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p class="text-block">@Message</p>
+    }
+</div>
+
+@code {
+    enum Operation
+    {
+        Refresh,
+        Delete
+    }
+
+    private Operation _operation = Operation.Refresh;
+
+    private bool _isRefreshDisabled = false;
+
+    [Parameter, EditorRequired]
+    public TorrentDto Torrent { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<long, Task> RefreshAsync { get; set; }
+
+    [Parameter, EditorRequired]
+    public Func<long, DeleteTorrentByIdType, Task> DeleteAsync { get; set; }
+
+    private protected override string BusyMessage => string.Empty;
+
+    private protected override string GetGenericErrorMessage(HttpRequestException exception)
+    {
+        return _operation switch
+        {
+            Operation.Refresh => $"Failed to refresh torrent: '{exception.Message}'.",
+            Operation.Delete => $"Failed to delete torrent: '{exception.Message}'.",
+            _ => "An unexpected error occurred."
+        };
+    }
+
+    private async Task RefreshTorrentsAsync()
+    {
+        if (IsBusy || _isRefreshDisabled)
+            return;
+
+        _operation = Operation.Refresh;
+        _isRefreshDisabled = true;
+
+        var isRefreshSuccessful = await CallService(
+            this,
+            static (self) => self.RefreshAsync(self.Torrent.Id));
+
+        if (isRefreshSuccessful)
+            StateHasChanged();
+
+        await Task.Delay(TimeSpan.FromSeconds(10));
+        _isRefreshDisabled = false;
+    }
+
+    private void OpenTorrentDetails() =>
+        Navigation.NavigateTo($"{PageAddresses.Torrents}/{Torrent.Id}");
+
+    private Task DeleteLocalTorrentAsync() =>
+        DeleteTorrentAsync(DeleteTorrentByIdType.Local);
+
+    private Task DeleteLocalAndTransmissionTorrentAsync() =>
+        DeleteTorrentAsync(DeleteTorrentByIdType.LocalAndTransmission);
+
+    private Task DeleteTorrentAndDataAsync() =>
+        DeleteTorrentAsync(DeleteTorrentByIdType.LocalAndTransmissionAndData);
+
+    private async Task DeleteTorrentAsync(DeleteTorrentByIdType deleteType)
+    {
+        if (IsBusy)
+            return;
+
+        _operation = Operation.Delete;
+
+        var isDeleteSuccessful = await CallService(
+            (Self: this, deleteType),
+            static (args) => args.Self.DeleteAsync(args.Self.Torrent.Id, args.deleteType));
+
+        if (!isDeleteSuccessful && string.IsNullOrEmpty(Message))
+            Message = "Failed to delete torrent.";
+    }
+}

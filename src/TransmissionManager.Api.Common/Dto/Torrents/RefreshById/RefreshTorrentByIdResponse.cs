@@ -2,4 +2,6 @@
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
-public readonly record struct RefreshTorrentByIdResponse(TransmissionAddResult TransmissionResult);
+public sealed record RefreshTorrentByIdResponse(
+    TorrentDto TorrentDto,
+    TransmissionAddResult TransmissionResult);

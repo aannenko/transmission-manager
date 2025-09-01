@@ -20,6 +20,16 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
             : appInfo;
     }
 
+    public async Task<TorrentDto> GetTorrentById(long torrentId, CancellationToken cancellationToken = default)
+    {
+        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
+        var torrent = await httpClient
+            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.TorrentDto, cancellationToken)
+            .ConfigureAwait(false);
+
+        return torrent ?? throw new HttpRequestException($"Failed to retrieve torrent with id {torrentId}.");
+    }
+
     public async Task<GetTorrentPageResponse> GetTorrentPageAsync(
         GetTorrentPageParameters request = default,
         CancellationToken cancellationToken = default)
@@ -41,10 +51,12 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
             .PostAsJsonAsync(requestUri, request, cancellationToken)
             .ConfigureAwait(false);
 
-        return await response
+        var addTorrentResponse = await response
             .EnsureSuccessStatusCode()
             .Content.ReadFromJsonAsync<AddTorrentResponse>(cancellationToken)
             .ConfigureAwait(false);
+
+        return addTorrentResponse ?? throw new HttpRequestException("Failed to add torrent.");
     }
 
     public async Task<RefreshTorrentByIdResponse> RefreshTorrentByIdAsync(
@@ -56,10 +68,25 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
             .PostAsJsonAsync(requestUri, string.Empty, cancellationToken)
             .ConfigureAwait(false);
 
-        return await response
+        var refreshResponse = await response
             .EnsureSuccessStatusCode()
             .Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>(cancellationToken)
             .ConfigureAwait(false);
+
+        return refreshResponse ?? throw new HttpRequestException($"Failed to refresh torrent with id {torrentId}.");
+    }
+
+    public async Task UpdateTorrentByIdAsync(
+        long torrentId,
+        UpdateTorrentByIdRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
+        using var response = await httpClient
+            .PatchAsJsonAsync(requestUri, request, cancellationToken)
+            .ConfigureAwait(false);
+
+        response.EnsureSuccessStatusCode();
     }
 
     public async Task DeleteTorrentByIdAsync(

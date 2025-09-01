@@ -17,7 +17,7 @@ internal sealed partial class TorrentRefreshTask(
     {
         LogRefreshStarted(logger, torrentId);
 
-        var (_, transmissionResult, error) = await refreshHandler
+        var (_, _, transmissionResult, error) = await refreshHandler
             .RefreshTorrentByIdAsync(torrentId, CancellationToken)
             .ConfigureAwait(false);
 

@@ -22,8 +22,7 @@ internal static class TorrentAssertions
             }
             else
             {
-                var toleranceTimeSpan = refreshDateTolerance;
-                Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate).Within(toleranceTimeSpan));
+                Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate).Within(refreshDateTolerance));
             }
 
             Assert.That(actual.Name, Is.EqualTo(expected.Name));

@@ -23,15 +23,17 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             magnetRegexPattern: @"magnet:\?xt=urn:[^""]+",
             cron: "0 10,18 * * *");
 
-        var torrentId = await service.AddOneAsync(dto).ConfigureAwait(false);
+        var torrent = await service.AddOneAsync(dto).ConfigureAwait(false);
 
-        Assert.That(torrentId, Is.GreaterThan(0));
+        const long expectedId = 4;
+
+        TorrentAssertions.AssertEqual(torrent, expectedId, dto);
 
         var actual = await context.Torrents
-            .FirstOrDefaultAsync(torrent => torrent.Id == torrentId)
+            .FirstOrDefaultAsync(torrent => torrent.Id == expectedId)
             .ConfigureAwait(false);
 
-        TorrentAssertions.AssertEqual(actual, torrentId, dto);
+        TorrentAssertions.AssertEqual(actual, expectedId, dto);
     }
 
     [Test]

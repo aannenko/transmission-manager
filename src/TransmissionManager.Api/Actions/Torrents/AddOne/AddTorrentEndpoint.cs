@@ -20,19 +20,19 @@ internal static class AddTorrentEndpoint
         AddTorrentAsync(
             [FromServices] LinkGenerator linker,
             [FromServices] AddTorrentHandler handler,
-            AddTorrentRequest dto,
+            AddTorrentRequest request,
             CancellationToken cancellationToken)
     {
-        var (result, id, transmissionResult, error) = await handler
-            .AddTorrentAsync(dto, cancellationToken)
+        var (result, torrent, transmissionResult, error) = await handler
+            .AddTorrentAsync(request, cancellationToken)
             .ConfigureAwait(false);
 
         return result switch
         {
             AddTorrentResult.Added =>
                 TypedResults.Created(
-                    linker.GetPathByName(EndpointNames.GetTorrentById, new() { [nameof(id)] = id!.Value }),
-                    new AddTorrentResponse(id!.Value, transmissionResult!.Value)),
+                    linker.GetPathByName(EndpointNames.GetTorrentById, new() { ["id"] = torrent!.Id }),
+                    new AddTorrentResponse(torrent!, transmissionResult!.Value)),
             AddTorrentResult.Exists =>
                 TypedResults.Problem(
                     error,

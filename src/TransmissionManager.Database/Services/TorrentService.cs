@@ -38,14 +38,14 @@ public sealed class TorrentService(AppDbContext dbContext)
         return await query.WhereOrderByTake(page).ToArrayAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<long> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
+    public async Task<Torrent> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
 
         var torrent = dto.ToTorrent();
         dbContext.Torrents.Add(torrent);
         await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
-        return torrent.Id;
+        return torrent;
     }
 
     public async Task<bool> TryUpdateOneByIdAsync(

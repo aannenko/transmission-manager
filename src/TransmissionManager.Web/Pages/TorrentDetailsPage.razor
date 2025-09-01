@@ -1,0 +1,256 @@
+﻿@page "/torrents/{Id:long}"
+@using System.ComponentModel.DataAnnotations
+@using TransmissionManager.Api.Common.Attributes
+@using TransmissionManager.Api.Common.Dto.Torrents
+@using TransmissionManager.Web.Components
+@using TransmissionManager.Web.Extensions
+@using TransmissionManager.Web.Services
+@inherits CommonComponentBase
+@inject TransmissionManagerClient Client
+
+<div class="item-card">
+    <h4 class="text-block">Torrent details</h4>
+
+    <p class="text-block">ID: @Id</p>
+
+    <div>
+        <label>Name:</label>
+        <div class="form-input">@_name</div>
+    </div>
+
+    <div>
+        <label>Torrent webpage:</label>
+        <div class="form-input">
+            <a href="@_webPageUri" target="_blank">@_webPageUri</a>
+        </div>
+    </div>
+
+    <div>
+        <label>Hash:</label>
+        <div class="form-input">@_hashString</div>
+    </div>
+
+    <div>
+        <label>Refreshed on:</label>
+        <div class="form-input">@(_refreshDate?.ToServerTimeString() ?? string.Empty)</div>
+    </div>
+
+    <EditForm Model="this" OnValidSubmit="UpdateTorrentAsync">
+        <DataAnnotationsValidator />
+
+        <div>
+            <label for="downloadDir">Download directory:</label>
+            <InputText id="downloadDir" class="form-input" disabled="@AreControlsDisabled" @bind-Value="DownloadDir" />
+            <ValidationMessage For="@(() => DownloadDir)" />
+        </div>
+
+        <div>
+            <label for="magnetRegexPattern">Magnet link regex (optional):</label>
+            <InputText id="magnetRegexPattern" class="form-input" disabled="@AreControlsDisabled" @bind-Value="MagnetRegexPattern" />
+            <ValidationMessage For="@(() => MagnetRegexPattern)" />
+        </div>
+
+        <div>
+            <label for="cron">
+                Refresh schedule <a target="_blank" href="https://crontab.guru/#0_9,19_*_*_*">cron</a> (optional):
+            </label>
+            <InputText id="cron" class="form-input" disabled="@AreControlsDisabled" @bind-Value="Cron" />
+            <ValidationMessage For="@(() => Cron)" />
+        </div>
+
+        <button class="form-button" type="submit" disabled="@AreControlsDisabled">Update torrent</button>
+    </EditForm>
+
+    <button class="form-button" @onclick="RefreshTorrentAsync" disabled="@AreControlsDisabled">Refresh torrent</button>
+
+    <button class="form-button" @onclick="DeleteLocalTorrentAsync" disabled="@AreControlsDisabled">Remove torrent locally</button>
+
+    <button class="form-button" @onclick="DeleteLocalAndTransmissionTorrentAsync" disabled="@AreControlsDisabled">Remove locally and from Transmission</button>
+
+    <button class="form-button" @onclick="DeleteTorrentAndDataAsync" disabled="@AreControlsDisabled">Remove locally, from Transmission, delete data</button>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p class="text-block">@Message</p>
+    }
+</div>
+
+@code {
+    enum Operation
+    {
+        Load,
+        Update,
+        Refresh,
+        DeleteRecord,
+        DeleteTransmission,
+        DeleteData
+    }
+
+    private Operation _operation = Operation.Load;
+
+    private string _name = string.Empty;
+    private string _webPageUri = string.Empty;
+    private string _hashString = string.Empty;
+    private DateTime? _refreshDate = null;
+
+    [Parameter]
+    public long Id { get; set; }
+
+    [Required(ErrorMessage = "Value required.")]
+    public string DownloadDir { get; private set; } = string.Empty;
+
+    [MagnetRegex]
+    public string? MagnetRegexPattern { get; private set; }
+
+    [Cron]
+    public string? Cron { get; private set; }
+
+    private bool AreControlsDisabled => IsBusy || string.IsNullOrEmpty(_webPageUri);
+
+    private protected override string BusyMessage => _operation switch
+    {
+        Operation.Load => "Loading torrent...",
+        Operation.Update => "Updating torrent...",
+        Operation.Refresh => "Refreshing torrent...",
+        Operation.DeleteRecord => "Deleting torrent record...",
+        Operation.DeleteTransmission => "Deleting torrent from Transmission...",
+        Operation.DeleteData => "Deleting torrent data...",
+        _ => "Processing..."
+    };
+
+    protected override async Task OnInitializedAsync() => await GetTorrentAsync();
+
+    protected override async Task OnParametersSetAsync() => await GetTorrentAsync();
+
+    private protected override string GetGenericErrorMessage(HttpRequestException exception) =>
+        _operation switch
+        {
+            Operation.Load => $"Failed to load torrent: '{exception.Message}'.",
+            Operation.Update => $"Failed to update torrent: '{exception.Message}'.",
+            Operation.Refresh => $"Failed to refresh torrent: '{exception.Message}'.",
+            Operation.DeleteRecord => $"Failed to delete torrent record: '{exception.Message}'.",
+            Operation.DeleteTransmission => $"Failed to delete torrent from Transmission: '{exception.Message}'.",
+            Operation.DeleteData => $"Failed to delete torrent data: '{exception.Message}'.",
+            _ => $"An error occurred: '{exception.Message}'."
+        };
+
+    private async Task GetTorrentAsync()
+    {
+        if (IsBusy)
+            return;
+
+        _operation = Operation.Load;
+
+        var torrentDto = await CallService(
+            (Client, Id),
+            static args => args.Client.GetTorrentById(args.Id));
+
+        FillTorrentData(torrentDto);
+
+        if (torrentDto is not null)
+        {
+            Message = string.Empty;
+        }
+        else if (string.IsNullOrEmpty(Message))
+        {
+            Message = "Torrent not found.";
+        }
+    }
+
+    private async Task UpdateTorrentAsync()
+    {
+        if (IsBusy)
+            return;
+
+        _operation = Operation.Update;
+
+        var request = new UpdateTorrentByIdRequest
+        {
+            DownloadDir = DownloadDir,
+            MagnetRegexPattern = MagnetRegexPattern,
+            Cron = Cron
+        };
+
+        var isUpdateSuccessful = await CallService(
+            (Client, Id, request),
+            static args => args.Client.UpdateTorrentByIdAsync(args.Id, args.request));
+
+        if (isUpdateSuccessful)
+        {
+            Message = "Torrent updated.";
+        }
+        else if (string.IsNullOrEmpty(Message))
+        {
+            Message = "Failed to update torrent.";
+        }
+    }
+
+    private async Task RefreshTorrentAsync()
+    {
+        if (IsBusy)
+            return;
+
+        _operation = Operation.Refresh;
+
+        var refreshResponse = await CallService(
+            (Client, Id),
+            static args => args.Client.RefreshTorrentByIdAsync(args.Id));
+
+        if (refreshResponse?.TorrentDto is not null)
+        {
+            FillTorrentData(refreshResponse.TorrentDto);
+            Message = $"Torrent refreshed. Transmission result: {refreshResponse.TransmissionResult}.";
+        }
+        else if (string.IsNullOrEmpty(Message))
+        {
+            Message = "Failed to refresh torrent.";
+        }
+    }
+
+    private Task DeleteLocalTorrentAsync() =>
+        DeleteTorrentAsync(DeleteTorrentByIdType.Local);
+
+    private Task DeleteLocalAndTransmissionTorrentAsync() =>
+        DeleteTorrentAsync(DeleteTorrentByIdType.LocalAndTransmission);
+
+    private Task DeleteTorrentAndDataAsync() =>
+        DeleteTorrentAsync(DeleteTorrentByIdType.LocalAndTransmissionAndData);
+
+    private async Task DeleteTorrentAsync(DeleteTorrentByIdType deleteType)
+    {
+        if (IsBusy)
+            return;
+
+        _operation = deleteType switch
+        {
+            DeleteTorrentByIdType.Local => Operation.DeleteRecord,
+            DeleteTorrentByIdType.LocalAndTransmission => Operation.DeleteTransmission,
+            DeleteTorrentByIdType.LocalAndTransmissionAndData => Operation.DeleteData,
+            _ => Operation.DeleteRecord
+        };
+
+        var isDeleteSuccessful = await CallService(
+            (Client, Id, deleteType),
+            static (args) => args.Client.DeleteTorrentByIdAsync(args.Id, args.deleteType));
+
+        if (isDeleteSuccessful)
+        {
+            Message = "Torrent deleted.";
+        }
+        else if (string.IsNullOrEmpty(Message))
+        {
+            Message = "Failed to delete torrent.";
+        }
+    }
+
+    private void FillTorrentData(TorrentDto? torrentDto)
+    {
+        _name = torrentDto?.Name ?? string.Empty;
+        _webPageUri = torrentDto?.WebPageUri.OriginalString ?? string.Empty;
+        _hashString = torrentDto?.HashString ?? string.Empty;
+        _refreshDate = torrentDto?.RefreshDate ?? null;
+        DownloadDir = torrentDto?.DownloadDir ?? string.Empty;
+        MagnetRegexPattern = torrentDto?.MagnetRegexPattern;
+        Cron = torrentDto?.Cron;
+    }
+}

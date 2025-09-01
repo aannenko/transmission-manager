@@ -6,7 +6,7 @@ internal static class TransmissionTorrentAddResponseItemExtensions
 {
     public static TorrentUpdateDto ToTorrentUpdateDto(
         this TransmissionTorrentAddResponseItem transmissionTorrent,
-        DateTime? refreshDate)
+        DateTime refreshDate)
     {
         return new(
             hashString: transmissionTorrent.HashString,

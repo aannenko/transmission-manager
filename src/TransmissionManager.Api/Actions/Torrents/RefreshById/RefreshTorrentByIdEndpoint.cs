@@ -21,14 +21,14 @@ internal static class RefreshTorrentByIdEndpoint
             long id,
             CancellationToken cancellationToken)
     {
-        var (result, transmissionResult, error) = await handler
+        var (result, torrentDto, transmissionResult, error) = await handler
             .RefreshTorrentByIdAsync(id, cancellationToken)
             .ConfigureAwait(false);
 
         return result switch
         {
             RefreshTorrentByIdResult.Refreshed =>
-                TypedResults.Ok(new RefreshTorrentByIdResponse(transmissionResult!.Value)),
+                TypedResults.Ok(new RefreshTorrentByIdResponse(torrentDto!, transmissionResult!.Value)),
             RefreshTorrentByIdResult.NotFoundLocally or RefreshTorrentByIdResult.Removed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
             RefreshTorrentByIdResult.NotFoundInTransmission =>

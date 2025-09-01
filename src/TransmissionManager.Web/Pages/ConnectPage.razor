@@ -1,57 +1,52 @@
 ﻿@page "/connect"
-@inject ConnectionService ConnectionService
 @using System.ComponentModel.DataAnnotations
 @using System.Diagnostics.CodeAnalysis
 @using TransmissionManager.Api.Common.Dto.AppInfo
 @using TransmissionManager.Api.Common.Serialization
+@using TransmissionManager.Web.Components
 @using TransmissionManager.Web.Extensions
 @using TransmissionManager.Web.Services
 @using TransmissionManager.Web.Validation
+@inherits CommonComponentBase
+@inject ConnectionService ConnectionService
 
 <PageTitle>Transmission Manager - Connect</PageTitle>
 
 <div class="item-card">
-    <h4 class="text-header">Connect to Transmission Manager</h4>
+    <h4 class="text-block">Connect to Transmission Manager</h4>
 
     <EditForm Model="this" OnValidSubmit="ConnectAsync">
         <DataAnnotationsValidator />
 
         <div>
             <label for="host">Host:</label>
-            <InputText id="host" class="form-input" @bind-Value="Host" />
+            <InputText id="host" class="form-input" disabled="@IsBusy" @bind-Value="Host" />
             <ValidationMessage For="@(() => Host)" />
         </div>
 
         <div>
             <label for="port">Port:</label>
-            <InputNumber id="port" class="form-input" @bind-Value="Port" />
+            <InputNumber id="port" class="form-input" disabled="@IsBusy" @bind-Value="Port" />
             <ValidationMessage For="@(() => Port)" />
         </div>
 
-        <button class="form-button" type="submit" disabled="@IsConnecting">Connect</button>
-
-        <p>@_connectionMessage</p>
+        <button class="form-button" type="submit" disabled="@IsBusy">Connect</button>
     </EditForm>
+
+    @if (!string.IsNullOrEmpty(Message))
+    {
+        <p class="text-block">@Message</p>
+    }
 </div>
 
 @code {
-    private enum ConnectionStatus
-    {
-        Connecting,
-        Connected,
-        Error
-    }
-
-    private ConnectionStatus _connectionStatus = ConnectionStatus.Error;
-    private string _connectionMessage = string.Empty;
+    private protected override string BusyMessage => "Connecting...";
 
     [Required, HostName]
-    public string Host { get; set; } = string.Empty;
+    public string Host { get; private set; } = string.Empty;
 
     [Required, Range(0, 65535)]
-    public int Port { get; set; } = 9092;
-
-    private bool IsConnecting => _connectionStatus is ConnectionStatus.Connecting;
+    public int Port { get; private set; } = 9092;
 
     protected override void OnInitialized()
     {
@@ -59,9 +54,12 @@
         Port = ConnectionService.BaseAddress.Port;
     }
 
+    private protected override string GetOperationCanceledMessage(OperationCanceledException exception) =>
+        $"Connection attempt timed out. Please check the {nameof(Host)} and {nameof(Port)}.";
+
     private async Task ConnectAsync()
     {
-        if (_connectionStatus is ConnectionStatus.Connecting)
+        if (IsBusy)
             return;
 
         Uri baseAddress;
@@ -71,41 +69,23 @@
         }
         catch (UriFormatException e)
         {
-            _connectionMessage = e.Message;
-            _connectionStatus = ConnectionStatus.Error;
+            Message = e.Message;
             return;
         }
 
-        _connectionMessage = "Connecting...";
-        _connectionStatus = ConnectionStatus.Connecting;
+        var appInfo = await CallService(
+            (ConnectionService, baseAddress),
+            static args => args.ConnectionService.ConnectAsync(args.baseAddress));
 
-        GetAppInfoResponse? appInfo = null;
-        try
+        if (appInfo != default)
         {
-            appInfo = await ConnectionService.ConnectAsync(baseAddress).ConfigureAwait(false);
+            Message = $"Connected to {baseAddress} " +
+                $"| Version: {appInfo.Version} " +
+                $"| Server time: {appInfo.LocalTime.ToServerTimeString()}";
         }
-        catch (OperationCanceledException)
+        else if (string.IsNullOrEmpty(Message))
         {
-            _connectionMessage = $"Connection attempt timed out. Please check the {nameof(Host)} and {nameof(Port)}.";
+            Message = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
         }
-        catch (Exception e)
-        {
-            _connectionMessage = e.Message;
-        }
-
-        if (appInfo is not null)
-        {
-            _connectionMessage = $"Connected to {baseAddress} " +
-                $"| Version: {appInfo.Value.Version} " +
-                $"| Server time: {appInfo.Value.LocalTime.ToServerTimeString()}";
-
-            _connectionStatus = ConnectionStatus.Connected;
-        }
-        else if (string.IsNullOrEmpty(_connectionMessage))
-        {
-            _connectionMessage = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
-        }
-
-        _connectionStatus = ConnectionStatus.Error;
     }
 }

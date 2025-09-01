@@ -23,7 +23,7 @@ internal sealed class ConnectionService(
 
         BaseAddress = baseAddress;
         serverTimeZoneService.Offset = appInfo.LocalTime.Offset;
-        
+
         return appInfo;
     }
 }

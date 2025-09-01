@@ -6,6 +6,7 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 using Result = TransmissionManager.Api.Actions.Torrents.AddTorrentResult;
 
@@ -21,42 +22,42 @@ internal sealed class AddTorrentHandler(
     private static readonly CompositeFormat _error =
         CompositeFormat.Parse("Addition of a torrent from the web page '{0}' has failed: '{1}'.");
 
-    public async Task<AddTorrentOutcome> AddTorrentAsync(AddTorrentRequest dto, CancellationToken cancellationToken)
+    public async Task<AddTorrentOutcome> AddTorrentAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
         var (magnetUri, getMagnetError) = await torrentWebPageService
-            .GetMagnetUriAsync(dto.WebPageUri, dto.MagnetRegexPattern, cancellationToken)
+            .GetMagnetUriAsync(request.WebPageUri, request.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)
-            return new(Result.DependencyFailed, null, null, GetError(dto.WebPageUri, getMagnetError));
+            return new(Result.DependencyFailed, null, null, GetError(request.WebPageUri, getMagnetError));
 
         var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService
-            .AddTorrentUsingMagnetAsync(magnetUri, dto.DownloadDir, cancellationToken)
+            .AddTorrentUsingMagnetAsync(magnetUri, request.DownloadDir, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return new(Result.DependencyFailed, null, null, GetError(dto.WebPageUri, transmissionError));
+            return new(Result.DependencyFailed, null, null, GetError(request.WebPageUri, transmissionError));
 
-        long torrentId;
+        Torrent torrent;
         try
         {
-            torrentId = await torrentService
-                .AddOneAsync(dto.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
+            torrent = await torrentService
+                .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
                 .ConfigureAwait(false);
 
-            if (!string.IsNullOrEmpty(dto.Cron))
-                schedulerService.ScheduleTorrentRefresh(torrentId, dto.Cron);
+            if (!string.IsNullOrEmpty(request.Cron))
+                schedulerService.ScheduleTorrentRefresh(torrent.Id, request.Cron);
         }
         catch (DbUpdateException)
         {
-            var torrentExistsError = GetError(dto.WebPageUri, "Torrent already exists.");
+            var torrentExistsError = GetError(request.WebPageUri, "Torrent already exists.");
             return new(Result.Exists, null, transmissionResult, torrentExistsError);
         }
 
         if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = backgroundUpdateService.UpdateTorrentNameAsync(torrentId, transmissionTorrent.HashString);
+            _ = backgroundUpdateService.UpdateTorrentNameAsync(torrent.Id, transmissionTorrent.HashString);
 
-        return new(Result.Added, torrentId, transmissionResult, null);
+        return new(Result.Added, torrent.ToDto(), transmissionResult, null);
     }
 
     private static string GetError(Uri webPageUri, string? message) =>

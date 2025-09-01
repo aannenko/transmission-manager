@@ -227,7 +227,9 @@ internal sealed class RefreshTorrentByIdTests
 
         var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
 
+        Assert.That(result, Is.Not.Null);
         Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Duplicate));
+        TorrentAssertions.AssertEqual(result.TorrentDto, _initialTorrents[0]);
     }
 
     [Test]
@@ -239,7 +241,9 @@ internal sealed class RefreshTorrentByIdTests
 
         var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
 
+        Assert.That(result, Is.Not.Null);
         Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
+        TorrentAssertions.AssertEqual(result.TorrentDto, _initialTorrents[1], TimeSpan.MaxValue);
     }
 
     [Test]
