@@ -10,7 +10,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(DtoJsonSerializerContext.Default);
-builder.Services.AddSingleton(static _ => DateTimeExtensions.ServerTimeZoneService = new());
+builder.Services.AddSingleton(DateTimeExtensions.ServerTimeZoneService = new());
 builder.Services.AddSingleton<ConnectionService>();
 builder.Services.AddHttpClient<TransmissionManagerClient>(static (services, client) =>
     client.BaseAddress = services.GetRequiredService<ConnectionService>().BaseAddress);
