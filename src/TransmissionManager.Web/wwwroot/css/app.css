@@ -208,6 +208,8 @@ body {
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     box-sizing: border-box;
     margin-bottom: 0.5rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 
     .form-input:focus {
