@@ -1,7 +1,6 @@
 ﻿@page "/connect"
 @using System.ComponentModel.DataAnnotations
 @using System.Diagnostics.CodeAnalysis
-@using TransmissionManager.Api.Common.Dto.AppInfo
 @using TransmissionManager.Api.Common.Serialization
 @using TransmissionManager.Web.Components
 @using TransmissionManager.Web.Extensions
@@ -73,15 +72,13 @@
             return;
         }
 
-        var appInfo = await CallService(
+        var appVersion = await CallService(
             (ConnectionService, baseAddress),
             static args => args.ConnectionService.ConnectAsync(args.baseAddress));
 
-        if (appInfo != default)
+        if (appVersion is not null)
         {
-            Message = $"Connected to {baseAddress} " +
-                $"| Version: {appInfo.Version} " +
-                $"| Server time: {appInfo.LocalTime.ToServerTimeString()}";
+            Message = $"Connected to {baseAddress} | Version: {appVersion} ";
         }
         else if (string.IsNullOrEmpty(Message))
         {

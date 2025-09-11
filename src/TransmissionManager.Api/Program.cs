@@ -1,5 +1,5 @@
 using Coravel;
-using TransmissionManager.Api.Actions.AppInfo;
+using TransmissionManager.Api.Actions.AppVersion;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Serialization;
@@ -77,8 +77,8 @@ app.MapGroup(EndpointAddresses.Torrents)
     .MapUpdateTorrentByIdEndpoint()
     .MapDeleteTorrentByIdEndpoint();
 
-app.MapGroup(EndpointAddresses.AppInfo)
-    .MapGetAppInfoEndpoint();
+app.MapGroup(EndpointAddresses.AppVersion)
+    .MapGetAppVersionEndpoint();
 
 await app.RunAsync().ConfigureAwait(false);
 

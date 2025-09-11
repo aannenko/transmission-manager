@@ -1,13 +1,12 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
-using TransmissionManager.Api.Common.Dto.AppInfo;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 
-namespace TransmissionManager.Api.IntegrationTests.AppInfo;
+namespace TransmissionManager.Api.IntegrationTests.AppVersion;
 
 [Parallelizable(ParallelScope.All)]
-internal sealed class GetAppInfoTests
+internal sealed class GetAppVersionTests
 {
     private TestWebAppliationFactory<Program> _factory = default!;
     private HttpClient _client = default!;
@@ -27,26 +26,20 @@ internal sealed class GetAppInfoTests
     }
 
     [Test]
-    public async Task GetAppInfo_WhenCalled_ReturnsExpectedAppInfo()
+    public async Task GetAppVersion_WhenCalled_ReturnsExpectedAppVersion()
     {
         var expectedVersion = typeof(Program).Assembly.GetName().Version;
         var before = DateTimeOffset.Now;
 
-        var response = await _client.GetAsync(EndpointAddresses.AppInfo).ConfigureAwait(false);
+        var response = await _client.GetAsync(EndpointAddresses.AppVersion).ConfigureAwait(false);
 
         var after = DateTimeOffset.Now;
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 
-        var content = await response.Content.ReadFromJsonAsync<GetAppInfoResponse>().ConfigureAwait(false);
+        var version = await response.Content.ReadFromJsonAsync<Version>().ConfigureAwait(false);
 
-        Assert.That(content, Is.Not.Default);
-        using (Assert.EnterMultipleScope())
-        {
-            Assert.That(content.Version, Is.EqualTo(expectedVersion));
-            Assert.That(content.LocalTime, Is.GreaterThan(before));
-            Assert.That(content.LocalTime, Is.LessThan(after));
-            Assert.That(content.LocalTime.Offset, Is.EqualTo(before.Offset));
-        }
+        Assert.That(version, Is.Not.Default);
+        Assert.That(version, Is.EqualTo(expectedVersion));
     }
 }

@@ -10,6 +10,6 @@ internal static class EndpointNames
     public const string UpdateTorrentById = "UpdateTorrentById";
     public const string DeleteTorrentById = "DeleteTorrentById";
 
-    // AppInfo
-    public const string GetAppInfo = "GetAppInfo";
+    // AppVersion
+    public const string GetAppVersion = "GetAppVersion";
 }

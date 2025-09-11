@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
-using TransmissionManager.Api.Common.Dto.AppInfo;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Serialization;
 
@@ -8,16 +7,16 @@ namespace TransmissionManager.Web.Services;
 
 internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
-    public async Task<GetAppInfoResponse> GetAppInfoAsync(CancellationToken cancellationToken = default)
+    public async Task<Version> GetAppVersionAsync(CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(EndpointAddresses.AppInfo, UriKind.Relative);
-        var appInfo = await httpClient
-            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.GetAppInfoResponse, cancellationToken)
+        var requestUri = new Uri(EndpointAddresses.AppVersion, UriKind.Relative);
+        var version = await httpClient
+            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.Version, cancellationToken)
             .ConfigureAwait(false);
 
-        return appInfo == default
-            ? throw new HttpRequestException("Failed to retrieve app info.")
-            : appInfo;
+        return version is null
+            ? throw new HttpRequestException("Failed to retrieve app version.")
+            : version;
     }
 
     public async Task<TorrentDto> GetTorrentById(long torrentId, CancellationToken cancellationToken = default)

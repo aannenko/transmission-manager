@@ -1,6 +1,0 @@
-@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/appinfo
-
-# Get local time from the running application
-GET {{TransmissionManager_Web_HostAddress}}/
-
-###
