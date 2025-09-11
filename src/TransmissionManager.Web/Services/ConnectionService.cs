@@ -6,8 +6,7 @@ namespace TransmissionManager.Web.Services;
 #pragma warning disable CA1812 // Avoid uninstantiated internal classes - instantiated by the DI container.
 internal sealed class ConnectionService(
     IWebAssemblyHostEnvironment hostEnvironment,
-    IHttpClientFactory httpClientFactory,
-    ServerTimeZoneService serverTimeZoneService)
+    IHttpClientFactory httpClientFactory)
 #pragma warning restore CA1812
 {
     public Uri BaseAddress { get; private set; } = new UriBuilder(hostEnvironment.BaseAddress) { Port = 9092 }.Uri;
@@ -22,7 +21,6 @@ internal sealed class ConnectionService(
         var appInfo = await apiClient.GetAppInfoAsync(cancellationToken).ConfigureAwait(false);
 
         BaseAddress = baseAddress;
-        serverTimeZoneService.Offset = appInfo.LocalTime.Offset;
 
         return appInfo;
     }

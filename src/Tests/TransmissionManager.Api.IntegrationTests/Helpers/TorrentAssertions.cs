@@ -16,13 +16,14 @@ internal static class TorrentAssertions
             Assert.That(actual.Id, Is.EqualTo(expected.Id));
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
 
+            var expectedDateTimeOffset = new DateTimeOffset(expected.RefreshDate.ToLocalTime());
             if (refreshDateTolerance == default)
             {
-                Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate));
+                Assert.That(actual.RefreshDate, Is.EqualTo(expectedDateTimeOffset));
             }
             else
             {
-                Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate).Within(refreshDateTolerance));
+                Assert.That(actual.RefreshDate, Is.EqualTo(expectedDateTimeOffset).Within(refreshDateTolerance));
             }
 
             Assert.That(actual.Name, Is.EqualTo(expected.Name));

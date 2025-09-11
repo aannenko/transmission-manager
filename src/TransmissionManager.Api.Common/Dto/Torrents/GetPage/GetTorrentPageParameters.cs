@@ -19,7 +19,7 @@ public readonly partial record struct GetTorrentPageParameters(
 {
     private const int _maxTake = 1000;
     private const string _iso8601DateRegexPattern =
-        @"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d{1,7})?Z$";
+        @"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d{1,7})?(Z|[+-](0\d|1[0-4]):[0-5]\d)$";
 
     public static int MaxTake => _maxTake;
 

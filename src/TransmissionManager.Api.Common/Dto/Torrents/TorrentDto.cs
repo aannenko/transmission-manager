@@ -3,7 +3,7 @@
 public sealed record TorrentDto(
     long Id,
     string HashString,
-    DateTime RefreshDate,
+    DateTimeOffset RefreshDate,
     string Name,
     Uri WebPageUri,
     string DownloadDir,

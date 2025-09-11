@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Http.Json;
+using System.Web;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
@@ -222,21 +223,30 @@ internal sealed class GetTorrentPageTests
             .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
+        var expectedNextPageTime1 =
+            HttpUtility.UrlEncode(_torrents[1].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
+
         var expectedNextPage1 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDate&anchorId=2&anchorValue=2023-11-02T11%3A22%3A33.4440000Z";
+            $"?take=2&orderBy=RefreshDate&anchorId=2&anchorValue={expectedNextPageTime1}";
+
+        var expectedPrevPageTime1 =
+            HttpUtility.UrlEncode(_torrents[2].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
 
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDate&anchorId=3&anchorValue=2022-10-01T12%3A34%3A56.7770000Z&direction=Backward";
+            $"?take=2&orderBy=RefreshDate&anchorId=3&anchorValue={expectedPrevPageTime1}&direction=Backward";
 
         AssertTorrentPage(page, [_torrents[2], _torrents[1]], expectedNextPage1, expectedPreviousPage1);
 
         page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
 
+        var expectedTime2 =
+            HttpUtility.UrlEncode(_torrents[0].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
+
         var expectedNextPage2 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDate&anchorId=1&anchorValue=2024-12-03T10%3A20%3A30.4000000Z";
+            $"?take=2&orderBy=RefreshDate&anchorId=1&anchorValue={expectedTime2}";
 
         var expectedPreviousPage2 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDate&anchorId=1&anchorValue=2024-12-03T10%3A20%3A30.4000000Z&direction=Backward";
+            $"?take=2&orderBy=RefreshDate&anchorId=1&anchorValue={expectedTime2}&direction=Backward";
 
         AssertTorrentPage(page, [_torrents[0]], expectedNextPage2, expectedPreviousPage2);
 
@@ -257,21 +267,30 @@ internal sealed class GetTorrentPageTests
             .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
+        var expectedNextPageTime1 =
+            HttpUtility.UrlEncode(_torrents[2].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
+
         var expectedNextPage1 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDateDesc&anchorId=3&anchorValue=2022-10-01T12%3A34%3A56.7770000Z";
+            $"?take=2&orderBy=RefreshDateDesc&anchorId=3&anchorValue={expectedNextPageTime1}";
+
+        var expectedPrevPageTime1 =
+            HttpUtility.UrlEncode(_torrents[1].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
 
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDateDesc&anchorId=2&anchorValue=2023-11-02T11%3A22%3A33.4440000Z&direction=Backward";
+            $"?take=2&orderBy=RefreshDateDesc&anchorId=2&anchorValue={expectedPrevPageTime1}&direction=Backward";
 
         AssertTorrentPage(page, [_torrents[1], _torrents[2]], expectedNextPage1, expectedPreviousPage1);
 
         page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
 
+        var expectedTime2 =
+            HttpUtility.UrlEncode(_torrents[0].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
+
         var expectedNextPage2 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDateDesc&anchorId=1&anchorValue=2024-12-03T10%3A20%3A30.4000000Z";
+            $"?take=2&orderBy=RefreshDateDesc&anchorId=1&anchorValue={expectedTime2}";
 
         var expectedPreviousPage2 = EndpointAddresses.Torrents +
-            "?take=2&orderBy=RefreshDateDesc&anchorId=1&anchorValue=2024-12-03T10%3A20%3A30.4000000Z&direction=Backward";
+            $"?take=2&orderBy=RefreshDateDesc&anchorId=1&anchorValue={expectedTime2}&direction=Backward";
 
         AssertTorrentPage(page, [_torrents[0]], expectedNextPage2, expectedPreviousPage2);
 
