@@ -7,7 +7,7 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="tests/TransmissionManager.Api.Common.Tests/TransmissionManager.Api.Common.Tests.csproj" />
+    <Project Path="Tests/TransmissionManager.Api.Common.Tests/TransmissionManager.Api.Common.Tests.csproj" />
     <Project Path="Tests/TransmissionManager.Api.IntegrationTests/TransmissionManager.Api.IntegrationTests.csproj" />
     <Project Path="Tests/TransmissionManager.BaseTests/TransmissionManager.BaseTests.csproj" />
     <Project Path="Tests/TransmissionManager.Database.Tests/TransmissionManager.Database.Tests.csproj" />
