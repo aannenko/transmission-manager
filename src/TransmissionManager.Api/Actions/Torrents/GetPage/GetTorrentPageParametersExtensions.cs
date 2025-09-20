@@ -1,4 +1,5 @@
-﻿using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
+﻿using System.Globalization;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
@@ -50,5 +51,5 @@ internal static class GetTorrentPageParametersExtensions
     }
 
     private static string ToDateTimeAnchorString(DateTimeOffset dateTimeOffset) =>
-        dateTimeOffset.ToUniversalTime().ToString(GetTorrentPageParameters.DateFormat);
+        dateTimeOffset.ToUniversalTime().ToString(GetTorrentPageParameters.DateFormat, CultureInfo.InvariantCulture);
 }
