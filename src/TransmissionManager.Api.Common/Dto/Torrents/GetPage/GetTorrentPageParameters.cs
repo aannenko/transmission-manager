@@ -18,18 +18,19 @@ public readonly partial record struct GetTorrentPageParameters(
     bool? CronExists = null) : IValidatableObject
 {
     private const int _maxTake = 1000;
-    private const string _iso8601DateRegexPattern =
-        @"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])T([01]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d{1,7})?(Z|[+-](0\d|1[0-4]):[0-5]\d)$";
+    private const string _dateFormat = "yyyyMMddHHmmssfffffffZ";
+    private const string _dateRegexPattern =
+        @"^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])([01]\d|2[0-3])[0-5]\d[0-5]\d\d{7}Z$";
 
     public static int MaxTake => _maxTake;
 
-    public static string Iso8601DateRegexPattern => _iso8601DateRegexPattern;
+    public static string DateFormat => _dateFormat;
 
     private static readonly CompositeFormat _orderByAndAnchorValueErrorFormat = CompositeFormat.Parse(
         $"When {nameof(OrderBy)} is '{{0}}', {nameof(AnchorValue)} must be '{{1}}'.");
 
     private static readonly CompositeFormat _dateTimeAnchorValueErrorFormat = CompositeFormat.Parse(
-        $"When {nameof(OrderBy)} is '{{0}}', {nameof(AnchorValue)} must match '{{1}}'.");
+        $"When {nameof(OrderBy)} is '{{0}}', {nameof(AnchorValue)} must match format '{{1}}'.");
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -42,14 +43,14 @@ public readonly partial record struct GetTorrentPageParameters(
                 string.Format(null, _orderByAndAnchorValueErrorFormat, OrderBy, "null"),
                 [nameof(AnchorValue)]);
         }
-        else if (OrderBy is Order.RefreshDate or Order.RefreshDateDesc && !Iso8601DateRegex().IsMatch(AnchorValue))
+        else if (OrderBy is Order.RefreshDate or Order.RefreshDateDesc && !DateRegex().IsMatch(AnchorValue))
         {
             yield return new ValidationResult(
-                string.Format(null, _dateTimeAnchorValueErrorFormat, OrderBy, _iso8601DateRegexPattern),
+                string.Format(null, _dateTimeAnchorValueErrorFormat, OrderBy, _dateFormat),
                 [nameof(AnchorValue)]);
         }
     }
 
-    [GeneratedRegex(_iso8601DateRegexPattern, RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture, 50)]
-    private static partial Regex Iso8601DateRegex();
+    [GeneratedRegex(_dateRegexPattern, RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture, 50)]
+    private static partial Regex DateRegex();
 }

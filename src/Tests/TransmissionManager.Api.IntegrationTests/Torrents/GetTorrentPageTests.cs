@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
-using System.Web;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
@@ -223,15 +223,11 @@ internal sealed class GetTorrentPageTests
             .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        var expectedNextPageTime1 =
-            HttpUtility.UrlEncode(_torrents[1].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
-
+        var expectedNextPageTime1 = ToExpectedDateTimeAnchorString(_torrents[1].RefreshDate);
         var expectedNextPage1 = EndpointAddresses.Torrents +
             $"?take=2&orderBy=RefreshDate&anchorId=2&anchorValue={expectedNextPageTime1}";
 
-        var expectedPrevPageTime1 =
-            HttpUtility.UrlEncode(_torrents[2].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
-
+        var expectedPrevPageTime1 = ToExpectedDateTimeAnchorString(_torrents[2].RefreshDate);
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
             $"?take=2&orderBy=RefreshDate&anchorId=3&anchorValue={expectedPrevPageTime1}&direction=Backward";
 
@@ -239,8 +235,7 @@ internal sealed class GetTorrentPageTests
 
         page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
 
-        var expectedTime2 =
-            HttpUtility.UrlEncode(_torrents[0].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
+        var expectedTime2 = ToExpectedDateTimeAnchorString(_torrents[0].RefreshDate);
 
         var expectedNextPage2 = EndpointAddresses.Torrents +
             $"?take=2&orderBy=RefreshDate&anchorId=1&anchorValue={expectedTime2}";
@@ -267,15 +262,11 @@ internal sealed class GetTorrentPageTests
             .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
             .ConfigureAwait(false);
 
-        var expectedNextPageTime1 =
-            HttpUtility.UrlEncode(_torrents[2].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
-
+        var expectedNextPageTime1 = ToExpectedDateTimeAnchorString(_torrents[2].RefreshDate);
         var expectedNextPage1 = EndpointAddresses.Torrents +
             $"?take=2&orderBy=RefreshDateDesc&anchorId=3&anchorValue={expectedNextPageTime1}";
 
-        var expectedPrevPageTime1 =
-            HttpUtility.UrlEncode(_torrents[1].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
-
+        var expectedPrevPageTime1 = ToExpectedDateTimeAnchorString(_torrents[1].RefreshDate);
         var expectedPreviousPage1 = EndpointAddresses.Torrents +
             $"?take=2&orderBy=RefreshDateDesc&anchorId=2&anchorValue={expectedPrevPageTime1}&direction=Backward";
 
@@ -283,8 +274,7 @@ internal sealed class GetTorrentPageTests
 
         page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
 
-        var expectedTime2 =
-            HttpUtility.UrlEncode(_torrents[0].RefreshDate.ToLocalTime().ToString("O")).ToUpperInvariant();
+        var expectedTime2 = ToExpectedDateTimeAnchorString(_torrents[0].RefreshDate);
 
         var expectedNextPage2 = EndpointAddresses.Torrents +
             $"?take=2&orderBy=RefreshDateDesc&anchorId=1&anchorValue={expectedTime2}";
@@ -370,7 +360,7 @@ internal sealed class GetTorrentPageTests
         yield return new(
             new GetTorrentPageParameters(OrderBy: GetTorrentPageOrder.RefreshDate, AnchorValue: "abc"),
             nameof(GetTorrentPageParameters.AnchorValue),
-            $"When OrderBy is 'RefreshDate', AnchorValue must match '{GetTorrentPageParameters.Iso8601DateRegexPattern}'.")
+            $"When OrderBy is 'RefreshDate', AnchorValue must match format '{GetTorrentPageParameters.DateFormat}'.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsInvalid_ReturnsValidationProblem"
         };
@@ -378,7 +368,7 @@ internal sealed class GetTorrentPageTests
         yield return new(
             new GetTorrentPageParameters(OrderBy: GetTorrentPageOrder.RefreshDateDesc, AnchorValue: "abc"),
             nameof(GetTorrentPageParameters.AnchorValue),
-            $"When OrderBy is 'RefreshDateDesc', AnchorValue must match '{GetTorrentPageParameters.Iso8601DateRegexPattern}'.")
+            $"When OrderBy is 'RefreshDateDesc', AnchorValue must match format '{GetTorrentPageParameters.DateFormat}'.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsInvalid_ReturnsValidationProblem"
         };
@@ -401,4 +391,7 @@ internal sealed class GetTorrentPageTests
         for (var i = 0; i < expectedTorrents.Length; i++)
             TorrentAssertions.AssertEqual(page.Torrents[i], expectedTorrents[i]);
     }
+
+    private static string ToExpectedDateTimeAnchorString(DateTime dateTime) =>
+        dateTime.ToUniversalTime().ToString(GetTorrentPageParameters.DateFormat, CultureInfo.InvariantCulture);
 }

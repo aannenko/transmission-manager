@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using System.Globalization;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
@@ -13,7 +14,7 @@ internal static class TorrentServiceExtensions
     {
         var filter = GetFilter(parameters);
         if (parameters.OrderBy is GetTorrentPageOrder.RefreshDate or GetTorrentPageOrder.RefreshDateDesc &&
-            DateTime.TryParse(parameters.AnchorValue, out var dateTimeAnchorValue))
+            TryParseDateTimeAnchorString(parameters.AnchorValue, out var dateTimeAnchorValue))
         {
             var pageDescriptor = GetPageDescriptor(parameters, dateTimeAnchorValue);
             return service.GetPageAsync(pageDescriptor, filter, cancellationToken);
@@ -22,6 +23,16 @@ internal static class TorrentServiceExtensions
         {
             var pageDescriptor = GetPageDescriptor(parameters, parameters.AnchorValue);
             return service.GetPageAsync(pageDescriptor, filter, cancellationToken);
+        }
+
+        static bool TryParseDateTimeAnchorString(string? s, out DateTime result)
+        {
+            return DateTime.TryParseExact(
+                s,
+                GetTorrentPageParameters.DateFormat,
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal,
+                out result);
         }
     }
 

@@ -17,7 +17,7 @@ internal static class GetTorrentPageParametersExtensions
                 AnchorValue = parameters.OrderBy switch
                 {
                     Order.Id or Order.IdDesc => null,
-                    Order.RefreshDate or Order.RefreshDateDesc => currentPage[^1].RefreshDate.ToString("o"),
+                    Order.RefreshDate or Order.RefreshDateDesc => ToDateTimeAnchorString(currentPage[^1].RefreshDate),
                     Order.Name or Order.NameDesc => currentPage[^1].Name,
                     Order.WebPage or Order.WebPageDesc => currentPage[^1].WebPageUri.OriginalString,
                     Order.DownloadDir or Order.DownloadDirDesc => currentPage[^1].DownloadDir,
@@ -39,7 +39,7 @@ internal static class GetTorrentPageParametersExtensions
                 AnchorValue = parameters.OrderBy switch
                 {
                     Order.Id or Order.IdDesc => null,
-                    Order.RefreshDate or Order.RefreshDateDesc => currentPage[0].RefreshDate.ToString("o"),
+                    Order.RefreshDate or Order.RefreshDateDesc => ToDateTimeAnchorString(currentPage[0].RefreshDate),
                     Order.Name or Order.NameDesc => currentPage[0].Name,
                     Order.WebPage or Order.WebPageDesc => currentPage[0].WebPageUri.OriginalString,
                     Order.DownloadDir or Order.DownloadDirDesc => currentPage[0].DownloadDir,
@@ -48,4 +48,7 @@ internal static class GetTorrentPageParametersExtensions
                 Direction = Direction.Backward
             };
     }
+
+    private static string ToDateTimeAnchorString(DateTimeOffset dateTimeOffset) =>
+        dateTimeOffset.ToUniversalTime().ToString(GetTorrentPageParameters.DateFormat);
 }
