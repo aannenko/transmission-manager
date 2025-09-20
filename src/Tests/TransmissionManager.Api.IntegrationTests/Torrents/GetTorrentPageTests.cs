@@ -14,13 +14,13 @@ internal sealed class GetTorrentPageTests
 {
     private static readonly Torrent[] _torrents = TestData.Database.CreateInitialTorrents();
 
-    private TestWebAppliationFactory<Program> _factory = default!;
+    private TestWebApplicationFactory<Program> _factory = default!;
     private HttpClient _client = default!;
 
     [OneTimeSetUp]
     public void Setup()
     {
-        _factory = new TestWebAppliationFactory<Program>(_torrents, null, null);
+        _factory = new TestWebApplicationFactory<Program>(_torrents, null, null);
         _client = _factory.CreateClient();
     }
 

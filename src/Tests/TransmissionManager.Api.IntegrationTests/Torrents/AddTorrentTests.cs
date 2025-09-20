@@ -103,13 +103,13 @@ internal sealed class AddTorrentTests
 
     #endregion
 
-    private TestWebAppliationFactory<Program> _factory = default!;
+    private TestWebApplicationFactory<Program> _factory = default!;
     private HttpClient _client = default!;
 
     [OneTimeSetUp]
     public void Setup()
     {
-        _factory = new TestWebAppliationFactory<Program>(
+        _factory = new TestWebApplicationFactory<Program>(
             _initialTorrents,
             TestData.WebPages.RequestResponseMap,
             _transmissionRequestResponseMap);

@@ -14,7 +14,7 @@ using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.IntegrationTests.Helpers;
 
-internal sealed class TestWebAppliationFactory<TProgram>(
+internal sealed class TestWebApplicationFactory<TProgram>(
     Torrent[] initialTorrents,
     IReadOnlyDictionary<TestRequest, TestResponse>? torrentPageRequestResponseMap,
     IReadOnlyDictionary<TestRequest, TestResponse>? transmissionRequestResponseMap)
