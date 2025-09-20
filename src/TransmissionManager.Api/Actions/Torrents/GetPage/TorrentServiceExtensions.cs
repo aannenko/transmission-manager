@@ -40,7 +40,7 @@ internal static class TorrentServiceExtensions
         in GetTorrentPageParameters parameters,
         TAnchor? anchorValue)
     {
-        return new TorrentPageDescriptor<TAnchor>(
+        return new(
             OrderBy: (TorrentOrder)parameters.OrderBy,
             AnchorId: parameters.AnchorId,
             AnchorValue: anchorValue,
