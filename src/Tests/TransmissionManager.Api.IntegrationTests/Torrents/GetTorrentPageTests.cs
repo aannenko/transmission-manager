@@ -36,16 +36,22 @@ internal sealed class GetTorrentPageTests
     {
         var parameters = new GetTorrentPageParameters(AnchorId: 1, Take: 3);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage = EndpointAddresses.Torrents + "?take=3&anchorId=3";
         var expectedPreviousPage = EndpointAddresses.Torrents + "?take=3&anchorId=2&direction=Backward";
 
         AssertTorrentPage(page, _torrents[1..], expectedNextPage, expectedPreviousPage);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -55,9 +61,11 @@ internal sealed class GetTorrentPageTests
     {
         var parameters = new GetTorrentPageParameters(Take: 2, PropertyStartsWith: "TV Show", CronExists: true);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage = EndpointAddresses.Torrents +
             "?take=2&anchorId=3&propertyStartsWith=TV+Show&cronExists=True";
@@ -67,7 +75,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[0], _torrents[2]], expectedNextPage, expectedPreviousPage);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -79,9 +91,11 @@ internal sealed class GetTorrentPageTests
             Take: 1,
             PropertyStartsWith: TestData.Database.SecondTorrentWebPageAddress);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2" +
             "&propertyStartsWith=https%3A%2F%2FtorrentTracker.com%2Fforum%2Fviewtopic.php%3Ft%3D1234568";
@@ -91,7 +105,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, _torrents[1..2], expectedNextPage, expectedPreviousPage);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -103,9 +121,11 @@ internal sealed class GetTorrentPageTests
             Take: 1,
             PropertyStartsWith: TestData.Database.SecondTorrentHashString);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage = $"{EndpointAddresses.Torrents}?take=1&anchorId=2" +
             $"&propertyStartsWith={TestData.Database.SecondTorrentHashString}";
@@ -115,7 +135,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, _torrents[1..2], expectedNextPage, expectedPreviousPage);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -125,9 +149,11 @@ internal sealed class GetTorrentPageTests
     {
         var parameters = new GetTorrentPageParameters(AnchorId: long.MaxValue, Take: 5);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -137,9 +163,11 @@ internal sealed class GetTorrentPageTests
     {
         var parameters = new GetTorrentPageParameters(PropertyStartsWith: "NoSuchTextAnywhere");
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -151,9 +179,11 @@ internal sealed class GetTorrentPageTests
             OrderBy: GetTorrentPageOrder.NameDesc,
             Take: 2);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=2&anchorValue=TV+Show+2";
@@ -163,7 +193,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[2], _torrents[1]], expectedNextPage1, expectedPreviousPage1);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage1).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=1&anchorValue=TV+Show+1";
@@ -172,7 +206,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, _torrents[0..1], expectedNextPage2, expectedPreviousPage2);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage2).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage2).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -185,9 +223,11 @@ internal sealed class GetTorrentPageTests
             Direction: GetTorrentPageDirection.Backward,
             Take: 2);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage1 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=1&anchorValue=TV+Show+1";
@@ -197,7 +237,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[1], _torrents[0]], expectedNextPage1, expectedPreviousPage1);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedPreviousPage1).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPage2 = EndpointAddresses.Torrents +
             "?take=2&orderBy=NameDesc&anchorId=3&anchorValue=TV+Show+3";
@@ -207,7 +251,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[2]], expectedNextPage2, expectedPreviousPage2);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedPreviousPage2).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedPreviousPage2).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -219,9 +267,11 @@ internal sealed class GetTorrentPageTests
             OrderBy: GetTorrentPageOrder.RefreshDate,
             Take: 2);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPageTime1 = ToExpectedDateTimeAnchorString(_torrents[1].RefreshDate);
         var expectedNextPage1 = EndpointAddresses.Torrents +
@@ -233,7 +283,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[2], _torrents[1]], expectedNextPage1, expectedPreviousPage1);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage1).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage1).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedTime2 = ToExpectedDateTimeAnchorString(_torrents[0].RefreshDate);
 
@@ -245,7 +299,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[0]], expectedNextPage2, expectedPreviousPage2);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedNextPage2).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedNextPage2).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }
@@ -258,9 +316,11 @@ internal sealed class GetTorrentPageTests
             Direction: GetTorrentPageDirection.Backward,
             Take: 2);
 
-        var page = await _client
-            .GetFromJsonAsync<GetTorrentPageResponse>(parameters.ToPathAndQueryString())
-            .ConfigureAwait(false);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedNextPageTime1 = ToExpectedDateTimeAnchorString(_torrents[2].RefreshDate);
         var expectedNextPage1 = EndpointAddresses.Torrents +
@@ -272,7 +332,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[1], _torrents[2]], expectedNextPage1, expectedPreviousPage1);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedPreviousPage1).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedPreviousPage1).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         var expectedTime2 = ToExpectedDateTimeAnchorString(_torrents[0].RefreshDate);
 
@@ -284,7 +348,11 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [_torrents[0]], expectedNextPage2, expectedPreviousPage2);
 
-        page = await _client.GetFromJsonAsync<GetTorrentPageResponse>(expectedPreviousPage2).ConfigureAwait(false);
+        response = await _client.GetAsync(expectedPreviousPage2).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
 
         AssertTorrentPage(page, [], null, null);
     }

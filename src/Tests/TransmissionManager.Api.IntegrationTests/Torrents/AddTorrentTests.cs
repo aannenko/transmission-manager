@@ -162,7 +162,11 @@ internal sealed class AddTorrentTests
 
         TorrentAssertions.AssertEqual(addTorrentResponse.TorrentDto, expectedTorrent, TimeSpan.FromSeconds(1));
 
-        var newTorrent = await _client.GetFromJsonAsync<TorrentDto>(expectedLocation).ConfigureAwait(false);
+        var getTorrentResponse = await _client.GetAsync(expectedLocation).ConfigureAwait(false);
+
+        Assert.That(getTorrentResponse.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var newTorrent = await getTorrentResponse.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
 
         TorrentAssertions.AssertEqual(newTorrent, expectedTorrent, TimeSpan.FromSeconds(2));
     }
