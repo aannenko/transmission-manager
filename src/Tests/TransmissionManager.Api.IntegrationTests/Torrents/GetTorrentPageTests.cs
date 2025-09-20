@@ -261,7 +261,7 @@ internal sealed class GetTorrentPageTests
     }
 
     [Test]
-    public async Task GetTorrentPageAsync_WhenOrderByIsRefreshDateAndDirectionIsBackwardAndTakeIsTwo_ReturnsCorrectPagesAndPreviousPageLinks()
+    public async Task GetTorrentPageAsync_WhenOrderByIsRefreshDateAndTakeIsTwo_ReturnsCorrectPagesAndPreviousPageLinks()
     {
         var parameters = new GetTorrentPageParameters(
             OrderBy: GetTorrentPageOrder.RefreshDate,
@@ -402,11 +402,27 @@ internal sealed class GetTorrentPageTests
         };
 
         yield return new(
+            new GetTorrentPageParameters(Take: -1),
+            nameof(GetTorrentPageParameters.Take),
+            $"The field Take must be between 1 and {GetTorrentPageParameters.MaxTake}.")
+        {
+            TestName = "GetTorrentPageAsync_WhenTakeIsNegative_ReturnsValidationProblem"
+        };
+
+        yield return new(
             new GetTorrentPageParameters(OrderBy: (GetTorrentPageOrder)999),
             nameof(GetTorrentPageParameters.OrderBy),
             "The field OrderBy is invalid.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsInvalid_ReturnsValidationProblem"
+        };
+
+        yield return new(
+            new GetTorrentPageParameters(Direction: (GetTorrentPageDirection)999),
+            nameof(GetTorrentPageParameters.Direction),
+            "The field Direction is invalid.")
+        {
+            TestName = "GetTorrentPageAsync_WhenDirectionIsInvalid_ReturnsValidationProblem"
         };
 
         yield return new(
