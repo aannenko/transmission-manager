@@ -1,6 +1,6 @@
 # Transmission Manager Web
-This web app lets you control your Transmission Manager using a convenient web interface.
-- Connect to different Transmission Manager instances
+This web app lets you control your Transmission Manager API using a convenient web interface.
+- Connect to different Transmission Manager API instances
 - Manage all the torrents on the connected instance, refresh or delete them on one page
 - Add torrents by their web page address, specify their refresh schedule using [cron](https://crontab.guru)
 
