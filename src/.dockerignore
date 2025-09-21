@@ -9,6 +9,7 @@
 **/.vs
 **/.vscode
 **/*.*proj.user
+**/*.br
 **/*.dbmdl
 **/*.http
 **/*.jfm
