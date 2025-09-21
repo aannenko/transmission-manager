@@ -6,12 +6,12 @@ This repository contains two projects:
 
 #### [Transmission Manager API](src/TransmissionManager.Api)
 A Web API for managing torrents in [Transmission](https://transmissionbt.com/) (a popular open-source torrent client).
-You can register a torrent web page in Transmission Manager API and schedule periodic checks for magnet link updates on this web page. When new links are found, they are sent to Transmission for download. It also tracks which torrents are still known to Transmission and which have been removed, and will not attempt to re-add those that were removed.
+Use it to automatically download torrents on a schedule as updates become available (e.g., when new TV show episodes are released).
 
 See how to set it up and use it in the dedicated [README.md](src/TransmissionManager.Api/README.md) file.
 
 #### [Transmission Manager Web](src/TransmissionManager.Web)
-A web front end for Transmission Manager API that lets you conveniently control the API from a web interface.
+A web UI for Transmission Manager API that lets you conveniently control the API from a web interface.
 Using it assumes you have already set up Transmission Manager API and can access it.
 
 See how to set it up and use it in the dedicated [README.md](src/TransmissionManager.Web/README.md) file.
