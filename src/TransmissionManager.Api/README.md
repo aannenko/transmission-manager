@@ -1,25 +1,27 @@
 # Transmission Manager API
-Control your [Transmission](https://transmissionbt.com/) client using a Web API.
-- Add torrents by their web page address
-- Periodically check for magnet link updates using [cron](https://crontab.guru) syntax
+This application lets you manage your torrents in [Transmission](https://transmissionbt.com/) in a unique way:
+1. Add torrents by their web page address.
+2. Schedule periodic magnet link refreshes (e.g., when a new TV show episode is released) using [cron](https://crontab.guru) syntax. Updated magnets are sent to Transmission automatically, replacing existing torrents while preserving the downloaded files.
 
-## How-to
+## Important setup notes
 The steps outlined below assume you have a Raspberry Pi with [LibreELEC](https://libreelec.tv/) and a Docker add-on installed.
 
 By following these steps, you will set up both Transmission and Transmission Manager API to run in Docker on your Raspberry Pi. Transmission will then save files directly to the Raspberry Pi's storage (an SSD is recommended for optimal performance).
 
-Alternatively, you can customize the setup to your preferences, using the steps below as a general guideline. The essential components are a Docker host that supports the `linux/amd64` or `linux/arm64` architecture and Transmission, which should be accessible by the Docker host over the network.
+Alternatively, you can adapt the setup to your environment; the steps below serve as a general guideline. At a minimum, you need:
+- A Docker host capable of running `linux/amd64` or `linux/arm64` images.
+- A Transmission instance reachable from the Docker host and the Transmission Manager API container over the network.
 
-### Given
+## Pre-requisites
 - Raspberry Pi with LibreELEC 12 and Docker add-on
 - Central European Time [time zone](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) (use your own time zone instead)
 
-### Setup
+## Setup
 There are two ways to set things up:
-- [set up Transmission and Transmission Manager API from scratch](#set-up-transmission-and-transmission-manager-api-from-scratch)
-- [connect Transmission Manager API to a running Transmission container](#connect-transmission-manager-api-to-a-running-transmission-container)
+- [set up Transmission and Transmission Manager API from scratch](#option-1-set-up-transmission-and-transmission-manager-api-from-scratch)
+- [connect Transmission Manager API to a running Transmission container](#option-2-connect-transmission-manager-api-to-a-running-transmission-container)
 
-#### Set up Transmission and Transmission Manager API from scratch
+### Option 1: set up Transmission and Transmission Manager API from scratch
 SSH to your LibreELEC and execute the following commands:
 ```bash
 # Create a Docker network
@@ -64,7 +66,7 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager-api:latest
 ```
 
-#### Connect Transmission Manager API to a running Transmission container
+### Option 2: connect Transmission Manager API to a running Transmission container
 SSH to your LibreELEC and execute the following commands:
 ```bash
 # Create a Docker network
@@ -103,7 +105,7 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager-api:latest
 ```
 
-### Send requests
+## Send requests
 Now that you have set up Transmission Manager API, try sending HTTP requests to it from PowerShell 7.</br>
 Here are some examples (replace `<docker_host>` with the hostname or IP address of your docker host):
 ```powershell
@@ -126,3 +128,6 @@ iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
 Alternatively, send requests using [Visual Studio Code](https://code.visualstudio.com/) with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension installed - open the file [Torrents.http](Actions/Torrents/Torrents.http) in VS Code, change the host address, the request data and start sending requests.
 
 Using the API, you can also request information from Transmission Manager API about itself via [AppVersion.http](Actions/AppVersion/AppVersion.http).
+
+## Setup a Web UI (optional)
+If you prefer a web interface to manage your torrents, see the [Transmission Manager Web readme](../TransmissionManager.Web/README.md).

@@ -1,5 +1,5 @@
 # Transmission Manager Web
-Control your Transmission Manager using a convenient web app.
+This web app lets you control your Transmission Manager using a convenient web interface.
 - Connect to different Transmission Manager instances
 - Manage all the torrents on the connected instance, refresh or delete them on one page
 - Add torrents by their web page address, specify their refresh schedule using [cron](https://crontab.guru)
@@ -8,8 +8,8 @@ Control your Transmission Manager using a convenient web app.
 - A running instance of [Transmission Manager API](../TransmissionManager.Api/README.md) that you can access at `http://<api-host>:9092/api/v1/torrents`.
 - A Docker host that supports the `linux/amd64` or `linux/arm64` architecture and can reach the Transmission Manager API instance over the network. Can be the same machine that hosts Transmission Manager API.
 
-## How-to
-After you have finished setting up Transmission and Transmission Manager, SSH to the machine where you want Transmission Manager Web to be hosted (usually the same machine where Transmission Manager API runs) and execute the following command:
+## Setup
+After you have finished setting up Transmission and Transmission Manager API, SSH to the machine where you want Transmission Manager Web to be hosted (usually the same machine where Transmission Manager API runs) and execute the following command:
 ```bash
 docker run -d \
 	--name transmission-manager-web \
