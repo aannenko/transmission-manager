@@ -51,6 +51,6 @@ public readonly partial record struct GetTorrentPageParameters(
         }
     }
 
-    [GeneratedRegex(_dateRegexPattern, RegexOptions.NonBacktracking | RegexOptions.ExplicitCapture, 50)]
+    [GeneratedRegex(_dateRegexPattern, RegexOptions.ExplicitCapture, 50)]
     private static partial Regex DateRegex();
 }
