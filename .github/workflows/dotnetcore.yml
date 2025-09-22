@@ -1,6 +1,10 @@
 name: "Build and Test"
 
-on: [push]
+on:
+  push:
+    paths:
+      - '.github/workflows/dotnetcore.yml'
+      - 'src/**'
 
 env:
   ConnectionStrings__AppDb: Data Source=test.db
