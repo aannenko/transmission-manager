@@ -337,3 +337,9 @@ body {
     cursor: not-allowed;
     pointer-events: none;
 }
+
+/* Utility */
+
+.push-right {
+    margin-left: auto;
+}
