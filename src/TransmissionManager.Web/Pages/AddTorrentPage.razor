@@ -43,7 +43,7 @@
             <ValidationMessage For="@(() => Cron)" />
         </div>
 
-        <button class="form-button" type="submit" disabled="@IsBusy">Add torrent</button>
+        <button class="form-button clickable" type="submit" disabled="@IsBusy">Add torrent</button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(Message))

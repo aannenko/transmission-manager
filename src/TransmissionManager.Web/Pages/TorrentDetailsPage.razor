@@ -60,16 +60,16 @@
             <ValidationMessage For="@(() => Cron)" />
         </div>
 
-        <button class="form-button" type="submit" disabled="@AreControlsDisabled">Update torrent</button>
+        <button class="form-button clickable" type="submit" disabled="@AreControlsDisabled">Update torrent</button>
     </EditForm>
 
-    <button class="form-button" @onclick="RefreshTorrentAsync" disabled="@AreControlsDisabled">Refresh torrent</button>
+    <button class="form-button clickable" @onclick="RefreshTorrentAsync" disabled="@AreControlsDisabled">Refresh torrent</button>
 
-    <button class="form-button" @onclick="DeleteLocalTorrentAsync" disabled="@AreControlsDisabled">Remove torrent locally</button>
+    <button class="form-button clickable" @onclick="DeleteLocalTorrentAsync" disabled="@AreControlsDisabled">Remove torrent locally</button>
 
-    <button class="form-button" @onclick="DeleteLocalAndTransmissionTorrentAsync" disabled="@AreControlsDisabled">Remove locally and from Transmission</button>
+    <button class="form-button clickable" @onclick="DeleteLocalAndTransmissionTorrentAsync" disabled="@AreControlsDisabled">Remove locally and from Transmission</button>
 
-    <button class="form-button" @onclick="DeleteTorrentAndDataAsync" disabled="@AreControlsDisabled">Remove locally, from Transmission, delete data</button>
+    <button class="form-button clickable" @onclick="DeleteTorrentAndDataAsync" disabled="@AreControlsDisabled">Remove locally, from Transmission, delete data</button>
 
     @if (!string.IsNullOrEmpty(Message))
     {

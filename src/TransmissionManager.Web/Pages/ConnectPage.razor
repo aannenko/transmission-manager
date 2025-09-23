@@ -29,7 +29,7 @@
             <ValidationMessage For="@(() => Port)" />
         </div>
 
-        <button class="form-button" type="submit" disabled="@IsBusy">Connect</button>
+        <button class="form-button clickable" type="submit" disabled="@IsBusy">Connect</button>
     </EditForm>
 
     @if (!string.IsNullOrEmpty(Message))
