@@ -15,12 +15,12 @@
         <img src="img/visit.svg" alt="Go to torrent page" title="Go to torrent page" />
     </a>
 
-    <button class="item-button" type="button" disabled="@_isRefreshDisabled" @onclick="RefreshTorrentsAsync">
+    <button class="item-button clickable" type="button" disabled="@_isRefreshDisabled" @onclick="RefreshTorrentsAsync">
         <img src="img/restart.svg" alt="Refresh" title="Refresh" />
     </button>
 
     <div class="dropdown">
-        <button class="item-button" type="button" disabled="@IsBusy">
+        <button class="item-button clickable" type="button" disabled="@IsBusy">
             <img src="img/bin.svg" alt="Remove" title="Remove" />
         </button>
         <div class="dropdown-content">
