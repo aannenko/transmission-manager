@@ -16,24 +16,24 @@
     <p class="text-block">ID: @Id</p>
 
     <div>
-        <label>Name:</label>
+        <span>Name:</span>
         <div class="form-input">@_name</div>
     </div>
 
     <div>
-        <label>Torrent webpage:</label>
+        <span>Torrent webpage:</span>
         <div class="form-input">
             <a href="@_webPageUri" target="_blank">@_webPageUri</a>
         </div>
     </div>
 
     <div>
-        <label>Hash:</label>
+        <span>Hash:</span>
         <div class="form-input">@_hashString</div>
     </div>
 
     <div>
-        <label>Refreshed on:</label>
+        <span>Refreshed on:</span>
         <div class="form-input">@(_refreshDate?.ToServerTimeString() ?? string.Empty)</div>
     </div>
 
