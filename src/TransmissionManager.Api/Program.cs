@@ -19,6 +19,7 @@ builder.Services.ConfigureHttpJsonOptions(static options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(1, ApiJsonSerializerContext.Default);
 });
 
+builder.Services.AddSingleton<CacheControlHeaderMiddleware>();
 builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
@@ -59,6 +60,7 @@ using (var scope = app.Services.CreateScope())
         .ConfigureAwait(false);
 }
 
+app.UseMiddleware<CacheControlHeaderMiddleware>();
 app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
 app.UseCors();
 
