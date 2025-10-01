@@ -20,6 +20,7 @@ builder.Services.ConfigureHttpJsonOptions(static options =>
 });
 
 builder.Services.AddSingleton<CacheControlHeaderMiddleware>();
+builder.Services.AddSingleton<XContentTypeOptionsHeaderMiddleware>();
 builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
@@ -61,6 +62,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseMiddleware<CacheControlHeaderMiddleware>();
+app.UseMiddleware<XContentTypeOptionsHeaderMiddleware>();
 app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
 app.UseCors();
 
