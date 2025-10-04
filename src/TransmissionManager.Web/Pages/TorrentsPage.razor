@@ -21,16 +21,15 @@
 }
 else
 {
-    <Virtualize @ref="_virtualize" TItem="TorrentDto" Items="_torrents" Context="torrent">
+    <Virtualize TItem="TorrentDto" Items="_torrents" Context="torrent">
         <ItemContent>
-            <TorrentCard Torrent="torrent" RefreshAsync="RefreshTorrentsAsync" DeleteAsync="DeleteTorrentAsync" />
+            <TorrentCard @key="torrent.Id" Torrent="torrent" RefreshAsync="RefreshTorrentsAsync" DeleteAsync="DeleteTorrentAsync" />
         </ItemContent>
     </Virtualize>
 }
 
 @code
 {
-    private Virtualize<TorrentDto> _virtualize = null!;
     private TorrentDto[] _torrents = [];
 
     private string _suggestedAddress = string.Empty;
