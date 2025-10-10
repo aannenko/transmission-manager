@@ -198,4 +198,36 @@ internal sealed class AddTorrentTests
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
         }
     }
+
+    [Test]
+    public async Task AddTorrentAsync_WhenMagnetRegexPatternAndCronAreInvalid_ReturnsValidationErrors()
+    {
+        var dto = new AddTorrentRequest
+        {
+            WebPageUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            DownloadDir = "/tvshows",
+            MagnetRegexPattern = "",
+            Cron = " "
+        };
+
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problemDetails, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            const string title = "One or more validation errors occurred.";
+
+            Assert.That(problemDetails.Title, Is.EqualTo(title));
+            Assert.That(problemDetails.Extensions.TryGetValue("errors", out var errorObject));
+
+            var errorString = errorObject?.ToString();
+
+            Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.MagnetRegexPattern)));
+            Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.Cron)));
+        }
+    }
 }

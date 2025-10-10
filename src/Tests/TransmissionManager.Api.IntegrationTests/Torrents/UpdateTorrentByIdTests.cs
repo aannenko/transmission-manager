@@ -62,6 +62,37 @@ internal sealed class UpdateTorrentByIdTests
     }
 
     [Test]
+    public async Task UpdateTorrentByIdAsync_WhenMagnetRegexPatternOrCronAreEmptyStrings_SetsTheirValuesToNull()
+    {
+        var dto = new UpdateTorrentByIdRequest
+        {
+            DownloadDir = "/videos",
+            MagnetRegexPattern = "",
+            Cron = ""
+        };
+
+        var torrentAddress = $"{EndpointAddresses.Torrents}/3";
+
+        var response = await _client.PatchAsJsonAsync(torrentAddress, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+        response = await _client.GetAsync(torrentAddress).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var torrent = await response.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
+
+        Assert.That(torrent, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(torrent.DownloadDir, Is.EqualTo(dto.DownloadDir));
+            Assert.That(torrent.MagnetRegexPattern, Is.Null);
+            Assert.That(torrent.Cron, Is.Null);
+        }
+    }
+
+    [Test]
     public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
         var dto = new UpdateTorrentByIdRequest { DownloadDir = "/videos" };
