@@ -70,26 +70,31 @@
     public string DownloadDir { get; private set; } = "/tvshows";
 
     [MagnetRegex]
-    public string? MagnetRegexPattern { get; private set; }
+    public string MagnetRegexPattern { get; private set; } = string.Empty;
 
     [Cron]
-    public string? Cron { get; private set; } = "0 9,19 * * *";
+    public string Cron { get; private set; } = "0 9,19 * * *";
 
     private protected override string BusyMessage => "Adding torrent...";
 
-        public async Task AddTorrentAsync()
+    public async Task AddTorrentAsync()
     {
         if (IsBusy)
             return;
 
         _newTorrentId = -1;
 
+        WebPageUri = WebPageUri.Trim();
+        DownloadDir = DownloadDir.Trim();
+        MagnetRegexPattern = MagnetRegexPattern.Trim();
+        Cron = Cron.Trim();
+
         var request = new AddTorrentRequest
         {
             WebPageUri = new(WebPageUri),
             DownloadDir = DownloadDir,
-            MagnetRegexPattern = MagnetRegexPattern == string.Empty ? null : MagnetRegexPattern,
-            Cron = Cron == string.Empty ? null : Cron
+            MagnetRegexPattern = string.IsNullOrEmpty(MagnetRegexPattern) ? null : MagnetRegexPattern,
+            Cron = string.IsNullOrEmpty(Cron) ? null : Cron
         };
 
         var response = await CallService(

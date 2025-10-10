@@ -102,23 +102,24 @@
     public string DownloadDir { get; private set; } = string.Empty;
 
     [MagnetRegex]
-    public string? MagnetRegexPattern { get; private set; }
+    public string MagnetRegexPattern { get; private set; } = string.Empty;
 
     [Cron]
-    public string? Cron { get; private set; }
+    public string Cron { get; private set; } = string.Empty;
 
     private bool AreControlsDisabled => IsBusy || string.IsNullOrEmpty(_webPageUri);
 
-    private protected override string BusyMessage => _operation switch
-    {
-        Operation.Load => "Loading torrent...",
-        Operation.Update => "Updating torrent...",
-        Operation.Refresh => "Refreshing torrent...",
-        Operation.DeleteRecord => "Deleting torrent record...",
-        Operation.DeleteTransmission => "Deleting torrent from Transmission...",
-        Operation.DeleteData => "Deleting torrent data...",
-        _ => "Processing..."
-    };
+    private protected override string BusyMessage =>
+        _operation switch
+        {
+            Operation.Load => "Loading torrent...",
+            Operation.Update => "Updating torrent...",
+            Operation.Refresh => "Refreshing torrent...",
+            Operation.DeleteRecord => "Deleting torrent record...",
+            Operation.DeleteTransmission => "Deleting torrent from Transmission...",
+            Operation.DeleteData => "Deleting torrent data...",
+            _ => "Processing..."
+        };
 
     protected override async Task OnInitializedAsync() => await GetTorrentAsync();
 
@@ -165,6 +166,10 @@
             return;
 
         _operation = Operation.Update;
+
+        DownloadDir = DownloadDir.Trim();
+        MagnetRegexPattern = MagnetRegexPattern.Trim();
+        Cron = Cron.Trim();
 
         var request = new UpdateTorrentByIdRequest
         {
@@ -247,12 +252,20 @@
 
     private void FillTorrentData(TorrentDto? torrentDto)
     {
-        _name = torrentDto?.Name ?? string.Empty;
-        _webPageUri = torrentDto?.WebPageUri.OriginalString ?? string.Empty;
-        _hashString = torrentDto?.HashString ?? string.Empty;
-        _refreshDate = torrentDto?.RefreshDate ?? null;
-        DownloadDir = torrentDto?.DownloadDir ?? string.Empty;
-        MagnetRegexPattern = torrentDto?.MagnetRegexPattern;
-        Cron = torrentDto?.Cron;
+        if (torrentDto is null)
+        {
+            _name = _webPageUri = _hashString = DownloadDir = MagnetRegexPattern = Cron = string.Empty;
+            _refreshDate = null;
+        }
+        else
+        {
+            _name = torrentDto.Name;
+            _webPageUri = torrentDto.WebPageUri.OriginalString;
+            _hashString = torrentDto.HashString;
+            _refreshDate = torrentDto.RefreshDate;
+            DownloadDir = torrentDto.DownloadDir;
+            MagnetRegexPattern = torrentDto.MagnetRegexPattern ?? string.Empty;
+            Cron = torrentDto.Cron ?? string.Empty;
+        }
     }
 }
