@@ -103,12 +103,12 @@
 
         if (response?.TorrentDto is not null)
         {
-            Message = $"Torrent added, ";
+            Message = "Torrent added, ";
             _newTorrentId = response.TorrentDto.Id;
         }
         else if (string.IsNullOrEmpty(Message))
         {
-            Message = $"Failed to add torrent, please check the input fields.";
+            Message = "Failed to add torrent, please check the input fields.";
         }
     }
 }
