@@ -1,5 +1,5 @@
 # Use SDK image
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 ARG TARGETARCH
 ARG BINARY_VERSION
 WORKDIR /source
@@ -17,7 +17,7 @@ RUN (echo "$BINARY_VERSION" | grep -Eq "^[0-9]+\.[0-9]+\.[0-9]+(-[a-z0-9.]+)?$")
 RUN mkdir -p /app/data/db
 
 # Use runtime image
-FROM mcr.microsoft.com/dotnet/runtime-deps:9.0-noble-chiseled-extra
+FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled-extra
 ARG PUID
 ARG PGID
 WORKDIR /app

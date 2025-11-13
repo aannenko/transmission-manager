@@ -1,5 +1,5 @@
 # Use SDK image
-FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0-noble AS build
 ARG BINARY_VERSION
 WORKDIR /source
 
