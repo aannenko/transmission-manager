@@ -238,7 +238,7 @@
 
         var isDeleteSuccessful = await CallService(
             (Client, Id, deleteType),
-            static (args) => args.Client.DeleteTorrentByIdAsync(args.Id, args.deleteType));
+            static args => args.Client.DeleteTorrentByIdAsync(args.Id, args.deleteType));
 
         if (isDeleteSuccessful)
         {

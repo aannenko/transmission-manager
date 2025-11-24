@@ -78,7 +78,7 @@
 
         var isRefreshSuccessful = await CallService(
             this,
-            static (self) => self.RefreshAsync(self.Torrent.Id));
+            static self => self.RefreshAsync(self.Torrent.Id));
 
         if (isRefreshSuccessful)
             StateHasChanged();
@@ -108,7 +108,7 @@
 
         var isDeleteSuccessful = await CallService(
             (Self: this, deleteType),
-            static (args) => args.Self.DeleteAsync(args.Self.Torrent.Id, args.deleteType));
+            static args => args.Self.DeleteAsync(args.Self.Torrent.Id, args.deleteType));
 
         if (!isDeleteSuccessful && string.IsNullOrEmpty(Message))
             Message = "Failed to delete torrent.";
