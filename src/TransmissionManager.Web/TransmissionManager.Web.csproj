@@ -6,6 +6,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <InvariantGlobalization>true</InvariantGlobalization>
     <InvariantTimezone>true</InvariantTimezone>
+    <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
     <AnalysisLevel>latest-all</AnalysisLevel>
   </PropertyGroup>
 
