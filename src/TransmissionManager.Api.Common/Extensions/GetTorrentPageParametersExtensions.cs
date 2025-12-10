@@ -8,7 +8,7 @@ namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 public static class GetTorrentPageParametersExtensions
 {
-    private static readonly int _maxTakeLength = (int)Math.Floor(Math.Log10(GetTorrentPageParameters.MaxTake)) + 1;
+    private static readonly int _maxTakeLength = (int)Math.Log10(GetTorrentPageParameters.MaxTake) + 1;
     private static readonly int _maxTorrentOrderItemLength = Enum.GetNames<Order>().Max(static i => i.Length);
     private static readonly int _maxDirectionItemLength = Enum.GetNames<Direction>().Max(static i => i.Length);
 

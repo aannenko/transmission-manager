@@ -24,7 +24,7 @@ internal sealed partial class RegexExtensionsTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.False);
-            Assert.That(range, Is.EqualTo(default(Range)));
+            Assert.That(range, Is.Default);
         }
     }
 
