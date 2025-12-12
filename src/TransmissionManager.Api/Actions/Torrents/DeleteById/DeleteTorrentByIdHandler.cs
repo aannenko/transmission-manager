@@ -25,7 +25,7 @@ internal sealed class DeleteTorrentByIdHandler(
     {
         if (deleteType is DeleteTorrentByIdType.Local)
         {
-            scheduler.TryUnscheduleTorrentRefresh(id);
+            _ = scheduler.TryUnscheduleTorrentRefresh(id);
             return await torrentService.TryDeleteOneByIdAsync(id, cancellationToken).ConfigureAwait(false)
                 ? new(Result.Removed, null)
                 : new(Result.NotFoundLocally, GetError(id, _noSuchTorrent));
@@ -43,8 +43,8 @@ internal sealed class DeleteTorrentByIdHandler(
         if (transmissionResult.Error is not null)
             return new(Result.DependencyFailed, GetError(id, transmissionResult.Error));
 
-        scheduler.TryUnscheduleTorrentRefresh(id);
-        await torrentService.TryDeleteOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        _ = scheduler.TryUnscheduleTorrentRefresh(id);
+        _ = await torrentService.TryDeleteOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         return new(Result.Removed, null);
     }
 

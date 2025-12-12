@@ -12,9 +12,7 @@ internal static class GetTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapGetTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/{id}", GetTorrentByIdAsync)
-            .WithName(EndpointNames.GetTorrentById);
-
+        _ = builder.MapGet("/{id}", GetTorrentByIdAsync).WithName(EndpointNames.GetTorrentById);
         return builder;
     }
 

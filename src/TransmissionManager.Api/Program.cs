@@ -24,6 +24,7 @@ builder.Services.AddSingleton<XContentTypeOptionsHeaderMiddleware>();
 builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
+builder.Services.AddValidation();
 
 builder.Services.AddDatabaseServices();
 builder.Services.AddTorrentWebPagesServices(builder.Configuration);

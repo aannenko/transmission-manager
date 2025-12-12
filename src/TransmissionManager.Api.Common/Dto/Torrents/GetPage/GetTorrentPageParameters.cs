@@ -1,56 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using System.Text.RegularExpressions;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
-public readonly partial record struct GetTorrentPageParameters(
+public readonly record struct GetTorrentPageParameters(
     [property: EnumDataType(typeof(Order))] Order OrderBy = Order.Id,
     long? AnchorId = null,
     string? AnchorValue = null,
     [property: Range(1, GetTorrentPageParameters._maxTake)] int Take = 20,
     [property: EnumDataType(typeof(Direction))] Direction Direction = Direction.Forward,
     [property: MinLength(1)] string? PropertyStartsWith = null,
-    bool? CronExists = null) : IValidatableObject
+    bool? CronExists = null)
 {
     private const int _maxTake = 1000;
-    private const string _dateFormat = "yyyyMMddHHmmssfffffffZ";
-    private const string _dateRegexPattern =
-        @"^\d{4}(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01])([01]\d|2[0-3])[0-5]\d[0-5]\d\d{7}Z$";
 
     public static int MaxTake => _maxTake;
-
-    public static string DateFormat => _dateFormat;
-
-    private static readonly CompositeFormat _orderByAndAnchorValueErrorFormat = CompositeFormat.Parse(
-        $"When {nameof(OrderBy)} is '{{0}}', {nameof(AnchorValue)} must be '{{1}}'.");
-
-    private static readonly CompositeFormat _dateTimeAnchorValueErrorFormat = CompositeFormat.Parse(
-        $"When {nameof(OrderBy)} is '{{0}}', {nameof(AnchorValue)} must match format '{{1}}'.");
-
-    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        if (AnchorValue is null)
-            yield break;
-
-        if (OrderBy is Order.Id or Order.IdDesc)
-        {
-            yield return new ValidationResult(
-                string.Format(null, _orderByAndAnchorValueErrorFormat, OrderBy, "null"),
-                [nameof(AnchorValue)]);
-        }
-        else if (OrderBy is Order.RefreshDate or Order.RefreshDateDesc && !DateRegex().IsMatch(AnchorValue))
-        {
-            yield return new ValidationResult(
-                string.Format(null, _dateTimeAnchorValueErrorFormat, OrderBy, _dateFormat),
-                [nameof(AnchorValue)]);
-        }
-    }
-
-    [GeneratedRegex(_dateRegexPattern, RegexOptions.ExplicitCapture, 50)]
-    private static partial Regex DateRegex();
 }

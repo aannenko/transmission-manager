@@ -10,10 +10,7 @@ internal static class UpdateTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapUpdateTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapPatch("/{id}", UpdateTorrentByIdAsync)
-            .WithParameterValidation()
-            .WithName(EndpointNames.UpdateTorrentById);
-
+        _ = builder.MapPatch("/{id}", UpdateTorrentByIdAsync).WithName(EndpointNames.UpdateTorrentById);
         return builder;
     }
 

@@ -10,10 +10,7 @@ internal static class DeleteTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapDeleteTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapDelete("/{id}", DeleteTorrentByIdAsync)
-            .WithParameterValidation()
-            .WithName(EndpointNames.DeleteTorrentById);
-
+        _ = builder.MapDelete("/{id}", DeleteTorrentByIdAsync).WithName(EndpointNames.DeleteTorrentById);
         return builder;
     }
 

@@ -9,9 +9,7 @@ internal static class RefreshTorrentByIdEndpoint
 {
     public static IEndpointRouteBuilder MapRefreshTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/{id}", RefreshTorrentByIdAsync)
-            .WithName(EndpointNames.RefreshTorrentById);
-
+        _ = builder.MapPost("/{id}", RefreshTorrentByIdAsync).WithName(EndpointNames.RefreshTorrentById);
         return builder;
     }
 

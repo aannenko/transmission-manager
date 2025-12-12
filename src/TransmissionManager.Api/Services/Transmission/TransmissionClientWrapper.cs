@@ -70,7 +70,7 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
     {
         try
         {
-            await transmissionClient
+            _ = await transmissionClient
                 .RemoveTorrentsAsync([hashString], deleteData, cancellationToken)
                 .ConfigureAwait(false);
 

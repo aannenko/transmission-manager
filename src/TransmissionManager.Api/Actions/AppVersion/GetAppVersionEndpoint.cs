@@ -9,7 +9,7 @@ internal static class GetAppVersionEndpoint
 
     public static IEndpointRouteBuilder MapGetAppVersionEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapGet("/", GetAppVersion).WithName(EndpointNames.GetAppVersion);
+        _ = builder.MapGet("/", GetAppVersion).WithName(EndpointNames.GetAppVersion);
         return builder;
     }
 

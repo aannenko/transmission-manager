@@ -9,10 +9,7 @@ internal static class AddTorrentEndpoint
 {
     public static IEndpointRouteBuilder MapAddTorrentEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder.MapPost("/", AddTorrentAsync)
-            .WithParameterValidation()
-            .WithName(EndpointNames.AddTorrent);
-
+        _ = builder.MapPost("/", AddTorrentAsync).WithName(EndpointNames.AddTorrent);
         return builder;
     }
 

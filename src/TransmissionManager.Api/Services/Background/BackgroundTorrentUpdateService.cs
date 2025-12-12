@@ -40,7 +40,7 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
         }
         finally
         {
-            _runningNameUpdates.TryRemove(id, out _);
+            _ = _runningNameUpdates.TryRemove(id, out _);
         }
     }
 
@@ -78,7 +78,7 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
 
                 var torrentService = serviceProvider.GetRequiredService<TorrentService>();
                 var dto = new TorrentUpdateDto(name: torrentName);
-                await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
+                _ = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;
             }
         }

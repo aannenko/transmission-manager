@@ -25,21 +25,21 @@ internal static class CorsServiceCollectionExtensions
                 validationResult.Failures);
         }
 
-        services.AddCors(options =>
+        _ = services.AddCors(options =>
         {
             options.AddDefaultPolicy(builder =>
             {
-                builder.WithOrigins(corsConfig.Origins)
+                _ = builder.WithOrigins(corsConfig.Origins)
                     .WithMethods(corsConfig.Methods)
                     .WithHeaders(corsConfig.Headers);
 
                 if (corsConfig.ExposedHeaders.Length > 0)
-                    builder.WithExposedHeaders(corsConfig.ExposedHeaders);
+                    _ = builder.WithExposedHeaders(corsConfig.ExposedHeaders);
 
                 if (corsConfig.AllowCredentials)
-                    builder.AllowCredentials();
+                    _ = builder.AllowCredentials();
                 else
-                    builder.DisallowCredentials();
+                    _ = builder.DisallowCredentials();
             });
         });
 

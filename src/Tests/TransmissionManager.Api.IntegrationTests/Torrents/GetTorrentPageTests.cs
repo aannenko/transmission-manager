@@ -6,6 +6,7 @@ using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
+using Parameters = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageParameters;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
 
@@ -34,7 +35,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenAnchorIdAndTakePointToExistingPage_ReturnsMatchingTorrentPage()
     {
-        var parameters = new GetTorrentPageParameters(AnchorId: 1, Take: 3);
+        var parameters = new Parameters(AnchorId: 1, Take: 3);
 
         var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
@@ -59,7 +60,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenPropertyStartsWithAndCronExistsPointToExistingNameAndCron_ReturnsMatchingTorrents()
     {
-        var parameters = new GetTorrentPageParameters(Take: 2, PropertyStartsWith: "TV Show", CronExists: true);
+        var parameters = new Parameters(Take: 2, PropertyStartsWith: "TV Show", CronExists: true);
 
         var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
@@ -87,7 +88,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenPropertyStartsWithPointsToExistingWebPageUri_ReturnsMatchingTorrent()
     {
-        var parameters = new GetTorrentPageParameters(
+        var parameters = new Parameters(
             Take: 1,
             PropertyStartsWith: TestData.Database.SecondTorrentWebPageAddress);
 
@@ -117,7 +118,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenPropertyStartsWithPointsToExistingHashString_ReturnsMatchingTorrent()
     {
-        var parameters = new GetTorrentPageParameters(
+        var parameters = new Parameters(
             Take: 1,
             PropertyStartsWith: TestData.Database.SecondTorrentHashString);
 
@@ -147,7 +148,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenAnchorIdIsTooLarge_ReturnsEmptyTorrentPage()
     {
-        var parameters = new GetTorrentPageParameters(AnchorId: long.MaxValue, Take: 5);
+        var parameters = new Parameters(AnchorId: long.MaxValue, Take: 5);
 
         var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
@@ -161,7 +162,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenPropertyStartsWithValueDoesNotPointToAnyTorrent_ReturnsEmptyTorrentPage()
     {
-        var parameters = new GetTorrentPageParameters(PropertyStartsWith: "NoSuchTextAnywhere");
+        var parameters = new Parameters(PropertyStartsWith: "NoSuchTextAnywhere");
 
         var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
 
@@ -175,7 +176,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenOrderByIsNameDescAndTakeIsTwo_ReturnsCorrectPagesAndNextPageLinks()
     {
-        var parameters = new GetTorrentPageParameters(
+        var parameters = new Parameters(
             OrderBy: GetTorrentPageOrder.NameDesc,
             Take: 2);
 
@@ -218,7 +219,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenOrderByIsNameDescAndDirectionIsBackwardAndTakeIsTwo_ReturnsCorrectPagesAndPreviousPageLinks()
     {
-        var parameters = new GetTorrentPageParameters(
+        var parameters = new Parameters(
             OrderBy: GetTorrentPageOrder.NameDesc,
             Direction: GetTorrentPageDirection.Backward,
             Take: 2);
@@ -263,7 +264,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenOrderByIsRefreshDateAndTakeIsTwo_ReturnsCorrectPagesAndPreviousPageLinks()
     {
-        var parameters = new GetTorrentPageParameters(
+        var parameters = new Parameters(
             OrderBy: GetTorrentPageOrder.RefreshDate,
             Take: 2);
 
@@ -311,7 +312,7 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_WhenOrderByIsRefreshDateDescAndDirectionIsBackwardAndTakeIsTwo_ReturnsCorrectPagesAndPreviousPageLinks()
     {
-        var parameters = new GetTorrentPageParameters(
+        var parameters = new Parameters(
             OrderBy: GetTorrentPageOrder.RefreshDateDesc,
             Direction: GetTorrentPageDirection.Backward,
             Take: 2);
@@ -359,7 +360,7 @@ internal sealed class GetTorrentPageTests
 
     [TestCaseSource(nameof(GetGetTorrentPageAsyncBadRequestTestCases))]
     public async Task GetTorrentPageAsync_WhenSpecificParametersAreUsed_ReturnsExpectedValidationProblem(
-        GetTorrentPageParameters parameters,
+        Parameters parameters,
         string problematicParameterName,
         string expectedErrorMessage)
     {
@@ -382,77 +383,77 @@ internal sealed class GetTorrentPageTests
         }
     }
 
-    private static IEnumerable<TestCaseData<GetTorrentPageParameters, string, string>>
+    private static IEnumerable<TestCaseData<Parameters, string, string>>
         GetGetTorrentPageAsyncBadRequestTestCases()
     {
         yield return new(
-            new GetTorrentPageParameters(Take: 0),
-            nameof(GetTorrentPageParameters.Take),
-            $"The field Take must be between 1 and {GetTorrentPageParameters.MaxTake}.")
+            new(Take: 0),
+            "take",
+            $"The field take must be between 1 and {Parameters.MaxTake}.")
         {
             TestName = "GetTorrentPageAsync_WhenTakeIsZero_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(Take: 1001),
-            nameof(GetTorrentPageParameters.Take),
-            $"The field Take must be between 1 and {GetTorrentPageParameters.MaxTake}.")
+            new(Take: 1001),
+            "take",
+            $"The field take must be between 1 and {Parameters.MaxTake}.")
         {
             TestName = "GetTorrentPageAsync_WhenTakeIsTooLarge_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(Take: -1),
-            nameof(GetTorrentPageParameters.Take),
-            $"The field Take must be between 1 and {GetTorrentPageParameters.MaxTake}.")
+            new(Take: -1),
+            "take",
+            $"The field take must be between 1 and {Parameters.MaxTake}.")
         {
             TestName = "GetTorrentPageAsync_WhenTakeIsNegative_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(OrderBy: (GetTorrentPageOrder)999),
-            nameof(GetTorrentPageParameters.OrderBy),
-            "The field OrderBy is invalid.")
+            new(OrderBy: (GetTorrentPageOrder)999),
+            "orderBy",
+            "The field orderBy is invalid.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsInvalid_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(Direction: (GetTorrentPageDirection)999),
-            nameof(GetTorrentPageParameters.Direction),
-            "The field Direction is invalid.")
+            new(Direction: (GetTorrentPageDirection)999),
+            "direction",
+            "The field direction is invalid.")
         {
             TestName = "GetTorrentPageAsync_WhenDirectionIsInvalid_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(OrderBy: GetTorrentPageOrder.Id, AnchorValue: "abc"),
-            nameof(GetTorrentPageParameters.AnchorValue),
-            "When OrderBy is 'Id', AnchorValue must be 'null'.")
+            new(OrderBy: GetTorrentPageOrder.Id, AnchorValue: "abc"),
+            "anchorValue",
+            "When orderBy is 'Id', anchorValue must be 'null'.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsIdAndAnchorValueIsNotNull_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(OrderBy: GetTorrentPageOrder.IdDesc, AnchorValue: "abc"),
-            nameof(GetTorrentPageParameters.AnchorValue),
-            "When OrderBy is 'IdDesc', AnchorValue must be 'null'.")
+            new(OrderBy: GetTorrentPageOrder.IdDesc, AnchorValue: "abc"),
+            "anchorValue",
+            "When orderBy is 'IdDesc', anchorValue must be 'null'.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsIdDescAndAnchorValueIsNotNull_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(OrderBy: GetTorrentPageOrder.RefreshDate, AnchorValue: "abc"),
-            nameof(GetTorrentPageParameters.AnchorValue),
-            $"When OrderBy is 'RefreshDate', AnchorValue must match format '{GetTorrentPageParameters.DateFormat}'.")
+            new(OrderBy: GetTorrentPageOrder.RefreshDate, AnchorValue: "abc"),
+            "anchorValue",
+            $"When orderBy is 'RefreshDate', anchorValue must match format '{Parameters.DateFormat}'.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsRefreshDateAndAnchorValueIsInvalid_ReturnsValidationProblem"
         };
 
         yield return new(
-            new GetTorrentPageParameters(OrderBy: GetTorrentPageOrder.RefreshDateDesc, AnchorValue: "abc"),
-            nameof(GetTorrentPageParameters.AnchorValue),
-            $"When OrderBy is 'RefreshDateDesc', AnchorValue must match format '{GetTorrentPageParameters.DateFormat}'.")
+            new(OrderBy: GetTorrentPageOrder.RefreshDateDesc, AnchorValue: "abc"),
+            "anchorValue",
+            $"When orderBy is 'RefreshDateDesc', anchorValue must match format '{Parameters.DateFormat}'.")
         {
             TestName = "GetTorrentPageAsync_WhenOrderByIsRefreshDateDescAndAnchorValueIsInvalid_ReturnsValidationProblem"
         };
@@ -477,5 +478,5 @@ internal sealed class GetTorrentPageTests
     }
 
     private static string ToExpectedDateTimeAnchorString(DateTime dateTime) =>
-        dateTime.ToUniversalTime().ToString(GetTorrentPageParameters.DateFormat, CultureInfo.InvariantCulture);
+        dateTime.ToUniversalTime().ToString(Parameters.DateFormat, CultureInfo.InvariantCulture);
 }

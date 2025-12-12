@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
@@ -142,5 +143,30 @@ internal sealed class DeleteTorrentByIdTests
         Assert.That(
             problemDetails.Detail,
             Is.EqualTo("Removal of the torrent with id -1 has failed: 'No such torrent.'."));
+    }
+
+    [Test]
+    public async Task UpdateTorrentByIdAsync_WhenInvalidFlagToRemoveDataUsed_ReturnsProblemDetails()
+    {
+        var torrentAddress = $"{EndpointAddresses.Torrents}/1?deleteType=999";
+        // deleteType=InvalidFlag returns problem details without the Errors dict
+
+        var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors, Has.Count.EqualTo(1));
+            Assert.That(problem.Errors, Contains.Key("deleteType"));
+            if (problem.Errors.TryGetValue("deleteType", out var errors))
+            {
+                Assert.That(errors, Has.Length.EqualTo(1));
+                Assert.That(errors[0], Is.EqualTo("The field deleteType is invalid."));
+            }
+        }
     }
 }
