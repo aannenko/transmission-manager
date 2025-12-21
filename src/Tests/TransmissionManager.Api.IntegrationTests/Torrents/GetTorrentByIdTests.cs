@@ -13,8 +13,8 @@ internal sealed class GetTorrentByIdTests
 {
     private static readonly Torrent[] _torrents = [TestData.Database.CreateInitialTorrents()[0]];
 
-    private TestWebApplicationFactory<Program> _factory = default!;
-    private HttpClient _client = default!;
+    private TestWebApplicationFactory<Program> _factory;
+    private HttpClient _client;
 
     [OneTimeSetUp]
     public void Setup()

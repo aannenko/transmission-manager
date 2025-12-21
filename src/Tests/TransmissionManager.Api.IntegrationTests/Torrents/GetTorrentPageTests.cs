@@ -15,8 +15,8 @@ internal sealed class GetTorrentPageTests
 {
     private static readonly Torrent[] _torrents = TestData.Database.CreateInitialTorrents();
 
-    private TestWebApplicationFactory<Program> _factory = default!;
-    private HttpClient _client = default!;
+    private TestWebApplicationFactory<Program> _factory;
+    private HttpClient _client;
 
     [OneTimeSetUp]
     public void Setup()

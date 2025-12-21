@@ -58,8 +58,8 @@ internal sealed class DeleteTorrentByIdTests
 
     #endregion
 
-    private TestWebApplicationFactory<Program> _factory = default!;
-    private HttpClient _client = default!;
+    private TestWebApplicationFactory<Program> _factory;
+    private HttpClient _client;
 
     [OneTimeSetUp]
     public void Setup()

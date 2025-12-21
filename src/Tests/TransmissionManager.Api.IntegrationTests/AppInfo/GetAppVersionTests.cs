@@ -8,8 +8,8 @@ namespace TransmissionManager.Api.IntegrationTests.AppVersion;
 [Parallelizable(ParallelScope.All)]
 internal sealed class GetAppVersionTests
 {
-    private TestWebApplicationFactory<Program> _factory = default!;
-    private HttpClient _client = default!;
+    private TestWebApplicationFactory<Program> _factory;
+    private HttpClient _client;
 
     [OneTimeSetUp]
     public void Setup()
