@@ -17,7 +17,7 @@ public static class TransmissionServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
-        services
+        _ = services
             .Configure<TransmissionClientOptions>(configuration.GetRequiredSection(_transmissionConfigKey))
             .Configure<SessionHeaderProviderOptions>(configuration.GetRequiredSection(_transmissionConfigKey))
             .AddSingleton<IValidateOptions<TransmissionClientOptions>, ValidateTransmissionClientOptions>()

@@ -2,9 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
 
 internal static class UpdateTorrentByIdEndpoint
 {

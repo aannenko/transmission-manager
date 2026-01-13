@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
@@ -22,9 +22,9 @@ internal abstract class BaseTorrentServiceTests
 
         using var context = new AppDbContext(_contextOptions);
 
-        context.Database.EnsureCreated();
+        _ = context.Database.EnsureCreated();
         context.Torrents.AddRange(CreateInitialTorrents());
-        context.SaveChanges();
+        _ = context.SaveChanges();
     }
 
     [OneTimeTearDown]

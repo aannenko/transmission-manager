@@ -1,16 +1,13 @@
 ﻿using System.Globalization;
 using System.Text;
-using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
-using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
-using TransmissionManager.Transmission.Dto;
-using Result = TransmissionManager.Api.Actions.Torrents.RefreshTorrentByIdResult;
+using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 
 internal sealed class RefreshTorrentByIdHandler(
     TorrentWebPageClientWrapper torrentWebPageService,

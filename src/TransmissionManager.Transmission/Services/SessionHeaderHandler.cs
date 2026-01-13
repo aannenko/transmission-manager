@@ -13,7 +13,7 @@ public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider) :
         var headerName = headerProvider.SessionHeaderName;
 
         if (!request.Headers.Contains(headerName))
-            request.Headers.TryAddWithoutValidation(headerName, headerProvider.SessionHeaderValue);
+            _ = request.Headers.TryAddWithoutValidation(headerName, headerProvider.SessionHeaderValue);
 
         var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 
@@ -24,8 +24,8 @@ public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider) :
         {
             headerProvider.SessionHeaderValue = newHeaderValue;
 
-            request.Headers.Remove(headerName);
-            request.Headers.TryAddWithoutValidation(headerName, newHeaderValue);
+            _ = request.Headers.Remove(headerName);
+            _ = request.Headers.TryAddWithoutValidation(headerName, newHeaderValue);
 
             response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }

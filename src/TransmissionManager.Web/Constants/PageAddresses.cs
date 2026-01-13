@@ -1,5 +1,6 @@
 ﻿namespace TransmissionManager.Web.Constants;
 
+// When updating addresses in this class, also update the corresponding page
 internal static class PageAddresses
 {
     public const string Home = "";

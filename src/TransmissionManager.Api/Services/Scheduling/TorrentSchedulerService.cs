@@ -12,13 +12,13 @@ internal sealed class TorrentSchedulerService
     public TorrentSchedulerService(IScheduler scheduler)
     {
         _scheduler = (Scheduler)scheduler;
-        _scheduler.LogScheduledTaskProgress();
+        _ = _scheduler.LogScheduledTaskProgress();
     }
 
     [DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(TorrentRefreshTask))]
     public void ScheduleTorrentRefresh(long torrentId, string cron)
     {
-        _scheduler.ScheduleWithParams<TorrentRefreshTask>(torrentId)
+        _ = _scheduler.ScheduleWithParams<TorrentRefreshTask>(torrentId)
             .Cron(cron)
             .Zoned(TimeZoneInfo.Local)
             .PreventOverlapping(torrentId.ToString(CultureInfo.InvariantCulture));

@@ -3,11 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
-using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.GetPage;
 
 internal static class GetTorrentPageEndpoint
 {

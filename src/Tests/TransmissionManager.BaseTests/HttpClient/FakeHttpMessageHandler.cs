@@ -37,7 +37,7 @@ public class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestRespons
         if (testResponse.Headers?.Count > 0)
         {
             foreach (var (name, value) in testResponse.Headers)
-                response.Headers.TryAddWithoutValidation(name, value);
+                _ = response.Headers.TryAddWithoutValidation(name, value);
         }
 
         return response;

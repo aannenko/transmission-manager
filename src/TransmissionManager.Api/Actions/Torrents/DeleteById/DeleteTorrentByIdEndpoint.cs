@@ -2,9 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
 
 internal static class DeleteTorrentByIdEndpoint
 {

@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Actions.Torrents;
+﻿namespace TransmissionManager.Api.Actions.Torrents.AddOne;
 
 internal enum AddTorrentResult
 {

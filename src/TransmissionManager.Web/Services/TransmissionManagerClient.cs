@@ -1,4 +1,4 @@
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Serialization;
@@ -85,7 +85,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
             .PatchAsJsonAsync(requestUri, request, cancellationToken)
             .ConfigureAwait(false);
 
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
     }
 
     public async Task DeleteTorrentByIdAsync(
@@ -95,6 +95,6 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
     {
         var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}?deleteType={deleteType}", UriKind.Relative);
         using var response = await httpClient.DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
     }
 }

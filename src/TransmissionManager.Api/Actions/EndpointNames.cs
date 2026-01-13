@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.Api.Constants;
+﻿namespace TransmissionManager.Api.Actions;
 
 internal static class EndpointNames
 {

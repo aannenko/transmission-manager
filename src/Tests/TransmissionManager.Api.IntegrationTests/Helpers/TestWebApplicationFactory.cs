@@ -39,25 +39,25 @@ internal sealed class TestWebApplicationFactory<TProgram>(
 
         base.ConfigureWebHost(builder);
 
-        builder.UseEnvironment("Testing");
+        _ = builder.UseEnvironment("Testing");
 
         DisposeOfDbConnection();
         _connection = new SqliteConnection("Data Source=:memory:");
         _connection.Open();
 
-        builder.ConfigureServices(services =>
+        _ = builder.ConfigureServices(services =>
         {
-            services
+            _ = services
                 .RemoveAll<DbContextOptions<AppDbContext>>()
                 .AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
 
-            services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
+            _ = services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
                     builder.PrimaryHandler = new FakeHttpMessageHandler(_torrentPageRequestResponseMap));
             });
 
-            services.PostConfigure(nameof(TransmissionClient), (HttpClientFactoryOptions options) =>
+            _ = services.PostConfigure(nameof(TransmissionClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
                     builder.PrimaryHandler = new FakeHttpMessageHandler(_transmissionRequestResponseMap));
@@ -72,7 +72,7 @@ internal sealed class TestWebApplicationFactory<TProgram>(
         using var scope = host.Services.CreateScope();
         using var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         dbContext.Torrents.AddRange(initialTorrents);
-        dbContext.SaveChanges();
+        _ = dbContext.SaveChanges();
 
         return host;
     }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
-using TransmissionManager.Api.Constants;
 
 namespace TransmissionManager.Api.Actions.AppVersion;
 

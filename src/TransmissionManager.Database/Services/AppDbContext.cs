@@ -23,24 +23,24 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
         var torrentBuilder = modelBuilder.Entity<Torrent>();
 
-        torrentBuilder.HasIndex(static torrent => torrent.HashString).IsUnique(true);
-        torrentBuilder.Property(static torrent => torrent.HashString).UseCollation(_noCaseCollation);
+        _ = torrentBuilder.HasIndex(static torrent => torrent.HashString).IsUnique(true);
+        _ = torrentBuilder.Property(static torrent => torrent.HashString).UseCollation(_noCaseCollation);
 
-        torrentBuilder.HasIndex(static torrent => torrent.RefreshDate);
-        torrentBuilder.Property(static torrent => torrent.RefreshDate).HasConversion(
+        _ = torrentBuilder.HasIndex(static torrent => torrent.RefreshDate);
+        _ = torrentBuilder.Property(static torrent => torrent.RefreshDate).HasConversion(
             static date => date.ToUniversalTime(),
             static date => DateTime.SpecifyKind(date, DateTimeKind.Utc));
 
-        torrentBuilder.HasIndex(static torrent => torrent.Name);
-        torrentBuilder.Property(static torrent => torrent.Name).UseCollation(_noCaseCollation);
+        _ = torrentBuilder.HasIndex(static torrent => torrent.Name);
+        _ = torrentBuilder.Property(static torrent => torrent.Name).UseCollation(_noCaseCollation);
 
-        torrentBuilder.HasIndex(static torrent => torrent.WebPageUri).IsUnique(true);
-        torrentBuilder.Property(static torrent => torrent.WebPageUri).UseCollation(_noCaseCollation);
+        _ = torrentBuilder.HasIndex(static torrent => torrent.WebPageUri).IsUnique(true);
+        _ = torrentBuilder.Property(static torrent => torrent.WebPageUri).UseCollation(_noCaseCollation);
 
-        torrentBuilder.HasIndex(static torrent => torrent.DownloadDir);
-        torrentBuilder.Property(static torrent => torrent.DownloadDir).UseCollation(_noCaseCollation);
+        _ = torrentBuilder.HasIndex(static torrent => torrent.DownloadDir);
+        _ = torrentBuilder.Property(static torrent => torrent.DownloadDir).UseCollation(_noCaseCollation);
 
-        torrentBuilder.HasIndex(static torrent => torrent.Cron).HasFilter($"{nameof(Torrent.Cron)} IS NOT NULL");
-        torrentBuilder.Property(static torrent => torrent.Cron).UseCollation(_noCaseCollation);
+        _ = torrentBuilder.HasIndex(static torrent => torrent.Cron).HasFilter($"{nameof(Torrent.Cron)} IS NOT NULL");
+        _ = torrentBuilder.Property(static torrent => torrent.Cron).UseCollation(_noCaseCollation);
     }
 }

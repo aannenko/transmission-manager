@@ -1,9 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.AddOne;
 
 internal static class AddTorrentEndpoint
 {

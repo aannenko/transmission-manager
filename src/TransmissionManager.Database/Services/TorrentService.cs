@@ -43,8 +43,8 @@ public sealed class TorrentService(AppDbContext dbContext)
         ArgumentNullException.ThrowIfNull(dto);
 
         var torrent = dto.ToTorrent();
-        dbContext.Torrents.Add(torrent);
-        await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        _ = dbContext.Torrents.Add(torrent);
+        _ = await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
         return torrent;
     }
 

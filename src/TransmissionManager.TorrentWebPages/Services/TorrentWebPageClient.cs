@@ -42,7 +42,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
 
                 if (indexOfMagnet >= _defaultPadding * 4)
                 {
-                    await reader.ReadNextAsync(bytes.Length - indexOfMagnet + _defaultPadding, cancellationToken)
+                    _ = await reader.ReadNextAsync(bytes.Length - indexOfMagnet + _defaultPadding, cancellationToken)
                         .ConfigureAwait(false);
 
                     bytes = reader.Bytes;

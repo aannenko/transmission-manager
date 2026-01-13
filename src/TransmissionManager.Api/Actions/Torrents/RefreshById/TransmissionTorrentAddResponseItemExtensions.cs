@@ -1,6 +1,7 @@
 ﻿using TransmissionManager.Database.Dto;
+using TransmissionManager.Transmission.Dto;
 
-namespace TransmissionManager.Transmission.Dto;
+namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 
 internal static class TransmissionTorrentAddResponseItemExtensions
 {

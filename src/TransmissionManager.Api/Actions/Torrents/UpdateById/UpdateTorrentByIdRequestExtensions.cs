@@ -1,6 +1,7 @@
-﻿using TransmissionManager.Database.Dto;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Database.Dto;
 
-namespace TransmissionManager.Api.Common.Dto.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
 
 internal static class UpdateTorrentByIdRequestExtensions
 {

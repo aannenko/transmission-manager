@@ -8,9 +8,9 @@ using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
-using Result = TransmissionManager.Api.Actions.Torrents.AddTorrentResult;
+using Result = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentResult;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.AddOne;
 
 internal sealed class AddTorrentHandler(
     TorrentWebPageClientWrapper torrentWebPageService,

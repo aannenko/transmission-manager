@@ -244,7 +244,7 @@ internal ref struct ValueStringBuilder
         if (!value.TryFormat(slice, out int charsWritten, default, null))
         {
             Grow(maxStringLength);
-            value.TryFormat(slice, out charsWritten, default, null);
+            _ = value.TryFormat(slice, out charsWritten, default, null);
         }
 
         _pos += charsWritten;

@@ -2,11 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
 using TransmissionManager.Api.Common.Dto.Torrents;
-using TransmissionManager.Api.Constants;
-using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.GetById;
 
 internal static class GetTorrentByIdEndpoint
 {

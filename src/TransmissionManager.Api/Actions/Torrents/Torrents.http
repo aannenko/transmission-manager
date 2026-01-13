@@ -1,4 +1,4 @@
-@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
+﻿@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
 
 # Get a page of torrents
 GET {{TransmissionManager_Web_HostAddress}}/

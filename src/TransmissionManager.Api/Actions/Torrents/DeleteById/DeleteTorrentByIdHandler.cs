@@ -4,9 +4,9 @@ using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Services;
-using Result = TransmissionManager.Api.Actions.Torrents.DeleteTorrentByIdResult;
+using Result = TransmissionManager.Api.Actions.Torrents.DeleteById.DeleteTorrentByIdResult;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
 
 internal sealed class DeleteTorrentByIdHandler(
     TransmissionClientWrapper transmissionService,

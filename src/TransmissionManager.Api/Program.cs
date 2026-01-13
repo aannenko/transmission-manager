@@ -1,8 +1,8 @@
-using Coravel;
+﻿using Coravel;
 using TransmissionManager.Api.Actions.AppVersion;
 using TransmissionManager.Api.Actions.Torrents;
-using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Serialization;
+using TransmissionManager.Api.Extensions;
 using TransmissionManager.Api.Middleware;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
@@ -26,11 +26,12 @@ builder.Services.AddCorsFromConfiguration(builder.Configuration);
 builder.Services.AddProblemDetails();
 builder.Services.AddValidation();
 
+builder.Services.AddScheduler();
+
 builder.Services.AddDatabaseServices();
 builder.Services.AddTorrentWebPagesServices(builder.Configuration);
 builder.Services.AddTransmissionServices(builder.Configuration);
 
-builder.Services.AddScheduler();
 builder.Services.AddSingleton<TorrentSchedulerService>();
 builder.Services.AddTransient<StartupTorrentSchedulerService>();
 
@@ -38,10 +39,7 @@ builder.Services.AddTransient<TorrentWebPageClientWrapper>();
 builder.Services.AddTransient<TransmissionClientWrapper>();
 builder.Services.AddSingleton<BackgroundTorrentUpdateService>();
 
-builder.Services.AddTransient<AddTorrentHandler>();
-builder.Services.AddTransient<RefreshTorrentByIdHandler>();
-builder.Services.AddTransient<UpdateTorrentByIdHandler>();
-builder.Services.AddTransient<DeleteTorrentByIdHandler>();
+builder.Services.AddTorrentEndpointHandlers();
 
 var app = builder.Build();
 
@@ -53,7 +51,7 @@ using (var scope = app.Services.CreateScope())
 
     var lifetime = provider.GetRequiredService<IHostApplicationLifetime>();
 
-    await provider.GetRequiredService<AppDbContext>()
+    _ = await provider.GetRequiredService<AppDbContext>()
         .Database.EnsureCreatedAsync(lifetime.ApplicationStopping)
         .ConfigureAwait(false);
 
@@ -68,20 +66,12 @@ app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
 app.UseCors();
 
 if (!app.Environment.IsDevelopment())
-    app.UseExceptionHandler();
+    _ = app.UseExceptionHandler();
 
 app.UseStatusCodePages();
 
-app.MapGroup(EndpointAddresses.Torrents)
-    .MapGetTorrentByIdEndpoint()
-    .MapGetTorrentPageEndpoint()
-    .MapAddTorrentEndpoint()
-    .MapRefreshTorrentByIdEndpoint()
-    .MapUpdateTorrentByIdEndpoint()
-    .MapDeleteTorrentByIdEndpoint();
-
-app.MapGroup(EndpointAddresses.AppVersion)
-    .MapGetAppVersionEndpoint();
+app.MapTorrentEndpoints();
+app.MapAppVersionEndpoints();
 
 await app.RunAsync().ConfigureAwait(false);
 

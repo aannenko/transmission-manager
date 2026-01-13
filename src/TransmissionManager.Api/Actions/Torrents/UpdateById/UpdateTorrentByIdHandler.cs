@@ -2,7 +2,7 @@
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.Actions.Torrents;
+namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
 
 internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, TorrentSchedulerService scheduler)
 {
@@ -11,7 +11,7 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         TorrentUpdateDto dto,
         CancellationToken cancellationToken)
     {
-        scheduler.TryUnscheduleTorrentRefresh(id);
+        _ = scheduler.TryUnscheduleTorrentRefresh(id);
         var isUpdated = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
         if (isUpdated && !string.IsNullOrEmpty(dto.Cron))
             scheduler.ScheduleTorrentRefresh(id, dto.Cron);

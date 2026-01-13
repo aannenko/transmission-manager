@@ -15,6 +15,18 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
 
     public async Task UpdateTorrentNameAsync(long id, string hashString)
     {
+        using var cts = _runningNameUpdates.AddOrUpdate(id, AddCts, UpdateCts);
+        try
+        {
+            using var serviceScope = serviceScopeFactory.CreateScope();
+            await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, cts.Token)
+                .ConfigureAwait(false);
+        }
+        finally
+        {
+            _ = _runningNameUpdates.TryRemove(id, out _);
+        }
+
         static CancellationTokenSource AddCts(long _) => new();
 
         static CancellationTokenSource UpdateCts(long _, CancellationTokenSource oldCts)
@@ -29,18 +41,6 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
             }
 
             return new();
-        }
-
-        using var cts = _runningNameUpdates.AddOrUpdate(id, AddCts, UpdateCts);
-        try
-        {
-            using var serviceScope = serviceScopeFactory.CreateScope();
-            await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, cts.Token)
-                .ConfigureAwait(false);
-        }
-        finally
-        {
-            _ = _runningNameUpdates.TryRemove(id, out _);
         }
     }
 

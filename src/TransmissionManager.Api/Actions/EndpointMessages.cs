@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace TransmissionManager.Api.Constants;
+namespace TransmissionManager.Api.Actions;
 
 internal static class EndpointMessages
 {
