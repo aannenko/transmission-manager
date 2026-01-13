@@ -1,16 +1,10 @@
-namespace Microsoft.Extensions.Logging;
+﻿using TransmissionManager.Api.Services.Logging;
 
 internal static partial class StartupLoggerExtensions
 {
-    public static void LogStartup(this ILogger logger)
+    public static void LogStartup<T>(this Log<T> log)
     {
-        LogStartingApplication(logger, typeof(Program).Assembly.FullName);
-        LogStartTime(logger, DateTime.Now);
+        log.StartingApplication(typeof(Program).Assembly.FullName);
+        log.ApplicationStartTime(DateTime.Now);
     }
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Starting application {AssemblyFullName}")]
-    private static partial void LogStartingApplication(ILogger logger, string? assemblyFullName);
-
-    [LoggerMessage(Level = LogLevel.Information, Message = "Start time: {StartTime:o}")]
-    private static partial void LogStartTime(ILogger logger, DateTime startTime);
 }

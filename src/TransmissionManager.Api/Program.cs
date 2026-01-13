@@ -6,6 +6,7 @@ using TransmissionManager.Api.Extensions;
 using TransmissionManager.Api.Middleware;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
+using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
@@ -19,6 +20,7 @@ builder.Services.ConfigureHttpJsonOptions(static options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(1, ApiJsonSerializerContext.Default);
 });
 
+builder.Services.AddSingleton(typeof(Log<>));
 builder.Services.AddSingleton<CacheControlHeaderMiddleware>();
 builder.Services.AddSingleton<XContentTypeOptionsHeaderMiddleware>();
 builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
@@ -43,7 +45,7 @@ builder.Services.AddTorrentEndpointHandlers();
 
 var app = builder.Build();
 
-app.Logger.LogStartup();
+app.Services.GetRequiredService<Log<Program>>().LogStartup();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -74,5 +76,3 @@ app.MapTorrentEndpoints();
 app.MapAppVersionEndpoints();
 
 await app.RunAsync().ConfigureAwait(false);
-
-internal sealed partial class Program;
