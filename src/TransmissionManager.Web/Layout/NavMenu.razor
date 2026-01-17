@@ -1,0 +1,17 @@
+﻿@using TransmissionManager.Web.Constants
+
+<nav class="layout-header-nav">
+    <!-- When updating PageAddresses.cs, also update the corresponding page -->
+
+    <NavLink href="@PageAddresses.Home" class="nav-tab" Match="NavLinkMatch.All">
+        <img src="img/home.svg" title="Home" alt="Home icon" />
+    </NavLink>
+
+    <NavLink href="@PageAddresses.TorrentsAdd" class="nav-tab">
+        <img src="img/add.svg" title="Add Torrent" alt="Add Torrent icon" />
+    </NavLink>
+
+    <NavLink href="@PageAddresses.Connect" class="nav-tab push-right">
+        <img src="img/link.svg" title="Connect" alt="Connect icon" />
+    </NavLink>
+</nav>

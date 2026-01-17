@@ -1,4 +1,4 @@
-@import url('font/NotoSans.css');
+﻿@import url('font/NotoSans.css');
 
 :root {
     --content-max-width: 60rem;
@@ -116,13 +116,13 @@ body {
     position: sticky;
 }
 
-.layout-header-content {
+.layout-header-nav {
     display: flex;
     height: 5rem;
     width: 100%;
     max-width: var(--content-max-width);
-    margin-inline: auto;
     box-sizing: border-box;
+    margin-inline: auto;
     padding: 0 0.5rem;
 }
 
