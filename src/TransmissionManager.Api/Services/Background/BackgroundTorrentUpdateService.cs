@@ -74,7 +74,7 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
             var newName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
             if (newName != hashString)
             {
-                if (string.IsNullOrEmpty(newName) || newName == currentName)
+                if (string.IsNullOrWhiteSpace(newName) || newName == currentName)
                     break;
 
                 var torrentService = serviceProvider.GetRequiredService<TorrentService>();
