@@ -13,13 +13,13 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
 
     private readonly ConcurrentDictionary<long, CancellationTokenSource> _runningNameUpdates = [];
 
-    public async Task UpdateTorrentNameAsync(long id, string hashString)
+    public async Task UpdateTorrentNameAsync(long id, string hashString, string currentName)
     {
         using var cts = _runningNameUpdates.AddOrUpdate(id, AddCts, UpdateCts);
         try
         {
             using var serviceScope = serviceScopeFactory.CreateScope();
-            await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, cts.Token)
+            await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, currentName, cts.Token)
                 .ConfigureAwait(false);
         }
         finally
@@ -48,6 +48,7 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
         IServiceProvider serviceProvider,
         long id,
         string hashString,
+        string currentName,
         CancellationToken cancellationToken)
     {
         string[] singleHashArray = [hashString];
@@ -70,14 +71,14 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
             {
             }
 
-            var torrentName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
-            if (torrentName != hashString)
+            var newName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
+            if (newName != hashString)
             {
-                if (string.IsNullOrEmpty(torrentName))
+                if (string.IsNullOrEmpty(newName) || newName == currentName)
                     break;
 
                 var torrentService = serviceProvider.GetRequiredService<TorrentService>();
-                var dto = new TorrentUpdateDto(name: torrentName);
+                var dto = new TorrentUpdateDto(name: newName);
                 _ = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
                 break;
             }

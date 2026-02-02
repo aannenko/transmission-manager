@@ -50,7 +50,13 @@ internal sealed class RefreshTorrentByIdHandler(
             var transmissionRemoveTask = transmissionService
                 .RemoveTorrentAsync(torrent.HashString, false, cancellationToken);
 
-            var torrentUpdateDto = transmissionAddTorrent.ToTorrentUpdateDto(DateTime.UtcNow);
+            var torrentName = GetTorrentUpdatedName(
+                torrent.Name,
+                transmissionAddTorrent.Name,
+                transmissionAddTorrent.HashString,
+                out var isNameBackgroundUpdateRequired);
+
+            var torrentUpdateDto = transmissionAddTorrent.ToTorrentUpdateDto(DateTime.UtcNow, torrentName);
             var isTorrentUpdated = await torrentService
                 .TryUpdateOneByIdAsync(torrent.Id, torrentUpdateDto, cancellationToken)
                 .ConfigureAwait(false);
@@ -61,8 +67,8 @@ internal sealed class RefreshTorrentByIdHandler(
                 return new(Result.Removed, null, transmissionAddResult, GetError(id, message));
             }
 
-            if (transmissionAddTorrent.HashString == transmissionAddTorrent.Name)
-                _ = backgroundUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
+            if (isNameBackgroundUpdateRequired)
+                _ = backgroundUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString, torrent.Name);
 
             var transmissionRemoveError = (await transmissionRemoveTask.ConfigureAwait(false)).Error;
             if (transmissionRemoveError is not null)
@@ -70,11 +76,11 @@ internal sealed class RefreshTorrentByIdHandler(
 
             torrent.HashString = torrentUpdateDto.HashString!;
             torrent.RefreshDate = torrentUpdateDto.RefreshDate!.Value;
-            torrent.Name = torrentUpdateDto.Name!;
+            torrent.Name = torrentName ?? torrent.Name;
         }
         else if (torrent.Name == torrent.HashString)
         {
-            _ = backgroundUpdateService.UpdateTorrentNameAsync(id, transmissionAddTorrent.HashString);
+            _ = backgroundUpdateService.UpdateTorrentNameAsync(id, torrent.HashString, torrent.Name);
         }
 
         return new(Result.Refreshed, torrent.ToDto(), transmissionAddResult, null);
@@ -82,4 +88,26 @@ internal sealed class RefreshTorrentByIdHandler(
 
     private static string GetError(long id, string? message) =>
         string.Format(CultureInfo.InvariantCulture, _error, id, message);
+
+    private static string? GetTorrentUpdatedName(
+        string oldName,
+        string newTransmissionName,
+        string newTransmissionHashString,
+        out bool isBackgroundUpdateRequired)
+    {
+        if (newTransmissionName == newTransmissionHashString)
+        {
+            isBackgroundUpdateRequired = true;
+            return null; // keep the old name for now, update in the background
+        }
+
+        if (string.IsNullOrWhiteSpace(newTransmissionName) || newTransmissionName == oldName)
+        {
+            isBackgroundUpdateRequired = false;
+            return null; // no update required
+        }
+
+        isBackgroundUpdateRequired = false;
+        return newTransmissionName;
+    }
 }

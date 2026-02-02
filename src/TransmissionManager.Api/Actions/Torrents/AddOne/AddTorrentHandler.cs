@@ -54,8 +54,8 @@ internal sealed class AddTorrentHandler(
             return new(Result.Exists, null, transmissionResult, torrentExistsError);
         }
 
-        if (transmissionTorrent.HashString == transmissionTorrent.Name)
-            _ = backgroundUpdateService.UpdateTorrentNameAsync(torrent.Id, transmissionTorrent.HashString);
+        if (torrent.Name == torrent.HashString)
+            _ = backgroundUpdateService.UpdateTorrentNameAsync(torrent.Id, torrent.HashString, torrent.Name);
 
         return new(Result.Added, torrent.ToDto(), transmissionResult, null);
     }
