@@ -91,10 +91,11 @@ else
             if (startIndex < _loadedTorrents.Count)
             {
                 var availableCount = _loadedTorrents.Count - startIndex;
+                var canSatisfyFromCache = availableCount >= count;
+                var hasReachedEndOfTorrents = _totalTorrentsCount > 0 && startIndex + availableCount >= _totalTorrentsCount;
                 
                 // If we can fully satisfy the request from cache, do so
-                if (availableCount >= count || 
-                    (_totalTorrentsCount > 0 && startIndex + availableCount >= _totalTorrentsCount))
+                if (canSatisfyFromCache || hasReachedEndOfTorrents)
                 {
                     var cachedItems = _loadedTorrents
                         .Skip(startIndex)
@@ -129,6 +130,12 @@ else
             {
                 var torrents = torrentPage.Torrents.ToList();
                 
+                // Pre-allocate capacity to avoid multiple resize operations
+                if (_loadedTorrents.Capacity < _loadedTorrents.Count + torrents.Count)
+                {
+                    _loadedTorrents.Capacity = _loadedTorrents.Count + torrents.Count;
+                }
+                
                 // Add newly fetched torrents to cache (keyset pagination shouldn't return duplicates)
                 foreach (var torrent in torrents)
                 {
@@ -159,8 +166,9 @@ else
                 return new ItemsProviderResult<TorrentDto>([], 0);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            Message = $"Error loading torrents: {ex.Message}";
             return new ItemsProviderResult<TorrentDto>([], 0);
         }
     }
