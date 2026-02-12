@@ -30,8 +30,11 @@ else
 
 @code
 {
+    private const int EstimatedRemainingItems = 1000;
+    
     private bool _showNoTorrentsMessage;
     private List<TorrentDto> _loadedTorrents = new();
+    private HashSet<long> _loadedTorrentIds = new();
     private int _totalTorrentsCount;
 
     private string _suggestedAddress = string.Empty;
@@ -84,18 +87,20 @@ else
             long? anchorId = null;
             string? anchorValue = null;
 
-            // If we have cached torrents and the request is for a range we can satisfy, use cache
+            // Check if we can satisfy the request from cache
             if (startIndex < _loadedTorrents.Count)
             {
-                var cachedItems = _loadedTorrents
-                    .Skip(startIndex)
-                    .Take(count)
-                    .ToList();
+                var availableCount = _loadedTorrents.Count - startIndex;
                 
                 // If we can fully satisfy the request from cache, do so
-                if (cachedItems.Count == count || 
-                    (startIndex + cachedItems.Count >= _totalTorrentsCount && _totalTorrentsCount > 0))
+                if (availableCount >= count || 
+                    (_totalTorrentsCount > 0 && startIndex + availableCount >= _totalTorrentsCount))
                 {
+                    var cachedItems = _loadedTorrents
+                        .Skip(startIndex)
+                        .Take(count)
+                        .ToList();
+                    
                     return new ItemsProviderResult<TorrentDto>(cachedItems, _totalTorrentsCount);
                 }
             }
@@ -124,10 +129,10 @@ else
             {
                 var torrents = torrentPage.Torrents.ToList();
                 
-                // Add newly fetched torrents to cache
+                // Add newly fetched torrents to cache (keyset pagination shouldn't return duplicates)
                 foreach (var torrent in torrents)
                 {
-                    if (!_loadedTorrents.Any(t => t.Id == torrent.Id))
+                    if (_loadedTorrentIds.Add(torrent.Id))
                     {
                         _loadedTorrents.Add(torrent);
                     }
@@ -136,7 +141,7 @@ else
                 // Update total count estimate
                 _totalTorrentsCount = string.IsNullOrEmpty(torrentPage.NextPageAddress)
                     ? _loadedTorrents.Count
-                    : _loadedTorrents.Count + 1000; // Estimate more items if there's a next page
+                    : _loadedTorrents.Count + EstimatedRemainingItems;
 
                 // Return the requested range from our cache
                 var result = _loadedTorrents
@@ -167,7 +172,7 @@ else
         {
             // Clear loaded torrents to force reload
             _loadedTorrents.Clear();
-            _showNoTorrentsMessage = false;
+            _loadedTorrentIds.Clear();
             StateHasChanged();
         }
     }
@@ -175,9 +180,28 @@ else
     private async Task DeleteTorrentAsync(long id, DeleteTorrentByIdType deleteType)
     {
         await Client.DeleteTorrentByIdAsync(id, deleteType);
+        
         // Clear loaded torrents to force reload
         _loadedTorrents.Clear();
-        _showNoTorrentsMessage = false;
+        _loadedTorrentIds.Clear();
+        
+        // Check if there are any torrents left
+        var remainingPage = await CallService(
+            Client,
+            static client => client.GetTorrentPageAsync(new()
+            {
+                Take = 1,
+                OrderBy = GetTorrentPageOrder.RefreshDateDesc
+            }));
+
+        if (remainingPage is null || remainingPage.Torrents.Count is 0)
+        {
+            _showNoTorrentsMessage = true;
+            Message = "No torrents found.";
+            _suggestedAddress = PageAddresses.TorrentsAdd;
+            _suggestedAction = "Add a torrent";
+        }
+        
         StateHasChanged();
     }
 }
