@@ -77,22 +77,35 @@ else
 
         try
         {
-            // Calculate which page we need based on startIndex
             var startIndex = request.StartIndex;
             var count = request.Count;
 
-            // Determine if we need to fetch new data
-            TorrentDto? anchorTorrent = null;
+            // For keyset pagination, we need to determine the anchor point
             long? anchorId = null;
             string? anchorValue = null;
 
-            if (startIndex > 0 && _loadedTorrents.Count > 0)
+            // If we have cached torrents and the request is for a range we can satisfy, use cache
+            if (startIndex < _loadedTorrents.Count)
             {
-                // We need pagination - find the anchor from loaded torrents
-                var anchorIndex = Math.Min(startIndex - 1, _loadedTorrents.Count - 1);
-                anchorTorrent = _loadedTorrents[anchorIndex];
-                anchorId = anchorTorrent.Id;
-                anchorValue = anchorTorrent.RefreshDate.ToUniversalTime()
+                var cachedItems = _loadedTorrents
+                    .Skip(startIndex)
+                    .Take(count)
+                    .ToList();
+                
+                // If we can fully satisfy the request from cache, do so
+                if (cachedItems.Count == count || 
+                    (startIndex + cachedItems.Count >= _totalTorrentsCount && _totalTorrentsCount > 0))
+                {
+                    return new ItemsProviderResult<TorrentDto>(cachedItems, _totalTorrentsCount);
+                }
+            }
+
+            // Need to fetch more data - determine anchor from last loaded torrent
+            if (_loadedTorrents.Count > 0)
+            {
+                var lastTorrent = _loadedTorrents[^1];
+                anchorId = lastTorrent.Id;
+                anchorValue = lastTorrent.RefreshDate.ToUniversalTime()
                     .ToString("yyyyMMddHHmmssfffffffZ", CultureInfo.InvariantCulture);
             }
 
@@ -111,23 +124,27 @@ else
             {
                 var torrents = torrentPage.Torrents.ToList();
                 
-                // Store loaded torrents for future pagination
+                // Add newly fetched torrents to cache
                 foreach (var torrent in torrents)
                 {
-                    var existingIndex = _loadedTorrents.FindIndex(t => t.Id == torrent.Id);
-                    if (existingIndex == -1)
+                    if (!_loadedTorrents.Any(t => t.Id == torrent.Id))
                     {
                         _loadedTorrents.Add(torrent);
                     }
                 }
 
-                // Estimate total count - we'll use a large number since we don't know the exact count
-                // The API returns pages, so we estimate based on whether there's a next page
+                // Update total count estimate
                 _totalTorrentsCount = string.IsNullOrEmpty(torrentPage.NextPageAddress)
-                    ? startIndex + torrents.Count
-                    : startIndex + torrents.Count + 1000; // Estimate more items if there's a next page
+                    ? _loadedTorrents.Count
+                    : _loadedTorrents.Count + 1000; // Estimate more items if there's a next page
 
-                return new ItemsProviderResult<TorrentDto>(torrents, _totalTorrentsCount);
+                // Return the requested range from our cache
+                var result = _loadedTorrents
+                    .Skip(startIndex)
+                    .Take(count)
+                    .ToList();
+
+                return new ItemsProviderResult<TorrentDto>(result, _totalTorrentsCount);
             }
             else
             {
