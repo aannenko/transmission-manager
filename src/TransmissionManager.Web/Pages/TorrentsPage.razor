@@ -11,7 +11,7 @@
 
 <PageTitle>Home - Transmission Manager</PageTitle>
 
-@if (_torrents.Length is 0)
+@if (_showNoTorrentsMessage)
 {
     <p>@Message</p>
     @if (!string.IsNullOrEmpty(_suggestedAddress))
@@ -21,7 +21,7 @@
 }
 else
 {
-    <Virtualize TItem="TorrentDto" Items="_torrents" Context="torrent">
+    <Virtualize TItem="TorrentDto" ItemsProvider="LoadTorrentsProvider" Context="torrent">
         <ItemContent>
             <TorrentCard @key="torrent.Id" Torrent="torrent" RefreshAsync="RefreshTorrentAsync" DeleteAsync="DeleteTorrentAsync" />
         </ItemContent>
@@ -30,50 +30,116 @@ else
 
 @code
 {
-    private TorrentDto[] _torrents = [];
+    private bool _showNoTorrentsMessage;
+    private List<TorrentDto> _loadedTorrents = new();
+    private int _totalTorrentsCount;
 
     private string _suggestedAddress = string.Empty;
     private string _suggestedAction = string.Empty;
 
     private protected override string BusyMessage => "Loading torrents...";
 
-    protected override Task OnInitializedAsync() => LoadTorrentsAsync();
-
-    private async Task LoadTorrentsAsync()
+    protected override async Task OnInitializedAsync()
     {
-        if (IsBusy)
-            return;
-
-        _suggestedAddress = string.Empty;
-        _suggestedAction = string.Empty;
-
-        var torrentPage = await CallService(
+        // Check if there are any torrents to determine if we should show the no torrents message
+        var initialPage = await CallService(
             Client,
             static client => client.GetTorrentPageAsync(new()
             {
-                Take = 1000,
+                Take = 1,
                 OrderBy = GetTorrentPageOrder.RefreshDateDesc
             }));
 
-        if (torrentPage is not null)
+        if (initialPage is null)
         {
-            _torrents = torrentPage.Torrents as TorrentDto[] ?? torrentPage.Torrents.ToArray();
-
-            if (_torrents.Length is 0)
-            {
-                Message = "No torrents found.";
-                _suggestedAddress = PageAddresses.TorrentsAdd;
-                _suggestedAction = "Add a torrent";
-            }
-            else
-            {
-                Message = string.Empty;
-            }
+            _showNoTorrentsMessage = true;
+            _suggestedAddress = PageAddresses.Connect;
+            _suggestedAction = "Connect to Transmission Manager";
+        }
+        else if (initialPage.Torrents.Count is 0)
+        {
+            _showNoTorrentsMessage = true;
+            Message = "No torrents found.";
+            _suggestedAddress = PageAddresses.TorrentsAdd;
+            _suggestedAction = "Add a torrent";
         }
         else
         {
-            _suggestedAddress = PageAddresses.Connect;
-            _suggestedAction = "Connect to Transmission Manager";
+            _showNoTorrentsMessage = false;
+            Message = string.Empty;
+        }
+    }
+
+    private async ValueTask<ItemsProviderResult<TorrentDto>> LoadTorrentsProvider(ItemsProviderRequest request)
+    {
+        if (IsBusy)
+            return new ItemsProviderResult<TorrentDto>([], 0);
+
+        try
+        {
+            // Calculate which page we need based on startIndex
+            var startIndex = request.StartIndex;
+            var count = request.Count;
+
+            // Determine if we need to fetch new data
+            TorrentDto? anchorTorrent = null;
+            long? anchorId = null;
+            string? anchorValue = null;
+
+            if (startIndex > 0 && _loadedTorrents.Count > 0)
+            {
+                // We need pagination - find the anchor from loaded torrents
+                var anchorIndex = Math.Min(startIndex - 1, _loadedTorrents.Count - 1);
+                anchorTorrent = _loadedTorrents[anchorIndex];
+                anchorId = anchorTorrent.Id;
+                anchorValue = anchorTorrent.RefreshDate.ToUniversalTime()
+                    .ToString("yyyyMMddHHmmssfffffffZ", CultureInfo.InvariantCulture);
+            }
+
+            var torrentPage = await CallService(
+                Client,
+                client => client.GetTorrentPageAsync(new()
+                {
+                    Take = count,
+                    OrderBy = GetTorrentPageOrder.RefreshDateDesc,
+                    AnchorId = anchorId,
+                    AnchorValue = anchorValue,
+                    Direction = GetTorrentPageDirection.Forward
+                }));
+
+            if (torrentPage is not null)
+            {
+                var torrents = torrentPage.Torrents.ToList();
+                
+                // Store loaded torrents for future pagination
+                foreach (var torrent in torrents)
+                {
+                    var existingIndex = _loadedTorrents.FindIndex(t => t.Id == torrent.Id);
+                    if (existingIndex == -1)
+                    {
+                        _loadedTorrents.Add(torrent);
+                    }
+                }
+
+                // Estimate total count - we'll use a large number since we don't know the exact count
+                // The API returns pages, so we estimate based on whether there's a next page
+                _totalTorrentsCount = string.IsNullOrEmpty(torrentPage.NextPageAddress)
+                    ? startIndex + torrents.Count
+                    : startIndex + torrents.Count + 1000; // Estimate more items if there's a next page
+
+                return new ItemsProviderResult<TorrentDto>(torrents, _totalTorrentsCount);
+            }
+            else
+            {
+                _showNoTorrentsMessage = true;
+                _suggestedAddress = PageAddresses.Connect;
+                _suggestedAction = "Connect to Transmission Manager";
+                return new ItemsProviderResult<TorrentDto>([], 0);
+            }
+        }
+        catch
+        {
+            return new ItemsProviderResult<TorrentDto>([], 0);
         }
     }
 
@@ -82,7 +148,9 @@ else
         var response = await Client.RefreshTorrentByIdAsync(id);
         if (response.TransmissionResult is TransmissionAddResult.Added)
         {
-            await LoadTorrentsAsync();
+            // Clear loaded torrents to force reload
+            _loadedTorrents.Clear();
+            _showNoTorrentsMessage = false;
             StateHasChanged();
         }
     }
@@ -90,7 +158,9 @@ else
     private async Task DeleteTorrentAsync(long id, DeleteTorrentByIdType deleteType)
     {
         await Client.DeleteTorrentByIdAsync(id, deleteType);
-        await LoadTorrentsAsync();
+        // Clear loaded torrents to force reload
+        _loadedTorrents.Clear();
+        _showNoTorrentsMessage = false;
         StateHasChanged();
     }
 }
