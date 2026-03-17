@@ -24,7 +24,7 @@
     --progress-track-color: #e0e0e0;
 
     /* Shadows */
-    --shadow-soft-color: color-mix(in srgb, black 7%, transparent);
+    --shadow-soft-color: color-mix(in srgb, black 10%, transparent);
     --shadow-1-color: color-mix(in srgb, black 20%, transparent);
 
     /* Semantic roles */
@@ -75,8 +75,8 @@
     /* Reduced neutral scale (dark, OLED-friendly) */
     --neutral-0: #000000;
     --neutral-50: #161616;
-    --neutral-100: #1c1c1c;
-    --neutral-150: #262626;
+    --neutral-100: #1a1a1a;
+    --neutral-150: #252525;
     --neutral-200: #313131;
     --neutral-300: #444444;
     --neutral-700: #aab0b6;
@@ -90,9 +90,9 @@
     --color-error-boundary-bg: #7a1a1a;
     --progress-track-color: #2a2a2a;
 
-    /* Shadows – disabled; surface-color hierarchy replaces elevation */
-    --shadow-soft-color: transparent;
-    --shadow-1-color: transparent;
+    /* Shadows */
+    --shadow-soft-color: color-mix(in srgb, black 35%, transparent);
+    --shadow-1-color: color-mix(in srgb, black 35%, transparent);
 
     /* Semantic roles */
     --body-bg: var(--neutral-0);
