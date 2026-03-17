@@ -14,4 +14,23 @@
     <NavLink href="@PageAddresses.Connect" class="nav-tab push-right">
         <img src="img/link.svg" title="Connect" alt="Connect icon" />
     </NavLink>
+
+    <a class="nav-tab" @onclick="OnChangeTheme">
+        @if (Theme is Theme.Dark)
+        {
+            <img src="img/sun.svg" title="Switch to light theme" alt="Light theme icon" />
+        }
+        else
+        {
+            <img src="img/moon.svg" title="Switch to dark theme" alt="Dark theme icon" />
+        }
+    </a>
 </nav>
+
+@code {
+    [Parameter]
+    public EventCallback OnChangeTheme { get; set; }
+
+    [Parameter]
+    public Theme Theme { get; set; } = Theme.Light;
+}

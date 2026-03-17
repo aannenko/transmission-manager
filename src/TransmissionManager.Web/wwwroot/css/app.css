@@ -2,25 +2,158 @@
 
 :root {
     --content-max-width: 60rem;
+
+    /* Reduced neutral scale (light) */
+    --neutral-0: #ffffff;
+    --neutral-50: #fafafa;
+    --neutral-100: #f0f0f0;
+    --neutral-150: #eaeaea;
+    --neutral-200: #e3e3e3;
+    --neutral-300: #ddd;
+    --neutral-700: #6c757d;
+    --neutral-1000: #000000;
+
+    /* Core brand & status */
+    --accent: #1b6ec2;
+    --color-success-outline: #26b050;
+    --color-danger: #ff0000;
+    --color-warning-surface: lightyellow;
+    --color-code: #c02d76;
+    --color-error-boundary-bg: #b32121;
+    --color-error-boundary-text: #ffffff;
+    --progress-track-color: #e0e0e0;
+
+    /* Shadows */
+    --shadow-soft-color: color-mix(in srgb, black 7%, transparent);
+    --shadow-1-color: color-mix(in srgb, black 20%, transparent);
+
+    /* Semantic roles */
+    --body-bg: var(--neutral-100);
+    --layout-header-bg: var(--neutral-300);
+    --item-card-bg: var(--neutral-50);
+    --border-color: var(--neutral-300);
+    --primary-text-color: var(--neutral-1000);
+    --secondary-text-color: var(--neutral-700);
+
+    /* Form button */
+    --form-button-bg: var(--neutral-100);
+
+    /* Derived interaction colors */
+    --hover-bg: color-mix(in srgb, var(--accent) 18%, var(--item-card-bg));
+    --nav-hover-bg: color-mix(in srgb, var(--accent) 18%, var(--layout-header-bg));
+
+    /* Dropdown (derived) */
+    --dropdown-bg: var(--neutral-0);
+    --dropdown-border-color: var(--border-color);
+    --dropdown-shadow-color: color-mix(in srgb, black 15%, transparent);
+    --dropdown-arrow-color: var(--dropdown-bg);
+    --dropdown-arrow-shadow-color: color-mix(in srgb, black 10%, transparent);
+    --dropdown-link-color: var(--primary-text-color);
+    --dropdown-link-hover-bg: color-mix(in srgb, var(--accent) 10%, var(--dropdown-bg));
+    --dropdown-link-active-bg: color-mix(in srgb, var(--accent) 14%, var(--dropdown-bg));
+    --dropdown-link-divider-color: color-mix(in srgb, var(--border-color) 65%, transparent);
+
+    /* Links */
+    --link-color: var(--accent);
+
+    /* Form focus */
+    --form-focus-border-color: #80bdff;
+
+    /* Validation */
+    --color-validation-message: var(--color-danger);
+
+    /* Error UI */
+    --color-error-ui-bg: var(--color-warning-surface);
+    --color-accent: var(--accent);
+
+    /* Icons */
+    --icon-filter: none;
+}
+
+/* Optional dark theme overrides (activate by adding class "theme-dark" on html/body) */
+.theme-dark {
+    /* Reduced neutral scale (dark, OLED-friendly) */
+    --neutral-0: #000000;
+    --neutral-50: #161616;
+    --neutral-100: #1c1c1c;
+    --neutral-150: #262626;
+    --neutral-200: #313131;
+    --neutral-300: #444444;
+    --neutral-700: #aab0b6;
+    --neutral-1000: #e0e0e0;
+
+    /* Core brand & status (overrides) */
+    --accent: #6cb4ff;
+    --color-danger: #ff6b6b;
+    --color-warning-surface: #3a2f00;
+    --color-code: #ff79c6;
+    --color-error-boundary-bg: #7a1a1a;
+    --progress-track-color: #2a2a2a;
+
+    /* Shadows – disabled; surface-color hierarchy replaces elevation */
+    --shadow-soft-color: transparent;
+    --shadow-1-color: transparent;
+
+    /* Semantic roles */
+    --body-bg: var(--neutral-0);
+    --layout-header-bg: var(--neutral-100);
+    --item-card-bg: var(--neutral-150);
+    --border-color: var(--neutral-300);
+    --primary-text-color: var(--neutral-1000);
+    --secondary-text-color: var(--neutral-700);
+
+    /* Form button */
+    --form-button-bg: var(--neutral-200);
+
+    /* Derived interaction colors */
+    --hover-bg: color-mix(in srgb, var(--accent) 30%, var(--item-card-bg));
+    --nav-hover-bg: color-mix(in srgb, var(--accent) 25%, var(--layout-header-bg));
+
+    /* Dropdown */
+    --dropdown-bg: var(--neutral-100);
+    --dropdown-border-color: var(--border-color);
+    --dropdown-shadow-color: transparent;
+    --dropdown-arrow-color: var(--dropdown-bg);
+    --dropdown-arrow-shadow-color: transparent;
+    --dropdown-link-color: var(--primary-text-color);
+    --dropdown-link-hover-bg: color-mix(in srgb, var(--accent) 22%, var(--dropdown-bg));
+    --dropdown-link-active-bg: color-mix(in srgb, var(--accent) 30%, var(--dropdown-bg));
+    --dropdown-link-divider-color: color-mix(in srgb, var(--border-color) 55%, transparent);
+
+    /* Links */
+    --link-color: var(--accent);
+
+    /* Form focus */
+    --form-focus-border-color: #00bfff;
+
+    /* Validation */
+    --color-validation-message: var(--color-danger);
+
+    /* Error UI */
+    --color-error-ui-bg: var(--color-warning-surface);
+    --color-accent: var(--accent);
+
+    /* Icons */
+    --icon-filter: brightness(6) saturate(0.5) hue-rotate(30deg);
 }
 
 .valid.modified:not([type=checkbox]) {
-    outline: 1px solid #26b050;
+    outline: 1px solid var(--color-success-outline);
 }
 
 .invalid {
-    outline: 1px solid red;
+    outline: 1px solid var(--color-danger);
 }
 
 .validation-message {
-    color: red;
+    color: var(--color-validation-message);
 }
 
 #blazor-error-ui {
     color-scheme: light only;
-    background: lightyellow;
+    background: var(--color-error-ui-bg);
     bottom: 0;
-    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 -1px 2px var(--shadow-1-color);
     box-sizing: border-box;
     display: none;
     left: 0;
@@ -38,13 +171,13 @@
     }
 
 .blazor-error-boundary {
-    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, #b32121;
+    background: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNDkiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIG92ZXJmbG93PSJoaWRkZW4iPjxkZWZzPjxjbGlwUGF0aCBpZD0iY2xpcDAiPjxyZWN0IHg9IjIzNSIgeT0iNTEiIHdpZHRoPSI1NiIgaGVpZ2h0PSI0OSIvPjwvY2xpcFBhdGg+PC9kZWZzPjxnIGNsaXAtcGF0aD0idXJsKCNjbGlwMCkiIHRyYW5zZm9ybT0idHJhbnNsYXRlKC0yMzUgLTUxKSI+PHBhdGggZD0iTTI2My41MDYgNTFDMjY0LjcxNyA1MSAyNjUuODEzIDUxLjQ4MzcgMjY2LjYwNiA1Mi4yNjU4TDI2Ny4wNTIgNTIuNzk4NyAyNjcuNTM5IDUzLjYyODMgMjkwLjE4NSA5Mi4xODMxIDI5MC41NDUgOTIuNzk1IDI5MC42NTYgOTIuOTk2QzI5MC44NzcgOTMuNTEzIDI5MSA5NC4wODE1IDI5MSA5NC42NzgyIDI5MSA5Ny4wNjUxIDI4OS4wMzggOTkgMjg2LjYxNyA5OUwyNDAuMzgzIDk5QzIzNy45NjMgOTkgMjM2IDk3LjA2NTEgMjM2IDk0LjY3ODIgMjM2IDk0LjM3OTkgMjM2LjAzMSA5NC4wODg2IDIzNi4wODkgOTMuODA3MkwyMzYuMzM4IDkzLjAxNjIgMjM2Ljg1OCA5Mi4xMzE0IDI1OS40NzMgNTMuNjI5NCAyNTkuOTYxIDUyLjc5ODUgMjYwLjQwNyA1Mi4yNjU4QzI2MS4yIDUxLjQ4MzcgMjYyLjI5NiA1MSAyNjMuNTA2IDUxWk0yNjMuNTg2IDY2LjAxODNDMjYwLjczNyA2Ni4wMTgzIDI1OS4zMTMgNjcuMTI0NSAyNTkuMzEzIDY5LjMzNyAyNTkuMzEzIDY5LjYxMDIgMjU5LjMzMiA2OS44NjA4IDI1OS4zNzEgNzAuMDg4N0wyNjEuNzk1IDg0LjAxNjEgMjY1LjM4IDg0LjAxNjEgMjY3LjgyMSA2OS43NDc1QzI2Ny44NiA2OS43MzA5IDI2Ny44NzkgNjkuNTg3NyAyNjcuODc5IDY5LjMxNzkgMjY3Ljg3OSA2Ny4xMTgyIDI2Ni40NDggNjYuMDE4MyAyNjMuNTg2IDY2LjAxODNaTTI2My41NzYgODYuMDU0N0MyNjEuMDQ5IDg2LjA1NDcgMjU5Ljc4NiA4Ny4zMDA1IDI1OS43ODYgODkuNzkyMSAyNTkuNzg2IDkyLjI4MzcgMjYxLjA0OSA5My41Mjk1IDI2My41NzYgOTMuNTI5NSAyNjYuMTE2IDkzLjUyOTUgMjY3LjM4NyA5Mi4yODM3IDI2Ny4zODcgODkuNzkyMSAyNjcuMzg3IDg3LjMwMDUgMjY2LjExNiA4Ni4wNTQ3IDI2My41NzYgODYuMDU0N1oiIGZpbGw9IiNGRkU1MDAiIGZpbGwtcnVsZT0iZXZlbm9kZCIvPjwvZz48L3N2Zz4=) no-repeat 1rem/1.8rem, var(--color-error-boundary-bg);
     padding: 1rem 1rem 1rem 3.7rem;
-    color: white;
+    color: var(--color-error-boundary-text);
 }
 
 .blazor-error-boundary::after {
-    content: "An error has occurred."
+    content: "An error has occurred.";
 }
 
 .loading-progress {
@@ -57,14 +190,14 @@
 
 .loading-progress circle {
     fill: none;
-    stroke: #e0e0e0;
+    stroke: var(--progress-track-color);
     stroke-width: 0.6rem;
     transform-origin: 50% 50%;
     transform: rotate(-90deg);
 }
 
 .loading-progress circle:last-child {
-    stroke: #1b6ec2;
+    stroke: var(--color-accent);
     stroke-dasharray: calc(3.141 * var(--blazor-load-percentage, 0%) * 0.8), 500%;
     transition: stroke-dasharray 0.05s ease-in-out;
 }
@@ -81,7 +214,11 @@
 }
 
 code {
-    color: #c02d76;
+    color: var(--color-code);
+}
+
+a {
+    color: var(--link-color);
 }
 
 .form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
@@ -99,7 +236,6 @@ body {
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
-    background: #f5f5f5;
 }
 
 /* Layout container and sections */
@@ -108,11 +244,18 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    color: var(--primary-text-color);
+    background: var(--body-bg);
+    color-scheme: light;
+}
+
+.theme-dark.layout-container {
+    color-scheme: dark;
 }
 
 .layout-header {
-    background-color: #ddd;
-    box-shadow: 0 0.1rem 0.15rem rgba(0,0,0,0.07);
+    background-color: var(--layout-header-bg);
+    box-shadow: 0 0.1rem 0.15rem var(--shadow-soft-color);
     position: sticky;
 }
 
@@ -149,6 +292,7 @@ body {
     .nav-tab img {
         width: 2.5rem;
         height: 3rem;
+        filter: var(--icon-filter);
     }
 
     .nav-tab div {
@@ -158,7 +302,7 @@ body {
     }
 
     .nav-tab.active, .nav-tab:hover {
-        background: #ccc;
+        background: var(--nav-hover-bg);
     }
 
 /* Common styles */
@@ -168,7 +312,7 @@ body {
 }
 
 .text-secondary {
-    color: #6c757d;
+    color: var(--secondary-text-color);
 }
 
 .clickable {
@@ -176,10 +320,9 @@ body {
 }
 
 .item-card {
-    background: #fafafa;
-    border: 0.1rem solid #ddd;
+    background: var(--item-card-bg);
     border-radius: 1rem;
-    box-shadow: 0 0.1rem 0.15rem rgba(0,0,0,0.07);
+    box-shadow: 0 0.1rem 0.15rem var(--shadow-soft-color);
     padding: 1rem 1rem 0.5rem 1rem;
     margin-bottom: 0.5rem;
 }
@@ -195,12 +338,13 @@ body {
 }
 
     .item-button:hover, .item-button:focus {
-        background: #e0eaff;
+        background: var(--hover-bg);
     }
 
     .item-button img {
         width: 2rem;
         height: 2rem;
+        filter: var(--icon-filter);
     }
 
     .item-button:disabled img {
@@ -213,13 +357,34 @@ body {
     margin-right: 0;
 }
 
+/* Dark theme form controls: ensure readable text on dark backgrounds */
+.form-input,
+.form-control,
+.form-control-plaintext,
+input[type="text"],
+input[type="search"],
+input[type="email"],
+input[type="password"],
+textarea {
+    background: var(--neutral-0);
+    color: var(--primary-text-color);
+    border-color: var(--border-color);
+}
+
+.form-input::placeholder,
+.form-control::placeholder,
+input::placeholder,
+textarea::placeholder {
+    color: var(--secondary-text-color);
+}
+
 .form-input {
     display: block;
     width: 100%;
     padding: 0.5rem 0.75rem;
     font-size: 1rem;
     line-height: 1.5;
-    border: 0.1rem solid #ddd;
+    border: 0.1rem solid var(--border-color);
     border-radius: 0.25rem;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
     box-sizing: border-box;
@@ -229,7 +394,7 @@ body {
 }
 
     .form-input:focus {
-        border-color: #80bdff;
+        border-color: var(--form-focus-border-color);
         outline: 0;
     }
 
@@ -238,13 +403,15 @@ body {
     width: 100%;
     padding: 0.5rem 0.75rem;
     font-size: 1rem;
-    border: 0.1rem solid #ddd;
+    border: 0.1rem solid var(--border-color);
     border-radius: 0.25rem;
     margin-bottom: 0.5rem;
     transition: 0.2s;
+    color: var(--primary-text-color);
+    background: var(--form-button-bg);
 }
     .form-button:hover, .form-button:focus {
-        background: #e0eaff;
+        background: color-mix(in srgb, var(--accent) 20%, var(--form-button-bg));
     }
 
 .dropdown {
@@ -263,11 +430,11 @@ body {
     left: 100%;
     top: auto;
     bottom: 0;
-    background-color: #ffffff;
+    background-color: var(--dropdown-bg);
     min-width: 8rem;
-    border: 0.1rem solid #ddd;
+    border: 0.1rem solid var(--dropdown-border-color);
     border-radius: 0.5rem;
-    box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0.25rem 0.75rem var(--dropdown-shadow-color);
     z-index: 1000;
     overflow: hidden;
 }
@@ -282,8 +449,8 @@ body {
     height: 0;
     border-top: 0.5rem solid transparent;
     border-bottom: 0.5rem solid transparent;
-    border-right: 0.5rem solid #ffffff;
-    filter: drop-shadow(-0.1rem 0 0.1rem rgba(0, 0, 0, 0.1));
+    border-right: 0.5rem solid var(--dropdown-arrow-color);
+    filter: drop-shadow(-0.1rem 0 0.1rem var(--dropdown-arrow-shadow-color));
 }
 
 .dropdown > button:not(:disabled):hover + .dropdown-content,
@@ -309,13 +476,13 @@ body {
 .dropdown-content a {
     display: block;
     padding: 0.5rem 0.75rem;
-    color: #495057;
+    color: var(--dropdown-link-color);
     text-decoration: none;
     transition: background-color 0.15s ease;
     cursor: pointer;
     font-size: 0.875rem;
     line-height: 1.4;
-    border-bottom: 0.1rem solid #f1f3f4;
+    border-bottom: 0.1rem solid var(--dropdown-link-divider-color);
     white-space: nowrap;
 }
 
@@ -324,12 +491,11 @@ body {
 }
 
 .dropdown-content a:hover {
-    background-color: #f8f9fa;
-    color: #212529;
+    background-color: var(--dropdown-link-hover-bg);
 }
 
 .dropdown-content a:active {
-    background-color: #e9ecef;
+    background-color: var(--dropdown-link-active-bg);
 }
 
 .dropdown-content a[disabled] {

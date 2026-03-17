@@ -1,12 +1,44 @@
 ﻿@using TransmissionManager.Web.Constants
+@using TransmissionManager.Web.Services
 @inherits LayoutComponentBase
+@inject ThemeService ThemeService
 
-<div class="layout-container">
+<div class="@(_containerClass)">
     <header class="layout-header">
-        <NavMenu />
+        <NavMenu OnChangeTheme="CycleThemeAsync" Theme="ThemeService.Theme" />
     </header>
 
     <main class="layout-main">
         @Body
     </main>
 </div>
+
+@code {
+    private static readonly Theme[] _allThemes = Enum.GetValues<Theme>();
+
+    private string _containerClass = "layout-container";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ThemeService.LoadAsync();
+            UpdateContainerClass();
+            StateHasChanged();
+        }
+    }
+
+    private async Task CycleThemeAsync()
+    {
+        var nextTheme = _allThemes[((int)ThemeService.Theme + 1) % _allThemes.Length];
+        await ThemeService.SetThemeAsync(nextTheme);
+        UpdateContainerClass();
+    }
+
+    private void UpdateContainerClass()
+    {
+        _containerClass = ThemeService.Theme is Theme.Light
+            ? "layout-container"
+            : $"layout-container theme-{ThemeService.Theme.ToString().ToLowerInvariant()}";
+    }
+}
