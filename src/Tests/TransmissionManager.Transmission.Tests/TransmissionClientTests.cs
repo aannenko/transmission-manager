@@ -199,7 +199,7 @@ internal sealed class TransmissionClientTests
 
         Assert.That(
             async () => await task.ConfigureAwait(false),
-            Throws.TypeOf<HttpRequestException>().With.InnerException.TypeOf<TaskCanceledException>());
+            Throws.TypeOf<TaskCanceledException>());
     }
 
     [Test]
