@@ -114,7 +114,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
+    public async Task DeleteTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
         var response = await _client.DeleteAsync($"{EndpointAddresses.Torrents}/-1").ConfigureAwait(false);
 
@@ -129,7 +129,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenIdDoesNotExistAndFlagToRemoveDataUsed_ReturnsNotFound()
+    public async Task DeleteTorrentByIdAsync_WhenIdDoesNotExistAndFlagToRemoveDataUsed_ReturnsNotFound()
     {
         var torrentAddress = $"{EndpointAddresses.Torrents}/-1?deleteType=LocalAndTransmission";
 
@@ -146,7 +146,7 @@ internal sealed class DeleteTorrentByIdTests
     }
 
     [Test]
-    public async Task UpdateTorrentByIdAsync_WhenInvalidFlagToRemoveDataUsed_ReturnsProblemDetails()
+    public async Task DeleteTorrentByIdAsync_WhenInvalidFlagToRemoveDataUsed_ReturnsProblemDetails()
     {
         var torrentAddress = $"{EndpointAddresses.Torrents}/1?deleteType=999";
         // deleteType=InvalidFlag returns problem details without the Errors dict

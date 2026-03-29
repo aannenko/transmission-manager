@@ -11,7 +11,7 @@ public sealed class TorrentUpdateDto
         string? cron = null)
     {
         if (hashString is not null)
-            ArgumentException.ThrowIfNullOrWhiteSpace(nameof(hashString));
+            ArgumentException.ThrowIfNullOrWhiteSpace(hashString);
 
         if (name is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(name);

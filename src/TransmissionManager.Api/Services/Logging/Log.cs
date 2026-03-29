@@ -32,4 +32,11 @@ internal sealed partial class Log<T>(ILogger<T> logger)
         Level = LogLevel.Warning,
         Message = "Scheduled refresh of the torrent with id {TorrentId} failed: '{Error}'. Transmission response: {TransmissionResult}.")]
     public partial void ScheduledRefreshFailed(long torrentId, string error, TransmissionAddResult? transmissionResult);
+
+    // Background torrent name update
+
+    [LoggerMessage(
+        Level = LogLevel.Warning,
+        Message = "Background name update for torrent with id {TorrentId} failed.")]
+    public partial void BackgroundNameUpdateFailed(long torrentId, Exception exception);
 }

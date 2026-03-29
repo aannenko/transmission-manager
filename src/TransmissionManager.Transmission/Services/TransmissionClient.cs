@@ -90,26 +90,33 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
                 .PostAsJsonAsync(endpoint, request, requestTypeInfo, cancellationToken)
                 .ConfigureAwait(false);
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception e)
         {
             throw new HttpRequestException($"Request to Transmission failed unexpectedly: '{e.Message}'.", e);
         }
 
-        var responseObject = await response.EnsureSuccessStatusCode().Content
-            .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
-            .ConfigureAwait(false);
-
-        if (responseObject is null)
+        using (response)
         {
-            var responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            throw new HttpRequestException(
-                "Unexpected response from Transmission. " +
-                $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.");
-        }
+            var responseObject = await response.EnsureSuccessStatusCode().Content
+                .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
+                .ConfigureAwait(false);
 
-        return responseObject.IsSuccess()
-            ? responseObject
-            : throw new HttpRequestException(
-                $"Response from Transmission does not indicate success: '{responseObject.Result}'");
+            if (responseObject is null)
+            {
+                var responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                throw new HttpRequestException(
+                    "Unexpected response from Transmission. " +
+                    $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.");
+            }
+
+            return responseObject.IsSuccess()
+                ? responseObject
+                : throw new HttpRequestException(
+                    $"Response from Transmission does not indicate success: '{responseObject.Result}'");
+        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 using TransmissionManager.Transmission.Dto;
@@ -6,7 +7,9 @@ using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Services.Background;
 
-internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory serviceScopeFactory)
+internal sealed class BackgroundTorrentUpdateService(
+    IServiceScopeFactory serviceScopeFactory,
+    Log<BackgroundTorrentUpdateService> log)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
         [TransmissionTorrentGetRequestFields.Name];
@@ -16,16 +19,25 @@ internal sealed class BackgroundTorrentUpdateService(IServiceScopeFactory servic
     public async Task UpdateTorrentNameAsync(long id, string hashString, string currentName)
     {
         using var cts = _runningNameUpdates.AddOrUpdate(id, AddCts, UpdateCts);
+#pragma warning disable CA1031 // Do not catch general exception types - method is used as fire-and-forget, log errors
         try
         {
             using var serviceScope = serviceScopeFactory.CreateScope();
             await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, currentName, cts.Token)
                 .ConfigureAwait(false);
         }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception e)
+        {
+            log.BackgroundNameUpdateFailed(id, e);
+        }
         finally
         {
-            _ = _runningNameUpdates.TryRemove(id, out _);
+            _ = _runningNameUpdates.TryRemove(KeyValuePair.Create(id, cts));
         }
+#pragma warning restore CA1031 // Do not catch general exception types
 
         static CancellationTokenSource AddCts(long _) => new();
 
