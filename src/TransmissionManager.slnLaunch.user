@@ -1,0 +1,15 @@
+﻿[
+  {
+    "Name": "API & Web",
+    "Projects": [
+      {
+        "Path": "TransmissionManager.Api\\TransmissionManager.Api.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "TransmissionManager.Web\\TransmissionManager.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
