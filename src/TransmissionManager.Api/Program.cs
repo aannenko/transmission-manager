@@ -6,6 +6,7 @@ using TransmissionManager.Api.Extensions;
 using TransmissionManager.Api.Middleware;
 using TransmissionManager.Api.Serialization;
 using TransmissionManager.Api.Services.Background;
+using TransmissionManager.Api.Services.Development;
 using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
@@ -53,9 +54,19 @@ using (var scope = app.Services.CreateScope())
 
     var lifetime = provider.GetRequiredService<IHostApplicationLifetime>();
 
-    _ = await provider.GetRequiredService<AppDbContext>()
+    var dbContext = provider.GetRequiredService<AppDbContext>();
+
+    var dbCreated = await dbContext
         .Database.EnsureCreatedAsync(lifetime.ApplicationStopping)
         .ConfigureAwait(false);
+
+    if (dbCreated && app.Environment.IsDevelopment())
+    {
+        await DevDatabaseSeeder.SeedAsync(dbContext, lifetime.ApplicationStopping)
+            .ConfigureAwait(false);
+
+        provider.GetRequiredService<Log<Program>>().DevelopmentDatabaseSeeded(DevDatabaseSeeder.TorrentCount);
+    }
 
     await provider.GetRequiredService<StartupTorrentSchedulerService>()
         .ScheduleUpdatesForAllTorrentsAsync(lifetime.ApplicationStopping)

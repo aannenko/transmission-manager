@@ -39,4 +39,11 @@ internal sealed partial class Log<T>(ILogger<T> logger)
         Level = LogLevel.Warning,
         Message = "Background name update for torrent with id {TorrentId} failed.")]
     public partial void BackgroundNameUpdateFailed(long torrentId, Exception exception);
+
+    // Development seeding
+
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Seeded {Count} development torrents into a new database.")]
+    public partial void DevelopmentDatabaseSeeded(int count);
 }
