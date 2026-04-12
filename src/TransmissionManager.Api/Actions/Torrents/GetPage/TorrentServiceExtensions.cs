@@ -1,5 +1,4 @@
-﻿using System.Globalization;
-using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
@@ -11,29 +10,19 @@ internal static class TorrentServiceExtensions
     public static Task<Torrent[]> GetPageAsync(
         this TorrentService service,
         in GetTorrentPageParameters parameters,
+        in GetTorrentPageParsedParameters parsedParameters,
         CancellationToken cancellationToken = default)
     {
         var filter = GetFilter(parameters);
-        if (parameters.OrderBy is GetTorrentPageOrder.RefreshDate or GetTorrentPageOrder.RefreshDateDesc &&
-            TryParseDateTimeAnchorString(parameters.AnchorValue, out var dateTimeAnchorValue))
+        if (parsedParameters.DateTimeAnchor is not null)
         {
-            var pageDescriptor = GetPageDescriptor(parameters, dateTimeAnchorValue);
+            var pageDescriptor = GetPageDescriptor(parameters, parsedParameters.DateTimeAnchor);
             return service.GetPageAsync(pageDescriptor, filter, cancellationToken);
         }
         else
         {
             var pageDescriptor = GetPageDescriptor(parameters, parameters.AnchorValue);
             return service.GetPageAsync(pageDescriptor, filter, cancellationToken);
-        }
-
-        static bool TryParseDateTimeAnchorString(string? s, out DateTime result)
-        {
-            return DateTime.TryParseExact(
-                s,
-                GetTorrentPageParameters.DateFormat,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AdjustToUniversal,
-                out result);
         }
     }
 

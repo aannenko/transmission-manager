@@ -4,6 +4,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Services;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
 
 namespace TransmissionManager.Api.Actions.Torrents.GetPage;
 
@@ -22,11 +24,11 @@ internal static class GetTorrentPageEndpoint
     private static async Task<Results<Ok<GetTorrentPageResponse>, ValidationProblem>> GetTorrentPageAsync(
         [FromServices] TorrentService service,
         //[AsParameters] GetTorrentPageParameters parameters,
-        [EnumDataType(typeof(GetTorrentPageOrder))] GetTorrentPageOrder orderBy = GetTorrentPageOrder.Id,
+        [EnumDataType(typeof(Order))] Order orderBy = Order.Id,
         [Range(1, 1000)] int take = 20,
         long? anchorId = null,
         string? anchorValue = null,
-        [EnumDataType(typeof(GetTorrentPageDirection))] GetTorrentPageDirection direction = GetTorrentPageDirection.Forward,
+        [EnumDataType(typeof(Direction))] Direction direction = Direction.Forward,
         [MinLength(1)] string? propertyStartsWith = null,
         bool? cronExists = null,
         CancellationToken cancellationToken = default)
@@ -40,12 +42,11 @@ internal static class GetTorrentPageEndpoint
             propertyStartsWith,
             cronExists);
 
-        var errors = parameters.Validate();
+        var parsed = parameters.Parse(out var errors);
         if (errors is not null && errors.Length != 0)
             return TypedResults.ValidationProblem(errors);
 
-        var torrents = await service.GetPageAsync(parameters, cancellationToken).ConfigureAwait(false);
-
+        var torrents = await service.GetPageAsync(parameters, parsed, cancellationToken).ConfigureAwait(false);
         var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
         return TypedResults.Ok(new GetTorrentPageResponse(
             dtos,

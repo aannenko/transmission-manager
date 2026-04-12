@@ -18,4 +18,6 @@ public readonly record struct GetTorrentPageParameters(
     private const int _maxTake = 1000;
 
     public static int MaxTake => _maxTake;
+
+    public static string DateFormat => "yyyyMMddHHmmssfffffffZ";
 }
