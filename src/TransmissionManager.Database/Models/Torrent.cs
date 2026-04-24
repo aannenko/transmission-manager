@@ -19,4 +19,7 @@ public sealed class Torrent
     public string? MagnetRegexPattern { get; set; }
 
     public string? Cron { get; set; }
+
+    // Incremented on every update to support optimistic concurrency control.
+    public uint Version { get; set; }
 }

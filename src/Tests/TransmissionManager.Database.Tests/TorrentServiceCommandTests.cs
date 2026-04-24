@@ -86,9 +86,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             magnetRegexPattern: @"magnet:\?xt=[^""]+",
             cron: "1 2,3 4 5 6");
 
-        var isUpdated = await service.TryUpdateOneByIdAsync(1, dto).ConfigureAwait(false);
+        var result = await service.TryUpdateOneByIdAsync(1, dto).ConfigureAwait(false);
 
-        Assert.That(isUpdated);
+        Assert.That(result, Is.EqualTo(TorrentUpdateResult.Updated));
 
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
 
@@ -103,9 +103,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var dto = new TorrentUpdateDto(magnetRegexPattern: string.Empty, cron: string.Empty);
 
-        var isUpdated = await service.TryUpdateOneByIdAsync(1, dto).ConfigureAwait(false);
+        var result = await service.TryUpdateOneByIdAsync(1, dto).ConfigureAwait(false);
 
-        Assert.That(isUpdated);
+        Assert.That(result, Is.EqualTo(TorrentUpdateResult.Updated));
 
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
 
@@ -120,14 +120,76 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         var dto = new TorrentUpdateDto(hashString: "98ad2e3a694dfc69571c25241bd4042b94a55cf5");
 
-        var isUpdated = await service.TryUpdateOneByIdAsync(-1, dto).ConfigureAwait(false);
+        var result = await service.TryUpdateOneByIdAsync(-1, dto).ConfigureAwait(false);
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == -1).ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(!isUpdated);
+            Assert.That(result, Is.EqualTo(TorrentUpdateResult.NotFound));
             Assert.That(actual, Is.Null);
         }
+    }
+
+    [Test]
+    public async Task TryUpdateOneByIdAsync_WhenExpectedVersionMatches_UpdatesTorrentAndIncrementsVersion()
+    {
+        using var context = CreateContext();
+        var service = new TorrentService(context);
+
+        var initial = await context.Torrents.AsNoTracking()
+            .FirstAsync(torrent => torrent.Id == 3).ConfigureAwait(false);
+
+        var dto = new TorrentUpdateDto(name: "New name for version check");
+
+        var result = await service.TryUpdateOneByIdAsync(3, dto, initial.Version).ConfigureAwait(false);
+
+        var actual = await context.Torrents.AsNoTracking()
+            .FirstAsync(torrent => torrent.Id == 3).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentUpdateResult.Updated));
+            Assert.That(actual.Name, Is.EqualTo("New name for version check"));
+            Assert.That(actual.Version, Is.EqualTo(initial.Version + 1));
+        }
+    }
+
+    [Test]
+    public async Task TryUpdateOneByIdAsync_WhenExpectedVersionDoesNotMatch_ReturnsConcurrencyConflict()
+    {
+        using var context = CreateContext();
+        var service = new TorrentService(context);
+
+        var before = await context.Torrents.AsNoTracking()
+            .FirstAsync(torrent => torrent.Id == 3).ConfigureAwait(false);
+
+        var dto = new TorrentUpdateDto(name: "Should not apply");
+
+        var staleVersion = before.Version + 42;
+        var result = await service.TryUpdateOneByIdAsync(3, dto, staleVersion).ConfigureAwait(false);
+
+        var after = await context.Torrents.AsNoTracking()
+            .FirstAsync(torrent => torrent.Id == 3).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentUpdateResult.ConcurrencyConflict));
+            Assert.That(after.Name, Is.EqualTo(before.Name));
+            Assert.That(after.Version, Is.EqualTo(before.Version));
+        }
+    }
+
+    [Test]
+    public async Task TryUpdateOneByIdAsync_WhenExpectedVersionProvidedButIdDoesNotExist_ReturnsNotFound()
+    {
+        using var context = CreateContext();
+        var service = new TorrentService(context);
+
+        var dto = new TorrentUpdateDto(name: "Does not matter");
+
+        var result = await service.TryUpdateOneByIdAsync(-1, dto, 0u).ConfigureAwait(false);
+
+        Assert.That(result, Is.EqualTo(TorrentUpdateResult.NotFound));
     }
 
     [Test]
@@ -136,12 +198,12 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         using var context = CreateContext();
         var service = new TorrentService(context);
 
-        var isDeleted = await service.TryDeleteOneByIdAsync(2).ConfigureAwait(false);
+        var result = await service.TryDeleteOneByIdAsync(2).ConfigureAwait(false);
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == 2).ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(isDeleted);
+            Assert.That(result, Is.EqualTo(TorrentDeleteResult.Deleted));
             Assert.That(actual, Is.Null);
         }
     }
@@ -152,13 +214,33 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         using var context = CreateContext();
         var service = new TorrentService(context);
 
-        var isDeleted = await service.TryDeleteOneByIdAsync(-1).ConfigureAwait(false);
+        var result = await service.TryDeleteOneByIdAsync(-1).ConfigureAwait(false);
         var actual = await context.Torrents.FirstOrDefaultAsync(torrent => torrent.Id == -1).ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(!isDeleted);
+            Assert.That(result, Is.EqualTo(TorrentDeleteResult.NotFound));
             Assert.That(actual, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task TryDeleteOneByIdAsync_WhenExpectedVersionDoesNotMatch_ReturnsConcurrencyConflict()
+    {
+        using var context = CreateContext();
+        var service = new TorrentService(context);
+
+        var before = await context.Torrents.AsNoTracking()
+            .FirstAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
+
+        var result = await service.TryDeleteOneByIdAsync(1, before.Version + 7).ConfigureAwait(false);
+        var after = await context.Torrents.AsNoTracking()
+            .FirstOrDefaultAsync(torrent => torrent.Id == 1).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentDeleteResult.ConcurrencyConflict));
+            Assert.That(after, Is.Not.Null);
         }
     }
 }

@@ -8,4 +8,5 @@ public sealed record TorrentDto(
     Uri WebPageUri,
     string DownloadDir,
     string? MagnetRegexPattern,
-    string? Cron);
+    string? Cron,
+    uint Version);

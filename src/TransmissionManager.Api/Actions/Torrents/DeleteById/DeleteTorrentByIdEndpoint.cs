@@ -17,10 +17,11 @@ internal static class DeleteTorrentByIdEndpoint
         [FromServices] DeleteTorrentByIdHandler handler,
         long id,
         [EnumDataType(typeof(DeleteTorrentByIdType))] DeleteTorrentByIdType deleteType = DeleteTorrentByIdType.Local,
+        uint? version = null,
         CancellationToken cancellationToken = default)
     {
         var (result, error) = await handler
-            .TryDeleteTorrentByIdAsync(id, deleteType, cancellationToken)
+            .TryDeleteTorrentByIdAsync(id, deleteType, version, cancellationToken)
             .ConfigureAwait(false);
 
         return result switch
@@ -29,6 +30,8 @@ internal static class DeleteTorrentByIdEndpoint
                 TypedResults.NoContent(),
             DeleteTorrentByIdResult.NotFoundLocally =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
+            DeleteTorrentByIdResult.ConcurrencyConflict =>
+                TypedResults.Problem(error, statusCode: StatusCodes.Status409Conflict),
             DeleteTorrentByIdResult.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException(),

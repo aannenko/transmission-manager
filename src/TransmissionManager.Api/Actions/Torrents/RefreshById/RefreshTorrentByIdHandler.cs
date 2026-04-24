@@ -4,6 +4,7 @@ using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 
@@ -57,13 +58,18 @@ internal sealed class RefreshTorrentByIdHandler(
                 out var isNameBackgroundUpdateRequired);
 
             var torrentUpdateDto = transmissionAddTorrent.ToTorrentUpdateDto(DateTime.UtcNow, torrentName);
-            var isTorrentUpdated = await torrentService
-                .TryUpdateOneByIdAsync(torrent.Id, torrentUpdateDto, cancellationToken)
+            var updateResult = await torrentService
+                .TryUpdateOneByIdAsync(torrent.Id, torrentUpdateDto, torrent.Version, cancellationToken)
                 .ConfigureAwait(false);
 
-            if (!isTorrentUpdated)
+            if (updateResult is not TorrentUpdateResult.Updated)
             {
-                const string message = "The torrent was removed before it could be updated.";
+                const string removedMessage = "The torrent was removed before it could be updated.";
+                const string conflictMessage =
+                    "The torrent was modified by another request before it could be updated.";
+                var message = updateResult is TorrentUpdateResult.ConcurrencyConflict
+                    ? conflictMessage
+                    : removedMessage;
                 return new(Result.Removed, null, transmissionAddResult, GetError(id, message));
             }
 

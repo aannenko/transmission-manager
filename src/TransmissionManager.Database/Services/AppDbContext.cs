@@ -42,5 +42,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 
         _ = torrentBuilder.HasIndex(static torrent => torrent.Cron).HasFilter($"{nameof(Torrent.Cron)} IS NOT NULL");
         _ = torrentBuilder.Property(static torrent => torrent.Cron).UseCollation(_noCaseCollation);
+
+        _ = torrentBuilder.Property(static torrent => torrent.Version).IsConcurrencyToken();
     }
 }

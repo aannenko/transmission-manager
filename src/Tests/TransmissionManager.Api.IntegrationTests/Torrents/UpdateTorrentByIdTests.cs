@@ -106,4 +106,58 @@ internal sealed class UpdateTorrentByIdTests
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id -1 was not found."));
     }
+
+    [Test]
+    public async Task UpdateTorrentByIdAsync_WhenExpectedVersionMatches_UpdatesTorrentAndBumpsVersion()
+    {
+        var torrentAddress = $"{EndpointAddresses.Torrents}/2";
+
+        var initial = await _client.GetFromJsonAsync<TorrentDto>(torrentAddress).ConfigureAwait(false);
+        Assert.That(initial, Is.Not.Null);
+
+        var dto = new UpdateTorrentByIdRequest
+        {
+            DownloadDir = "/videos-occ",
+            Version = initial.Version,
+        };
+
+        var response = await _client.PatchAsJsonAsync(torrentAddress, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+        var updated = await _client.GetFromJsonAsync<TorrentDto>(torrentAddress).ConfigureAwait(false);
+        Assert.That(updated, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(updated.DownloadDir, Is.EqualTo(dto.DownloadDir));
+            Assert.That(updated.Version, Is.EqualTo(initial.Version + 1));
+        }
+    }
+
+    [Test]
+    public async Task UpdateTorrentByIdAsync_WhenExpectedVersionIsStale_ReturnsConflictAndDoesNotModifyTorrent()
+    {
+        var torrentAddress = $"{EndpointAddresses.Torrents}/2";
+
+        var before = await _client.GetFromJsonAsync<TorrentDto>(torrentAddress).ConfigureAwait(false);
+        Assert.That(before, Is.Not.Null);
+
+        var dto = new UpdateTorrentByIdRequest
+        {
+            DownloadDir = "/should-not-apply",
+            Version = before.Version + 99,
+        };
+
+        var response = await _client.PatchAsJsonAsync(torrentAddress, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+
+        var after = await _client.GetFromJsonAsync<TorrentDto>(torrentAddress).ConfigureAwait(false);
+        Assert.That(after, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(after.DownloadDir, Is.EqualTo(before.DownloadDir));
+            Assert.That(after.Version, Is.EqualTo(before.Version));
+        }
+    }
 }

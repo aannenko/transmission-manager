@@ -91,7 +91,9 @@ internal sealed class BackgroundTorrentUpdateService(
 
                 var torrentService = serviceProvider.GetRequiredService<TorrentService>();
                 var dto = new TorrentUpdateDto(name: newName);
-                _ = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
+                _ = await torrentService
+                    .TryUpdateOneByIdAsync(id, dto, cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
                 break;
             }
         }

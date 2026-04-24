@@ -48,15 +48,17 @@ public sealed class TorrentService(AppDbContext dbContext)
         return torrent;
     }
 
-    public async Task<bool> TryUpdateOneByIdAsync(
+    public async Task<TorrentUpdateResult> TryUpdateOneByIdAsync(
         long id,
         TorrentUpdateDto dto,
+        uint? expectedVersion = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
 
         var updatedRows = await dbContext.Torrents
-            .Where(torrent => torrent.Id == id)
+            .Where(torrent => torrent.Id == id
+                && (expectedVersion == null || torrent.Version == expectedVersion))
             .ExecuteUpdateAsync(
                 properties => properties
                     .SetProperty(
@@ -80,20 +82,52 @@ public sealed class TorrentService(AppDbContext dbContext)
                         static torrent => torrent.Cron,
                         torrent => dto.Cron != null && dto.Cron.Length == 0
                             ? null
-                            : dto.Cron ?? torrent.Cron),
+                            : dto.Cron ?? torrent.Cron)
+                    .SetProperty(
+                        static torrent => torrent.Version,
+                        static torrent => torrent.Version + 1),
                 cancellationToken)
             .ConfigureAwait(false);
 
-        return updatedRows is 1;
+        if (updatedRows is 1)
+            return TorrentUpdateResult.Updated;
+
+        return await ResolveMissOutcomeAsync(id, expectedVersion, cancellationToken).ConfigureAwait(false)
+            ? TorrentUpdateResult.ConcurrencyConflict
+            : TorrentUpdateResult.NotFound;
     }
 
-    public async Task<bool> TryDeleteOneByIdAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<TorrentDeleteResult> TryDeleteOneByIdAsync(
+        long id,
+        uint? expectedVersion = null,
+        CancellationToken cancellationToken = default)
     {
         var deletedRows = await dbContext.Torrents
-            .Where(torrent => torrent.Id == id)
+            .Where(torrent => torrent.Id == id
+                && (expectedVersion == null || torrent.Version == expectedVersion))
             .ExecuteDeleteAsync(cancellationToken)
             .ConfigureAwait(false);
 
-        return deletedRows is 1;
+        if (deletedRows is 1)
+            return TorrentDeleteResult.Deleted;
+
+        return await ResolveMissOutcomeAsync(id, expectedVersion, cancellationToken).ConfigureAwait(false)
+            ? TorrentDeleteResult.ConcurrencyConflict
+            : TorrentDeleteResult.NotFound;
+    }
+
+    // Returns true if the row exists (so the miss was caused by a version mismatch),
+    // false if the row does not exist (so the miss was caused by a not-found).
+    private async Task<bool> ResolveMissOutcomeAsync(
+        long id,
+        uint? expectedVersion,
+        CancellationToken cancellationToken)
+    {
+        if (expectedVersion is null)
+            return false;
+
+        return await dbContext.Torrents.AsNoTracking()
+            .AnyAsync(torrent => torrent.Id == id, cancellationToken)
+            .ConfigureAwait(false);
     }
 }

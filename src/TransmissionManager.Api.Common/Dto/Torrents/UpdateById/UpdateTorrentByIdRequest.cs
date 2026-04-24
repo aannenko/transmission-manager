@@ -15,4 +15,11 @@ public sealed class UpdateTorrentByIdRequest
 
     [Cron] // null is ignored, empty string nullifies existing value
     public string? Cron { get; init; }
+
+    /// <summary>
+    /// Optional expected row version for optimistic concurrency control.
+    /// When provided, the update only succeeds if the stored version matches;
+    /// otherwise the server responds with 409 Conflict.
+    /// </summary>
+    public uint? Version { get; init; }
 }
