@@ -6,5 +6,6 @@ internal enum RefreshTorrentByIdResult
     NotFoundLocally,
     NotFoundInTransmission,
     Removed,
+    Conflict,
     DependencyFailed,
 }

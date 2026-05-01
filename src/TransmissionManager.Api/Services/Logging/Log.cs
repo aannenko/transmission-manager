@@ -40,6 +40,11 @@ internal sealed partial class Log<T>(ILogger<T> logger)
         Message = "Background name update for torrent with id {TorrentId} failed.")]
     public partial void BackgroundNameUpdateFailed(long torrentId, Exception exception);
 
+    [LoggerMessage(
+        Level = LogLevel.Information,
+        Message = "Background name update for torrent with id {TorrentId} skipped after repeated concurrency conflicts.")]
+    public partial void BackgroundUpdateSkippedDueToConcurrency(long torrentId);
+
     // Development seeding
 
     [LoggerMessage(

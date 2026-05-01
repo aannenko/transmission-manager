@@ -2,12 +2,14 @@
 using System.Globalization;
 using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
+using Outcome = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentOutcome;
 using Result = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentResult;
 
 namespace TransmissionManager.Api.Actions.Torrents.AddOne;
@@ -20,23 +22,23 @@ internal sealed class AddTorrentHandler(
     BackgroundTorrentUpdateService backgroundUpdateService)
 {
     private static readonly CompositeFormat _error =
-        CompositeFormat.Parse("Addition of a torrent from the web page '{0}' has failed: '{1}'.");
+        CompositeFormat.Parse("Torrent '{0}' addition failed: '{1}'.");
 
-    public async Task<AddTorrentOutcome> AddTorrentAsync(AddTorrentRequest request, CancellationToken cancellationToken)
+    public async Task<Outcome> AddTorrentAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
         var (magnetUri, getMagnetError) = await torrentWebPageService
             .GetMagnetUriAsync(request.WebPageUri, request.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)
-            return new(Result.DependencyFailed, null, null, GetError(request.WebPageUri, getMagnetError));
+            return OnDependencyFailed(request.WebPageUri, null, getMagnetError);
 
         var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService
             .AddTorrentUsingMagnetAsync(magnetUri, request.DownloadDir, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return new(Result.DependencyFailed, null, null, GetError(request.WebPageUri, transmissionError));
+            return OnDependencyFailed(request.WebPageUri, null, transmissionError);
 
         Torrent torrent;
         try
@@ -44,21 +46,34 @@ internal sealed class AddTorrentHandler(
             torrent = await torrentService
                 .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
                 .ConfigureAwait(false);
-
-            if (!string.IsNullOrEmpty(request.Cron))
-                schedulerService.ScheduleTorrentRefresh(torrent.Id, request.Cron);
         }
         catch (DbUpdateException)
         {
-            var torrentExistsError = GetError(request.WebPageUri, "Torrent already exists.");
-            return new(Result.Exists, null, transmissionResult, torrentExistsError);
+            return OnExists(request.WebPageUri, transmissionResult);
         }
 
+        return OnAdded(torrent, transmissionResult, request.Cron);
+    }
+
+    private Outcome OnAdded(Torrent torrent, TransmissionAddResult? transmissionResult, string? cron)
+    {
+        if (!string.IsNullOrEmpty(cron))
+            schedulerService.ScheduleTorrentRefresh(torrent.Id, cron);
+
         if (torrent.Name == torrent.HashString)
-            _ = backgroundUpdateService.UpdateTorrentNameAsync(torrent.Id, torrent.HashString, torrent.Name);
+        {
+            _ = backgroundUpdateService
+                .UpdateTorrentNameAsync(torrent.Id, torrent.HashString, torrent.Name, torrent.Version);
+        }
 
         return new(Result.Added, torrent.ToDto(), transmissionResult, null);
     }
+
+    private static Outcome OnExists(Uri webPageUri, TransmissionAddResult? result) =>
+        new(Result.Exists, null, result, GetError(webPageUri, EndpointMessages.TorrentAlreadyExists));
+
+    private static Outcome OnDependencyFailed(Uri webPageUri, TransmissionAddResult? result, string? message) =>
+        new(Result.DependencyFailed, null, result, GetError(webPageUri, message));
 
     private static string GetError(Uri webPageUri, string? message) =>
         string.Format(CultureInfo.InvariantCulture, _error, webPageUri, message);

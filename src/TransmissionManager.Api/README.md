@@ -122,12 +122,23 @@ iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType applic
 (iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json).torrents | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json }
 
 # Unregister torrent #5 from Transmission Manager API but do not touch it in Transmission
-iwr http://<docker_host>:9092/api/v1/torrents/5 -Method Delete
+# (the version query parameter is required and must match the torrent's current Version)
+iwr http://<docker_host>:9092/api/v1/torrents/5?version=1 -Method Delete
 ```
 
 Alternatively, send requests using [Visual Studio Code](https://code.visualstudio.com/) with the [REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension installed - open the file [Torrents.http](Actions/Torrents/Torrents.http) in VS Code, change the host address, the request data and start sending requests.
 
 Using the API, you can also request information from Transmission Manager API about itself via [AppVersion.http](Actions/AppVersion/AppVersion.http).
+
+## Optimistic concurrency control
+Each torrent has a `Version` field (returned in every torrent JSON response). `PATCH` and `DELETE` both require a `version` query parameter that must match the torrent's current `Version`.
+
+- `204 No Content` — operation succeeded; the torrent's `Version` is now `version + 1` (only on `PATCH`).
+- `400 Bad Request` — the request was malformed. For `PATCH`, this includes a body with every field set to `null`; at least one field must be provided.
+- `404 Not Found` — no torrent with the given id exists.
+- `409 Conflict` — the torrent was modified by someone else; the response's `currentVersion` extension carries the latest known `Version` so the client can refetch and retry.
+
+A successful `PATCH` advances `Version` by exactly one. The current `Version` is included in every torrent JSON response, so clients can capture it and pass it back on the next `PATCH` or `DELETE`.
 
 ## Setup a Web UI (optional)
 If you prefer a web interface to manage your torrents, see the [Transmission Manager Web readme](../TransmissionManager.Web/README.md).

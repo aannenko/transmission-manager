@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
@@ -12,7 +13,7 @@ namespace TransmissionManager.Api.IntegrationTests.Torrents;
 [Parallelizable(ParallelScope.Self)]
 internal sealed class DeleteTorrentByIdTests
 {
-    private static readonly Torrent[] _initialTorrents = TestData.Database.CreateInitialTorrents()[0..2];
+    private static readonly Torrent[] _initialTorrents = TestData.Database.CreateInitialTorrents();
 
     #region Transmission Test Data
 
@@ -80,7 +81,7 @@ internal sealed class DeleteTorrentByIdTests
     {
         var torrentAddress = $"{EndpointAddresses.Torrents}/1";
 
-        var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
+        var response = await _client.DeleteAsync($"{torrentAddress}?version=1").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
 
@@ -91,13 +92,13 @@ internal sealed class DeleteTorrentByIdTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id 1 was not found."));
+        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent '1' retrieval failed: 'No such torrent.'."));
     }
 
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenIdExistsAndRemoveDataFlagUsed_DeletesTorrentAndTransmissionData()
     {
-        var torrentAddress = $"{EndpointAddresses.Torrents}/2?deleteType=LocalAndTransmissionAndData";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/2?version=1&deleteType=LocalAndTransmissionAndData";
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
 
@@ -110,13 +111,13 @@ internal sealed class DeleteTorrentByIdTests
         var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent with id 2 was not found."));
+        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent '2' retrieval failed: 'No such torrent.'."));
     }
 
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
-        var response = await _client.DeleteAsync($"{EndpointAddresses.Torrents}/-1").ConfigureAwait(false);
+        var response = await _client.DeleteAsync($"{EndpointAddresses.Torrents}/-1?version=1").ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
@@ -125,13 +126,13 @@ internal sealed class DeleteTorrentByIdTests
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(
             problemDetails.Detail,
-            Is.EqualTo("Removal of the torrent with id -1 has failed: 'No such torrent.'."));
+            Is.EqualTo("Torrent '-1' deletion failed: 'No such torrent.'."));
     }
 
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenIdDoesNotExistAndFlagToRemoveDataUsed_ReturnsNotFound()
     {
-        var torrentAddress = $"{EndpointAddresses.Torrents}/-1?deleteType=LocalAndTransmission";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/-1?version=1&deleteType=LocalAndTransmission";
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
 
@@ -142,13 +143,13 @@ internal sealed class DeleteTorrentByIdTests
         Assert.That(problemDetails, Is.Not.Null);
         Assert.That(
             problemDetails.Detail,
-            Is.EqualTo("Removal of the torrent with id -1 has failed: 'No such torrent.'."));
+            Is.EqualTo("Torrent '-1' deletion failed: 'No such torrent.'."));
     }
 
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenInvalidFlagToRemoveDataUsed_ReturnsProblemDetails()
     {
-        var torrentAddress = $"{EndpointAddresses.Torrents}/1?deleteType=999";
+        var torrentAddress = $"{EndpointAddresses.Torrents}/1?version=1&deleteType=999";
         // deleteType=InvalidFlag returns problem details without the Errors dict
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
@@ -168,5 +169,95 @@ internal sealed class DeleteTorrentByIdTests
                 Assert.That(errors[0], Is.EqualTo("The field deleteType is invalid."));
             }
         }
+    }
+
+    [Test]
+    public async Task DeleteTorrentByIdAsync_WhenLocalAndVersionMismatch_ReturnsConflictAndCurrentVersion()
+    {
+        var response = await _client
+            .DeleteAsync($"{EndpointAddresses.Torrents}/3?version=999")
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
+
+        var currentVersion = ((JsonElement)problemDetails.Extensions["currentVersion"]!).GetInt64();
+        
+        Assert.That(currentVersion, Is.EqualTo(1));
+
+        // Row should still exist after a conflict
+        var get = await _client.GetAsync($"{EndpointAddresses.Torrents}/3").ConfigureAwait(false);
+        Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+    }
+
+    [Test]
+    public async Task DeleteTorrentByIdAsync_WhenNonLocalAndVersionMismatch_ReturnsConflictAndDoesNotCallTransmission()
+    {
+        // Stale version on a non-local delete must short-circuit before any Transmission RPC.
+        // The mock Transmission backend has no mapping for id=3's hash; if the handler reached
+        // it, the response would be a 424 dependency failure or a stray 5xx, never a 409.
+        var response = await _client
+            .DeleteAsync($"{EndpointAddresses.Torrents}/3?version=999&deleteType=LocalAndTransmissionAndData")
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
+
+        var currentVersion = ((JsonElement)problemDetails.Extensions["currentVersion"]!).GetInt64();
+        
+        Assert.That(currentVersion, Is.EqualTo(1));
+
+        // Row should still exist after a conflict.
+        var get = await _client.GetAsync($"{EndpointAddresses.Torrents}/3").ConfigureAwait(false);
+        
+        Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+    }
+
+    [Test]
+    public async Task DeleteTorrentByIdAsync_WhenVersionParameterMissing_ReturnsBadRequest()
+    {
+        var response = await _client
+            .DeleteAsync($"{EndpointAddresses.Torrents}/3")
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Errors, Contains.Key("version"));
+
+        var versionErrors = problem.Errors["version"];
+
+        Assert.That(versionErrors, Is.Not.Empty);
+        Assert.That(versionErrors[0], Contains.Substring("must be between"));
+    }
+
+    [Test]
+    public async Task DeleteTorrentByIdAsync_WhenVersionParameterNegative_ReturnsBadRequest()
+    {
+        var response = await _client
+            .DeleteAsync($"{EndpointAddresses.Torrents}/3?version=-1")
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Errors, Contains.Key("version"));
+
+        var versionErrors = problem.Errors["version"];
+
+        Assert.That(versionErrors, Is.Not.Empty);
+        Assert.That(versionErrors[0], Contains.Substring("must be between"));
     }
 }

@@ -1,9 +1,12 @@
-﻿using System.Text;
-
-namespace TransmissionManager.Api.Actions;
+﻿namespace TransmissionManager.Api.Actions;
 
 internal static class EndpointMessages
 {
-    public static readonly CompositeFormat IdNotFoundFormat =
-        CompositeFormat.Parse("Torrent with id {0} was not found.");
+    public const string NoSuchTorrent = "No such torrent.";
+
+    public const string TorrentModifiedConflict = "The torrent has been modified by another client.";
+
+    public const string TorrentRemovedConflict = "The torrent has been removed by another client.";
+
+    public const string TorrentAlreadyExists = "Torrent already exists.";
 }

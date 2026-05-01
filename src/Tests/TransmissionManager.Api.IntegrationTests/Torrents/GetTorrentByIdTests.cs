@@ -54,6 +54,6 @@ internal sealed class GetTorrentByIdTests
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Detail, Is.EqualTo("Torrent with id 999 was not found."));
+        Assert.That(problem.Detail, Is.EqualTo("Torrent '999' retrieval failed: 'No such torrent.'."));
     }
 }

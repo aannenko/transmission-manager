@@ -59,6 +59,7 @@ internal static class DevDatabaseSeeder
                 DownloadDir = _downloadDirs[i % _downloadDirs.Length],
                 MagnetRegexPattern = i % 5 == 0 ? @"magnet:\?xt=urn:btih:[0-9a-fA-F]{40}" : null,
                 Cron = i % 3 != 0 ? _cronExpressions[i % _cronExpressions.Length] : null,
+                Version = 1,
             };
         }
 

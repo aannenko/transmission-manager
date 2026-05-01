@@ -19,6 +19,12 @@ public sealed class TorrentUpdateDto
         if (downloadDir is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
+        if (hashString is null && refreshDate is null && name is null
+            && downloadDir is null && magnetRegexPattern is null && cron is null)
+        {
+            throw new ArgumentException("At least one field must be provided.");
+        }
+
         HashString = hashString;
         RefreshDate = refreshDate;
         Name = name;

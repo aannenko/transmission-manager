@@ -8,7 +8,7 @@
 @inherits CommonComponentBase
 @inject TransmissionManagerClient Client
 
-<PageTitle>@_name - Transmission Manager</PageTitle>
+<PageTitle>@Name - Transmission Manager</PageTitle>
 
 <div class="item-card">
     <h4 class="text-block">Torrent details</h4>
@@ -17,24 +17,24 @@
 
     <div>
         <span>Name:</span>
-        <div class="form-input">@_name</div>
+        <div class="form-input">@Name</div>
     </div>
 
     <div>
         <span>Torrent webpage:</span>
         <div class="form-input">
-            <a href="@_webPageUri" target="_blank">@_webPageUri</a>
+            <a href="@WebPageUri" target="_blank">@WebPageUri</a>
         </div>
     </div>
 
     <div>
         <span>Hash:</span>
-        <div class="form-input">@_hashString</div>
+        <div class="form-input">@HashString</div>
     </div>
 
     <div>
         <span>Refreshed on:</span>
-        <div class="form-input">@(_refreshDate?.ToServerTimeString() ?? string.Empty)</div>
+        <div class="form-input">@(RefreshDate?.ToServerTimeString() ?? string.Empty)</div>
     </div>
 
     <EditForm Model="this" OnValidSubmit="UpdateTorrentAsync">
@@ -90,10 +90,7 @@
 
     private Operation _operation = Operation.Load;
 
-    private string _name = string.Empty;
-    private string _webPageUri = string.Empty;
-    private string _hashString = string.Empty;
-    private DateTimeOffset? _refreshDate = null;
+    private TorrentDto? _currentTorrent;
 
     [Parameter]
     public long Id { get; set; }
@@ -107,7 +104,15 @@
     [Cron]
     public string Cron { get; private set; } = string.Empty;
 
-    private bool AreControlsDisabled => IsBusy || string.IsNullOrEmpty(_webPageUri);
+    private string Name => _currentTorrent?.Name ?? string.Empty;
+
+    private string WebPageUri => _currentTorrent?.WebPageUri.OriginalString ?? string.Empty;
+
+    private string HashString => _currentTorrent?.HashString ?? string.Empty;
+
+    private DateTimeOffset? RefreshDate => _currentTorrent?.RefreshDate;
+
+    private bool AreControlsDisabled => IsBusy || _currentTorrent is null;
 
     private protected override string BusyMessage =>
         _operation switch
@@ -178,17 +183,29 @@
             Cron = Cron
         };
 
-        var isUpdateSuccessful = await CallService(
-            (Client, Id, request),
-            static args => args.Client.UpdateTorrentByIdAsync(args.Id, args.request));
+        var current = _currentTorrent!;
+        var outcome = await CallService(
+            (Client, current.Id, current.Version, request),
+            static args => args.Client.UpdateTorrentByIdAsync(args.Id, args.Version, args.request));
 
-        if (isUpdateSuccessful)
+        switch (outcome.Status)
         {
-            Message = "Torrent updated.";
-        }
-        else if (string.IsNullOrEmpty(Message))
-        {
-            Message = "Failed to update torrent.";
+            case MutationStatus.Success:
+                FillTorrentData(current.ApplyPatch(request));
+                Message = "Torrent updated.";
+                break;
+            case MutationStatus.Conflict:
+                await GetTorrentAsync();
+                Message = "Torrent was modified by another client. Reloaded the latest data; review and retry.";
+                break;
+            case MutationStatus.NotFound:
+                FillTorrentData(null);
+                Message = "Torrent no longer exists; it may have been deleted by another client.";
+                break;
+            default:
+                if (string.IsNullOrEmpty(Message))
+                    Message = "Failed to update torrent.";
+                break;
         }
     }
 
@@ -236,36 +253,39 @@
             _ => Operation.DeleteRecord
         };
 
-        var isDeleteSuccessful = await CallService(
-            (Client, Id, deleteType),
-            static args => args.Client.DeleteTorrentByIdAsync(args.Id, args.deleteType));
+        var current = _currentTorrent!;
+        var outcome = await CallService(
+            (Client, current.Id, current.Version, deleteType),
+            static args => args.Client.DeleteTorrentByIdAsync(args.Id, args.Version, args.deleteType));
 
-        if (isDeleteSuccessful)
+        switch (outcome.Status)
         {
-            Message = "Torrent deleted.";
-        }
-        else if (string.IsNullOrEmpty(Message))
-        {
-            Message = "Failed to delete torrent.";
+            case MutationStatus.Success:
+                FillTorrentData(null);
+                Message = "Torrent deleted.";
+                break;
+            case MutationStatus.Conflict:
+                await GetTorrentAsync();
+                Message = outcome.CurrentVersion is { } cv
+                    ? $"Torrent was modified by another client (now at version {cv}). Reloaded the latest data; please review and retry."
+                    : "Torrent was modified by another client. Reloaded the latest data; please review and retry.";
+                break;
+            case MutationStatus.NotFound:
+                FillTorrentData(null);
+                Message = "Torrent was already deleted.";
+                break;
+            default:
+                if (string.IsNullOrEmpty(Message))
+                    Message = "Failed to delete torrent.";
+                break;
         }
     }
 
     private void FillTorrentData(TorrentDto? torrentDto)
     {
-        if (torrentDto is null)
-        {
-            _name = _webPageUri = _hashString = DownloadDir = MagnetRegexPattern = Cron = string.Empty;
-            _refreshDate = null;
-        }
-        else
-        {
-            _name = torrentDto.Name;
-            _webPageUri = torrentDto.WebPageUri.OriginalString;
-            _hashString = torrentDto.HashString;
-            _refreshDate = torrentDto.RefreshDate;
-            DownloadDir = torrentDto.DownloadDir;
-            MagnetRegexPattern = torrentDto.MagnetRegexPattern ?? string.Empty;
-            Cron = torrentDto.Cron ?? string.Empty;
-        }
+        _currentTorrent = torrentDto;
+        DownloadDir = torrentDto?.DownloadDir ?? string.Empty;
+        MagnetRegexPattern = torrentDto?.MagnetRegexPattern ?? string.Empty;
+        Cron = torrentDto?.Cron ?? string.Empty;
     }
 }

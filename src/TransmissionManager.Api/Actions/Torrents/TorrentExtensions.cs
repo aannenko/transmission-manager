@@ -15,6 +15,7 @@ internal static class TorrentExtensions
             WebPageUri: new(torrent.WebPageUri),
             DownloadDir: torrent.DownloadDir,
             MagnetRegexPattern: torrent.MagnetRegexPattern,
-            Cron: torrent.Cron);
+            Cron: torrent.Cron,
+            Version: torrent.Version);
     }
 }

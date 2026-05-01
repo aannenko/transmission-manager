@@ -36,8 +36,8 @@ Content-Type: application/json
 
 ###
 
-# Update existing torrent's cron and magnet-finding regex
-PATCH {{TransmissionManager_Web_HostAddress}}/1
+# Update existing torrent's cron and magnet-finding regex (requires the current torrent version)
+PATCH {{TransmissionManager_Web_HostAddress}}/1?version=1
 Content-Type: application/json
 
 {
@@ -48,7 +48,7 @@ Content-Type: application/json
 ###
 
 # Clear existing torrent's cron and magnet-finding regex using empty strings
-PATCH {{TransmissionManager_Web_HostAddress}}/1
+PATCH {{TransmissionManager_Web_HostAddress}}/1?version=2
 Content-Type: application/json
 
 {
@@ -58,12 +58,12 @@ Content-Type: application/json
 
 ###
 
-# Remove a torrent from Transmission Manager by id
-DELETE {{TransmissionManager_Web_HostAddress}}/1
+# Remove a torrent from Transmission Manager by id (requires the current torrent version)
+DELETE {{TransmissionManager_Web_HostAddress}}/1?version=3
 
 ###
 
 # Remove a torrent from Transmission Manager by id, also remove it from Transmission and delete the data
-DELETE {{TransmissionManager_Web_HostAddress}}/1?deleteType=LocalAndTransmissionAndData
+DELETE {{TransmissionManager_Web_HostAddress}}/1?version=3&deleteType=LocalAndTransmissionAndData
 
 ###

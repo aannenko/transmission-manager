@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Json;
+using System.Text.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Serialization;
@@ -75,26 +76,70 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         return refreshResponse ?? throw new HttpRequestException($"Failed to refresh torrent with id {torrentId}.");
     }
 
-    public async Task UpdateTorrentByIdAsync(
+    public async Task<MutationOutcome> UpdateTorrentByIdAsync(
         long torrentId,
+        long version,
         UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
+        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}?version={version}", UriKind.Relative);
         using var response = await httpClient
             .PatchAsJsonAsync(requestUri, request, cancellationToken)
             .ConfigureAwait(false);
 
-        _ = response.EnsureSuccessStatusCode();
+        return await ToMutationOutcomeAsync(response, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task DeleteTorrentByIdAsync(
+    public async Task<MutationOutcome> DeleteTorrentByIdAsync(
         long torrentId,
+        long version,
         DeleteTorrentByIdType deleteType,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}?deleteType={deleteType}", UriKind.Relative);
+        var requestUri = new Uri(
+            $"{EndpointAddresses.Torrents}/{torrentId}?version={version}&deleteType={deleteType}",
+            UriKind.Relative);
         using var response = await httpClient.DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        return await ToMutationOutcomeAsync(response, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<MutationOutcome> ToMutationOutcomeAsync(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
+        if (response.StatusCode is System.Net.HttpStatusCode.NotFound)
+            return MutationOutcome.NotFound;
+
+        if (response.StatusCode is System.Net.HttpStatusCode.Conflict)
+        {
+            long? currentVersion = null;
+            try
+            {
+                using var stream = await response.Content
+                    .ReadAsStreamAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                using var document = await System.Text.Json.JsonDocument
+                    .ParseAsync(stream, cancellationToken: cancellationToken)
+                    .ConfigureAwait(false);
+
+                if (document.RootElement.ValueKind is System.Text.Json.JsonValueKind.Object
+                    && document.RootElement.TryGetProperty(ProblemDetailsExtensionKeys.CurrentVersion, out var element)
+                    && element.ValueKind is System.Text.Json.JsonValueKind.Number
+                    && element.TryGetInt64(out var v))
+                {
+                    currentVersion = v;
+                }
+            }
+            catch (JsonException)
+            {
+                // Body absent or malformed; fall through with null currentVersion.
+            }
+
+            return MutationOutcome.Conflict(currentVersion);
+        }
+
         _ = response.EnsureSuccessStatusCode();
+        return MutationOutcome.Success;
     }
 }

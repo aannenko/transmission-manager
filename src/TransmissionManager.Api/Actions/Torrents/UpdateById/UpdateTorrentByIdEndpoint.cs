@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
+using System.ComponentModel.DataAnnotations;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
@@ -16,14 +17,27 @@ internal static class UpdateTorrentByIdEndpoint
     private static async Task<Results<NoContent, ProblemHttpResult, ValidationProblem>> UpdateTorrentByIdAsync(
         [FromServices] UpdateTorrentByIdHandler handler,
         long id,
+        [FromQuery, Required, Range(1L, long.MaxValue)] long version,
         UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken)
     {
         var updateDto = request.ToTorrentUpdateDto();
-        return await handler.TryUpdateTorrentByIdAsync(id, updateDto, cancellationToken).ConfigureAwait(false)
-            ? TypedResults.NoContent()
-            : TypedResults.Problem(
-                string.Format(CultureInfo.InvariantCulture, EndpointMessages.IdNotFoundFormat, id),
-                statusCode: StatusCodes.Status404NotFound);
+        var (result, currentVersion, error) = await handler
+            .TryUpdateTorrentByIdAsync(id, version, updateDto, cancellationToken)
+            .ConfigureAwait(false);
+
+        return result switch
+        {
+            UpdateTorrentByIdResult.Updated =>
+                TypedResults.NoContent(),
+            UpdateTorrentByIdResult.NotFound =>
+                TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
+            UpdateTorrentByIdResult.Conflict =>
+                TypedResults.Problem(
+                    error,
+                    statusCode: StatusCodes.Status409Conflict,
+                    extensions: [new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion)]),
+            _ => throw new NotImplementedException(),
+        };
     }
 }

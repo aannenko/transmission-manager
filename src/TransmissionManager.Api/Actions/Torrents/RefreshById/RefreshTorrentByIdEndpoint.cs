@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
@@ -18,7 +19,7 @@ internal static class RefreshTorrentByIdEndpoint
             long id,
             CancellationToken cancellationToken)
     {
-        var (result, torrentDto, transmissionResult, error) = await handler
+        var (result, torrentDto, transmissionResult, error, currentVersion) = await handler
             .RefreshTorrentByIdAsync(id, cancellationToken)
             .ConfigureAwait(false);
 
@@ -30,6 +31,11 @@ internal static class RefreshTorrentByIdEndpoint
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
             RefreshTorrentByIdResult.NotFoundInTransmission =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status422UnprocessableEntity),
+            RefreshTorrentByIdResult.Conflict =>
+                TypedResults.Problem(
+                    error,
+                    statusCode: StatusCodes.Status409Conflict,
+                    extensions: [new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion)]),
             RefreshTorrentByIdResult.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException(),

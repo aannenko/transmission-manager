@@ -42,6 +42,7 @@ internal static class TestData
                     DownloadDir = FirstTorrentDownloadDir,
                     Cron = FirstTorrentCron,
                     RefreshDate = FirstTorrentRefreshDate,
+                    Version = 1,
                 },
                 new()
                 {
@@ -52,6 +53,7 @@ internal static class TestData
                     DownloadDir = SecondTorrentDownloadDir,
                     MagnetRegexPattern = SecondTorrentMagnetRegexPattern,
                     RefreshDate = SecondTorrentRefreshDate,
+                    Version = 1,
                 },
                 new()
                 {
@@ -63,6 +65,7 @@ internal static class TestData
                     MagnetRegexPattern = ThirdTorrentMagnetRegexPattern,
                     Cron = ThirdTorrentCron,
                     RefreshDate = ThirdTorrentRefreshDate,
+                    Version = 1,
                 },
             ];
     }

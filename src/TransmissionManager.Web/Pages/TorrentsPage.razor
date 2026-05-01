@@ -87,9 +87,9 @@ else
         }
     }
 
-    private async Task DeleteTorrentAsync(long id, DeleteTorrentByIdType deleteType)
+    private async Task DeleteTorrentAsync(long id, long version, DeleteTorrentByIdType deleteType)
     {
-        await Client.DeleteTorrentByIdAsync(id, deleteType);
+        await Client.DeleteTorrentByIdAsync(id, version, deleteType);
         await LoadTorrentsAsync();
         StateHasChanged();
     }

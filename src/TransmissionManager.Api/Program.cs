@@ -21,6 +21,7 @@ builder.Services.ConfigureHttpJsonOptions(static options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(1, ApiJsonSerializerContext.Default);
 });
 
+builder.Services.AddSingleton(TimeProvider.System);
 builder.Services.AddSingleton(typeof(Log<>));
 builder.Services.AddSingleton<CacheControlHeaderMiddleware>();
 builder.Services.AddSingleton<XContentTypeOptionsHeaderMiddleware>();

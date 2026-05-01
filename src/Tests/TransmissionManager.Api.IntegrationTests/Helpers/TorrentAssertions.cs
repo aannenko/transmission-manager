@@ -31,6 +31,7 @@ internal static class TorrentAssertions
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
+            Assert.That(actual.Version, Is.EqualTo(expected.Version));
         }
     }
 }

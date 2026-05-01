@@ -16,6 +16,7 @@ internal static class TorrentAddDtoExtensions
             WebPageUri = dto.WebPageUri.OriginalString,
             MagnetRegexPattern = dto.MagnetRegexPattern,
             Cron = dto.Cron,
+            Version = 1,
         };
     }
 }

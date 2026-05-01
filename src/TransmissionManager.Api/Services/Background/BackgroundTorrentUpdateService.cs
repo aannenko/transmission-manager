@@ -9,21 +9,21 @@ namespace TransmissionManager.Api.Services.Background;
 
 internal sealed class BackgroundTorrentUpdateService(
     IServiceScopeFactory serviceScopeFactory,
-    Log<BackgroundTorrentUpdateService> log)
+    Log<BackgroundTorrentUpdateService> log,
+    TimeProvider timeProvider)
 {
     private static readonly TransmissionTorrentGetRequestFields[] _getNameOnlyFieldsArray =
         [TransmissionTorrentGetRequestFields.Name];
 
     private readonly ConcurrentDictionary<long, CancellationTokenSource> _runningNameUpdates = [];
 
-    public async Task UpdateTorrentNameAsync(long id, string hashString, string currentName)
+    public async Task UpdateTorrentNameAsync(long id, string hashString, string currentName, long version)
     {
         using var cts = _runningNameUpdates.AddOrUpdate(id, AddCts, UpdateCts);
 #pragma warning disable CA1031 // Do not catch general exception types - method is used as fire-and-forget, log errors
         try
         {
-            using var serviceScope = serviceScopeFactory.CreateScope();
-            await UpdateTorrentNameWithRetriesAsync(serviceScope.ServiceProvider, id, hashString, currentName, cts.Token)
+            await UpdateTorrentNameWithRetriesAsync(id, hashString, currentName, version, cts.Token)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException)
@@ -56,21 +56,23 @@ internal sealed class BackgroundTorrentUpdateService(
         }
     }
 
-    private static async Task UpdateTorrentNameWithRetriesAsync(
-        IServiceProvider serviceProvider,
+    private async Task UpdateTorrentNameWithRetriesAsync(
         long id,
         string hashString,
         string currentName,
+        long version,
         CancellationToken cancellationToken)
     {
         string[] singleHashArray = [hashString];
 
+        using var serviceScope = serviceScopeFactory.CreateScope();
+        var serviceProvider = serviceScope.ServiceProvider;
         var transmissionClient = serviceProvider.GetRequiredService<TransmissionClient>();
 
         const int maxRetries = 40; // make attempts to get the name for approximately 6 hours
         for (var retry = 1; retry <= maxRetries; retry++)
         {
-            await Task.Delay(TimeSpan.FromSeconds(retry * retry), cancellationToken).ConfigureAwait(false);
+            await Task.Delay(TimeSpan.FromSeconds(retry * retry), timeProvider, cancellationToken).ConfigureAwait(false);
 
             TransmissionTorrentGetResponse? transmissionResponse = null;
             try
@@ -81,6 +83,7 @@ internal sealed class BackgroundTorrentUpdateService(
             }
             catch (HttpRequestException) when (retry < maxRetries)
             {
+                continue;
             }
 
             var newName = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault()?.Name;
@@ -91,8 +94,29 @@ internal sealed class BackgroundTorrentUpdateService(
 
                 var torrentService = serviceProvider.GetRequiredService<TorrentService>();
                 var dto = new TorrentUpdateDto(name: newName);
-                _ = await torrentService.TryUpdateOneByIdAsync(id, dto, cancellationToken).ConfigureAwait(false);
-                break;
+
+                const int maxConcurrencyRetries = 3;
+                for (var concurrencyRetry = 0; concurrencyRetry < maxConcurrencyRetries; concurrencyRetry++)
+                {
+                    var outcome = await torrentService
+                        .UpdateOneAsync(id, version, dto, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (outcome.Result is TorrentMutationResult.Success or TorrentMutationResult.NotFound)
+                        return;
+
+                    var current = await torrentService
+                        .FindOneByIdAsync(id, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (current is null || current.HashString != hashString || current.Name != currentName)
+                        return;
+
+                    version = current.Version;
+                }
+
+                log.BackgroundUpdateSkippedDueToConcurrency(id);
+                return;
             }
         }
     }

@@ -54,7 +54,7 @@
     public Func<long, Task> RefreshAsync { get; set; }
 
     [Parameter, EditorRequired]
-    public Func<long, DeleteTorrentByIdType, Task> DeleteAsync { get; set; }
+    public Func<long, long, DeleteTorrentByIdType, Task> DeleteAsync { get; set; }
 
     private protected override string BusyMessage => string.Empty;
 
@@ -108,7 +108,7 @@
 
         var isDeleteSuccessful = await CallService(
             (Self: this, deleteType),
-            static args => args.Self.DeleteAsync(args.Self.Torrent.Id, args.deleteType));
+            static args => args.Self.DeleteAsync(args.Self.Torrent.Id, args.Self.Torrent.Version, args.deleteType));
 
         if (!isDeleteSuccessful && string.IsNullOrEmpty(Message))
             Message = "Failed to delete torrent.";

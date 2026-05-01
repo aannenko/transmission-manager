@@ -18,10 +18,11 @@ internal static class TorrentAssertions
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
+            Assert.That(actual.Version, Is.EqualTo(expected.Version));
         }
     }
 
-    public static void AssertEqual(Torrent? actual, long expectedId, TorrentAddDto expected)
+    public static void AssertEqual(Torrent? actual, long expectedId, TorrentAddDto expected, long expectedVersion = 1)
     {
         Assert.That(actual, Is.Not.Null);
         using (Assert.EnterMultipleScope())
@@ -34,6 +35,7 @@ internal static class TorrentAssertions
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
+            Assert.That(actual.Version, Is.EqualTo(expectedVersion));
         }
     }
 

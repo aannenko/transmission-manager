@@ -243,7 +243,23 @@ internal sealed class RefreshTorrentByIdTests
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
-        TorrentAssertions.AssertEqual(result.TorrentDto, _initialTorrents[1], TimeSpan.MaxValue);
+
+        // Successful refresh that calls torrent-add increments Version by 1.
+        // Build a local Torrent so we don't mutate the static `_initialTorrents` shared by other tests.
+        var source = _initialTorrents[1];
+        var expected = new Torrent
+        {
+            Id = source.Id,
+            HashString = source.HashString,
+            Name = source.Name,
+            WebPageUri = source.WebPageUri,
+            DownloadDir = source.DownloadDir,
+            MagnetRegexPattern = source.MagnetRegexPattern,
+            Cron = source.Cron,
+            RefreshDate = source.RefreshDate,
+            Version = source.Version + 1,
+        };
+        TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.MaxValue);
     }
 
     [Test]

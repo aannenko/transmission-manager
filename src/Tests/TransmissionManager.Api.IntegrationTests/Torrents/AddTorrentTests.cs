@@ -158,6 +158,7 @@ internal sealed class AddTorrentTests
             WebPageUri = dto.WebPageUri.OriginalString,
             DownloadDir = dto.DownloadDir,
             Cron = dto.Cron,
+            Version = 1,
         };
 
         TorrentAssertions.AssertEqual(addTorrentResponse.TorrentDto, expectedTorrent, TimeSpan.FromSeconds(1));
@@ -191,7 +192,7 @@ internal sealed class AddTorrentTests
         using (Assert.EnterMultipleScope())
         {
             var error =
-                $"Addition of a torrent from the web page '{dto.WebPageUri}' has failed: 'Torrent already exists.'.";
+                $"Torrent '{dto.WebPageUri}' addition failed: 'Torrent already exists.'.";
 
             Assert.That(problemDetails.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));

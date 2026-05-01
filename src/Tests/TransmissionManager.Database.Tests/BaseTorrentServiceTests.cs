@@ -12,7 +12,7 @@ internal abstract class BaseTorrentServiceTests
 
     private protected static Torrent[] InitialTorrents { get; } = CreateInitialTorrents();
 
-    [OneTimeSetUp]
+    [SetUp]
     public void Setup()
     {
         _connection = new SqliteConnection("Data Source=:memory:");
@@ -27,7 +27,7 @@ internal abstract class BaseTorrentServiceTests
         _ = context.SaveChanges();
     }
 
-    [OneTimeTearDown]
+    [TearDown]
     public void TearDown() => _connection?.Dispose();
 
     private protected AppDbContext CreateContext() =>
@@ -47,6 +47,7 @@ internal abstract class BaseTorrentServiceTests
                 WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
                 DownloadDir = "/tvshows",
                 Cron = "0 9,17 * * *",
+                Version = 1,
             },
             new()
             {
@@ -57,6 +58,7 @@ internal abstract class BaseTorrentServiceTests
                 WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234568"),
                 DownloadDir = "/movies",
                 MagnetRegexPattern = @"magnet:\?xt=urn:[^""]+",
+                Version = 1,
             },
             new()
             {
@@ -68,6 +70,7 @@ internal abstract class BaseTorrentServiceTests
                 DownloadDir = "/videos",
                 Cron = "0 10,18 * * *",
                 MagnetRegexPattern = @"magnet:\?xt[^""]+",
+                Version = 1,
             }
         ];
     }

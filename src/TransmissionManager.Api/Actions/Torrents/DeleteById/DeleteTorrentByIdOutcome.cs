@@ -1,3 +1,6 @@
 ﻿namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
 
-internal readonly record struct DeleteTorrentByIdOutcome(DeleteTorrentByIdResult Result, string? Error);
+internal readonly record struct DeleteTorrentByIdOutcome(
+    DeleteTorrentByIdResult Result,
+    long? CurrentVersion,
+    string? Error);

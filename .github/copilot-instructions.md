@@ -99,6 +99,10 @@ All JSON serialization uses **source-generated `JsonSerializerContext`** classes
 
 Prefer extracting stateful or self-contained logic into dedicated classes rather than embedding it inline in components or endpoints. This is the pattern across the codebase (e.g., handlers separated from endpoints, wrapper services around HTTP clients, `TorrentSchedulerService` wrapping Coravel scheduling).
 
+### Independence from Transmission
+
+TransmissionManager and the Transmission daemon are **independent systems** that the user may operate separately. The local catalog is not a mirror of Transmission's state — a torrent may exist in one and not the other by design. Consequently, when a request mutates one side and the other side fails or races (e.g. local OCC conflict after a successful Transmission removal, or vice versa), it is acceptable to surface the partial outcome (`409 Conflict`, `424 Failed Dependency`, etc.) and let the user retry. Do **not** introduce non-OCC fallbacks, compensating writes, or "force-finish" paths to keep the two sides in lockstep.
+
 ### C# style
 
 - Primary constructors for DI injection (no manual field declarations)
