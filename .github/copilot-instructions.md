@@ -53,6 +53,8 @@ Each API endpoint lives in its own folder under `Actions/{Feature}/{ActionName}/
 
 Endpoints return `Results<T1, T2, ...>` discriminated unions for type-safe HTTP responses. Error responses use Problem Details (RFC 7807).
 
+**When to extract a Handler.** The `{Action}Handler` indirection earns its keep when the endpoint coordinates multiple services *or* models a non-trivial Outcome union (Success / NotFound / Conflict / external-system failure / etc.). Simple pass-through endpoints — single service call plus response projection — can keep the logic inline in the endpoint with a private static `BuildResponse`/`ToXxxResponse` helper. `GetTorrentPageEndpoint` is the deliberate example of the latter.
+
 ### Keyset pagination (GetPage endpoint)
 
 The main communication surface between the Web and API projects is `GET /api/v1/torrents`, which uses **keyset (cursor) pagination** — not offset-based skip/take.
@@ -117,6 +119,7 @@ TransmissionManager and the Transmission daemon are **independent systems** that
 - Shared test utilities in `TransmissionManager.BaseTests` — includes `FakeHttpMessageHandler` for mocking HTTP calls and `FakeOptionsMonitor<T>` for options
 - Integration tests use `WebApplicationFactory<Program>` with fake HTTP handlers substituted for real external services
 - CA1707 is suppressed in test projects to allow underscores in test method names
+- **Mirrored API ↔ DB enums** — when the API exposes an enum that the DB layer also has (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API project gets the specific name (`Get{Action}{Concept}`) and the DB project gets a generic name so it can be reused; cross-project value/name parity is asserted by a mapping test in `TransmissionManager.Api.IntegrationTests` (see `GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
 
 ### Docker
 
