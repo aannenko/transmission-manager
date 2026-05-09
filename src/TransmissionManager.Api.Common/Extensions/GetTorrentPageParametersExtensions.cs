@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Utilities;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
@@ -90,4 +91,55 @@ public static class GetTorrentPageParametersExtensions
 
         return builder.ToString();
     }
+
+    public static GetTorrentPageParameters? ToNextPageParameters(
+        this GetTorrentPageParameters parameters,
+        IReadOnlyList<TorrentDto> currentPage)
+    {
+        ArgumentNullException.ThrowIfNull(currentPage);
+
+        return currentPage.Count is 0
+            ? null
+            : parameters with
+            {
+                AnchorId = currentPage[^1].Id,
+                AnchorValue = parameters.OrderBy switch
+                {
+                    Order.Id or Order.IdDesc => null,
+                    Order.RefreshDate or Order.RefreshDateDesc => ToDateTimeAnchorString(currentPage[^1].RefreshDate),
+                    Order.Name or Order.NameDesc => currentPage[^1].Name,
+                    Order.WebPage or Order.WebPageDesc => currentPage[^1].WebPageUri.OriginalString,
+                    Order.DownloadDir or Order.DownloadDirDesc => currentPage[^1].DownloadDir,
+                    _ => null,
+                },
+                Direction = Direction.Forward
+            };
+    }
+
+    public static GetTorrentPageParameters? ToPreviousPageParameters(
+        this GetTorrentPageParameters parameters,
+        IReadOnlyList<TorrentDto> currentPage)
+    {
+        ArgumentNullException.ThrowIfNull(currentPage);
+
+        return currentPage.Count is 0
+            ? null
+            : parameters with
+            {
+                AnchorId = currentPage[0].Id,
+                AnchorValue = parameters.OrderBy switch
+                {
+                    Order.Id or Order.IdDesc => null,
+                    Order.RefreshDate or Order.RefreshDateDesc => ToDateTimeAnchorString(currentPage[0].RefreshDate),
+                    Order.Name or Order.NameDesc => currentPage[0].Name,
+                    Order.WebPage or Order.WebPageDesc => currentPage[0].WebPageUri.OriginalString,
+                    Order.DownloadDir or Order.DownloadDirDesc => currentPage[0].DownloadDir,
+                    _ => null,
+                },
+                Direction = Direction.Backward
+            };
+    }
+
+    private static string ToDateTimeAnchorString(DateTimeOffset dateTimeOffset) =>
+        dateTimeOffset.ToUniversalTime().ToString(GetTorrentPageParameters.DateFormat, CultureInfo.InvariantCulture);
 }

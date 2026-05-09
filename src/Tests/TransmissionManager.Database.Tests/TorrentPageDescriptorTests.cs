@@ -16,7 +16,7 @@ internal sealed class TorrentPageDescriptorTests
                 OrderBy: TorrentOrder.IdDesc,
                 AnchorId: 2,
                 AnchorValue: null,
-                IsForwardPagination: false,
+                Direction: PaginationDirection.Backward,
                 Take: 5),
             Throws.Nothing);
 
@@ -25,7 +25,7 @@ internal sealed class TorrentPageDescriptorTests
             Assert.That(page.OrderBy, Is.EqualTo(TorrentOrder.IdDesc));
             Assert.That(page.AnchorId, Is.EqualTo(2));
             Assert.That(page.AnchorValue, Is.Null);
-            Assert.That(page.IsForwardPagination, Is.False);
+            Assert.That(page.Direction, Is.EqualTo(PaginationDirection.Backward));
             Assert.That(page.Take, Is.EqualTo(5));
         }
     }
@@ -37,6 +37,16 @@ internal sealed class TorrentPageDescriptorTests
 
         Assert.That(
             () => new TorrentPageDescriptor<int>(OrderBy: orderBy),
+            Throws.InstanceOf<ArgumentOutOfRangeException>());
+    }
+
+    [Test]
+    public void Constructor_WhenDirectionIsInvalid_ThrowsArgumentOutOfRangeException()
+    {
+        var direction = (PaginationDirection)int.MaxValue;
+
+        Assert.That(
+            () => new TorrentPageDescriptor<string>(Direction: direction),
             Throws.InstanceOf<ArgumentOutOfRangeException>());
     }
 

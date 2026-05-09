@@ -1,13 +1,12 @@
 ﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
-using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Actions.Torrents.GetPage;
 
 internal static class TorrentServiceExtensions
 {
-    public static Task<Torrent[]> GetPageAsync(
+    public static Task<TorrentPage> GetPageAsync(
         this TorrentService service,
         in GetTorrentPageParameters parameters,
         in GetTorrentPageParsedParameters parsedParameters,
@@ -34,7 +33,7 @@ internal static class TorrentServiceExtensions
             OrderBy: (TorrentOrder)parameters.OrderBy,
             AnchorId: parameters.AnchorId,
             AnchorValue: anchorValue,
-            IsForwardPagination: parameters.Direction is GetTorrentPageDirection.Forward,
+            Direction: (PaginationDirection)parameters.Direction,
             Take: parameters.Take);
     }
 

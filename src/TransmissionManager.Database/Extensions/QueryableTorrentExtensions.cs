@@ -1,8 +1,9 @@
 ﻿using System.Globalization;
 using TransmissionManager.Database.Dto;
+using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Models;
 
-namespace System.Linq;
+namespace TransmissionManager.Database.Extensions;
 
 internal static class QueryableTorrentExtensions
 {
@@ -12,7 +13,7 @@ internal static class QueryableTorrentExtensions
     {
         var isWhereRequired = page.AnchorId is not null || page.AnchorValue is not null;
 
-        if (page.IsForwardPagination)
+        if (page.Direction is PaginationDirection.Forward)
         {
             if (isWhereRequired)
                 query = query.Where(page.OrderBy, page.AnchorId, page.AnchorValue);

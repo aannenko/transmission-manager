@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
+using TransmissionManager.Database.Extensions;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Services;
@@ -51,16 +52,24 @@ public sealed class TorrentService(AppDbContext dbContext)
             .ConfigureAwait(false);
     }
 
-    public async Task<Torrent[]> GetPageAsync<T>(
+    /// <summary>
+    /// Returns a keyset-paginated page of torrents matching <paramref name="filter"/>, anchored
+    /// by <paramref name="page"/>.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="page"/>.<see cref="TorrentPageDescriptor{TAnchor}.Take"/>
+    /// equals <see cref="int.MaxValue"/>: the internal probe computes <c>Take + 1</c>, which
+    /// overflows to <see cref="int.MinValue"/> and is rejected by
+    /// <see cref="TorrentPageDescriptor{TAnchor}"/>'s validator.
+    /// </exception>
+    public async Task<TorrentPage> GetPageAsync<T>(
         TorrentPageDescriptor<T> page = default,
         TorrentFilter filter = default,
         CancellationToken cancellationToken = default)
     {
-        if (page == default)
-            page = new TorrentPageDescriptor<T>();
-
         var query = dbContext.Torrents.AsNoTracking();
 
+        // Filter
         if (!string.IsNullOrEmpty(filter.PropertyStartsWith))
         {
             query = query.Where(torrent =>
@@ -73,7 +82,27 @@ public sealed class TorrentService(AppDbContext dbContext)
         if (filter.CronExists is not null)
             query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
 
-        return await query.WhereOrderByTake(page).ToArrayAsync(cancellationToken).ConfigureAwait(false);
+        // Paginate
+        if (page == default)
+            page = new();
+
+        var pageToFetch = new TorrentPageDescriptor<T>(
+            AnchorId: page.AnchorId,
+            OrderBy: page.OrderBy,
+            AnchorValue: page.AnchorValue,
+            Direction: page.Direction,
+            Take: page.Take + 1);
+
+        var fetched = await query.WhereOrderByTake(pageToFetch)
+            .ToArrayAsync(cancellationToken)
+            .ConfigureAwait(false);
+
+        if (fetched.Length <= page.Take)
+            return new TorrentPage(fetched, HasMore: false);
+
+        var sourceStart = page.Direction is PaginationDirection.Forward ? 0 : fetched.Length - page.Take;
+        var torrents = fetched.AsSpan(sourceStart, page.Take).ToArray();
+        return new TorrentPage(torrents, HasMore: true);
     }
 
     public async Task<Torrent> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)

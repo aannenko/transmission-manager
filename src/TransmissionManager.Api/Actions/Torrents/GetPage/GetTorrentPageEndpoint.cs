@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
@@ -46,11 +47,49 @@ internal static class GetTorrentPageEndpoint
         if (errors is not null && errors.Length != 0)
             return TypedResults.ValidationProblem(errors);
 
-        var torrents = await service.GetPageAsync(parameters, parsed, cancellationToken).ConfigureAwait(false);
-        var dtos = torrents.Select(static torrent => torrent.ToDto()).ToArray();
-        return TypedResults.Ok(new GetTorrentPageResponse(
+        var page = await service.GetPageAsync(parameters, parsed, cancellationToken).ConfigureAwait(false);
+        return TypedResults.Ok(ToTorrentPageResponse(page, parameters));
+    }
+
+    private static GetTorrentPageResponse ToTorrentPageResponse(
+        TorrentPage page,
+        in GetTorrentPageParameters parameters)
+    {
+        var dtos = new TorrentDto[page.Torrents.Count];
+        for (var i = 0; i < page.Torrents.Count; i++)
+            dtos[i] = page.Torrents[i].ToDto();
+
+        bool emitNext, emitPrevious;
+        if (parameters.Direction is Direction.Forward)
+        {
+            emitNext = page.HasMore;
+            emitPrevious = parameters.AnchorId is not null;
+        }
+        else
+        {
+            emitPrevious = page.HasMore;
+            emitNext = parameters.AnchorId is not null;
+        }
+
+        var nextParams = emitNext ? parameters.ToNextPageParameters(dtos) : null;
+        var prevParams = emitPrevious ? parameters.ToPreviousPageParameters(dtos) : null;
+
+        // Empty page + non-null request anchor: the helpers can't extract an anchor from an
+        // empty list, but a stale/out-of-range cursor still warrants a way back. Fall back to
+        // the request's own anchor in the opposite direction so server-led navigation never
+        // dead-ends. (Opposite-direction URLs remain best-effort: a hand-crafted anchor below
+        // the dataset will produce a fallback URL that itself returns empty. Acceptable.)
+        if (dtos.Length is 0 && parameters.AnchorId is not null)
+        {
+            if (parameters.Direction is Direction.Forward)
+                prevParams ??= parameters with { Direction = Direction.Backward };
+            else
+                nextParams ??= parameters with { Direction = Direction.Forward };
+        }
+
+        return new GetTorrentPageResponse(
             dtos,
-            parameters.ToNextPageParameters(dtos)?.ToPathAndQueryString(),
-            parameters.ToPreviousPageParameters(dtos)?.ToPathAndQueryString()));
+            nextParams?.ToPathAndQueryString(),
+            prevParams?.ToPathAndQueryString());
     }
 }

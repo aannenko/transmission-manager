@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 
 namespace TransmissionManager.Database.Dto;
@@ -7,7 +7,7 @@ public readonly record struct TorrentPageDescriptor<TAnchor>(
     TorrentOrder OrderBy = TorrentOrder.Id,
     long? AnchorId = null,
     TAnchor? AnchorValue = default,
-    bool IsForwardPagination = true,
+    PaginationDirection Direction = PaginationDirection.Forward,
     int Take = 20)
 {
     public TorrentPageDescriptor() : this(OrderBy: TorrentOrder.Id)
@@ -28,6 +28,10 @@ public readonly record struct TorrentPageDescriptor<TAnchor>(
                 typeof(TAnchor),
                 AnchorValue),
             nameof(AnchorValue));
+
+    public PaginationDirection Direction { get; } = Enum.IsDefined(Direction)
+        ? Direction
+        : throw new ArgumentOutOfRangeException(nameof(Direction));
 
     public int Take { get; } = Take > 0
         ? Take
