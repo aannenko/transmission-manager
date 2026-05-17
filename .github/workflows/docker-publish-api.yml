@@ -1,4 +1,4 @@
-name: Api Docker Image
+name: "Build, Test, and Publish API Docker Image"
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
@@ -14,16 +14,16 @@ on:
     tags: ["v*.*.*"]
     paths:
       - '.github/workflows/docker-publish-api.yml'
+      - '.github/workflows/build-test-api.yml'
       - 'src/**'
-      - '!src/Tests/**'
       - '!src/TransmissionManager.Web*'
       - '!src/TransmissionManager.Web/**'
   pull_request:
     branches: ["main"]
     paths:
       - '.github/workflows/docker-publish-api.yml'
+      - '.github/workflows/build-test-api.yml'
       - 'src/**'
-      - '!src/Tests/**'
       - '!src/TransmissionManager.Web*'
       - '!src/TransmissionManager.Web/**'
 
@@ -38,7 +38,11 @@ env:
   DOCKERFILE: ./TransmissionManager.Api/Dockerfile
 
 jobs:
+  build-test-api:
+    uses: ./.github/workflows/build-test-api.yml
+
   docker:
+    needs: build-test-api
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -58,7 +62,7 @@ jobs:
       # https://github.com/docker/metadata-action
       - name: Extract Docker metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -71,7 +75,7 @@ jobs:
       # https://github.com/docker/login-action
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -80,7 +84,7 @@ jobs:
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: "{{defaultContext}}:src"
           file: ${{ env.DOCKERFILE }}

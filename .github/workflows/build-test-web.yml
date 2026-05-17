@@ -1,0 +1,26 @@
+name: "Build and Test Web"
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.x'
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install wasm-tools workload
+        run: dotnet workload install wasm-tools
+
+      - name: Restore WEB dependencies
+        run: dotnet restore src/TransmissionManager.Web.slnx
+
+      - name: Build WEB solution
+        run: dotnet build src/TransmissionManager.Web.slnx --no-restore
