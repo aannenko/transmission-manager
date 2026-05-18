@@ -25,6 +25,21 @@ jobs:
       - name: Build API solution
         run: dotnet build src/TransmissionManager.Api.slnx --no-restore
 
+      - name: Regenerate compiled EF Core model
+        shell: pwsh
+        run: ./src/scripts/Optimize-DbContext.ps1 -NoBuild
+
+      - name: Verify compiled EF Core model is up to date
+        shell: pwsh
+        run: |
+          $changed = git status --porcelain
+          if ($changed) {
+            Write-Host $changed
+            git --no-pager diff
+            Write-Error "Compiled EF Core model is stale. Run src/scripts/Optimize-DbContext.ps1 locally."
+            exit 1
+          }
+
       - name: Run all API tests
         run: dotnet test src/TransmissionManager.Api.slnx --no-build --verbosity normal
 

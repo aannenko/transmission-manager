@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using TransmissionManager.Database.DbContextOptimized;
 using TransmissionManager.Database.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,10 @@ public static class DatabaseServiceCollectionExtensions
             .AddTransient<TorrentService>();
     }
 
-    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options) =>
-        options.UseSqlite(services.GetRequiredService<IConfiguration>().GetConnectionString(_appDbConfigKey));
+    private static void ConfigureDbContextOptions(IServiceProvider services, DbContextOptionsBuilder options)
+    {
+        _ = options
+            .UseModel(AppDbContextModel.Instance)
+            .UseSqlite(services.GetRequiredService<IConfiguration>().GetConnectionString(_appDbConfigKey));
+    }
 }

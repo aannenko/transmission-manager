@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Http;
 using TransmissionManager.BaseTests.HttpClient;
@@ -47,9 +46,7 @@ internal sealed class TestWebApplicationFactory<TProgram>(
 
         _ = builder.ConfigureServices(services =>
         {
-            _ = services
-                .RemoveAll<DbContextOptions<AppDbContext>>()
-                .AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
+            _ = services.ConfigureDbContext<AppDbContext>(options => options.UseSqlite(_connection));
 
             _ = services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
             {

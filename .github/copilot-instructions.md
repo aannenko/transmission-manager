@@ -1,126 +1,89 @@
 ﻿# Copilot Instructions for Transmission Manager
 
+> **Keep this file current.** When you discover or establish a new convention, invariant, gotcha, or non-obvious design choice during a task — or notice that existing content here is stale or contradicted by the codebase — proactively suggest an update to this file (and apply it if approved). Conversely, do **not** add content that is verifiable in seconds via `grep`/`view` or already obvious from the framework conventions (e.g., "use `dotnet build`"). The goal is signal-dense agent context, not exhaustive documentation.
+
 ## Build, Test, and Lint
 
-This is a .NET 10 solution using central package management (`Directory.Packages.props`). There are three `.slnx` files — use `TransmissionManager.slnx` for full-repo operations, or the scoped ones (`TransmissionManager.Api.slnx`, `TransmissionManager.Web.slnx`) when working on a specific app.
+.NET 10 solution; central package management via `Directory.Packages.props`. Three `.slnx` files: `TransmissionManager.slnx` (full repo), `TransmissionManager.Api.slnx`, `TransmissionManager.Web.slnx` (scoped). No separate lint command — `AnalysisLevel: latest-all` runs Roslyn analyzers at build time.
+
+Non-obvious `dotnet test` filter shapes:
 
 ```shell
-# Build everything
-dotnet build src/TransmissionManager.slnx
-
-# Build API solution only (includes libraries and tests)
-dotnet build src/TransmissionManager.Api.slnx
-
-# Run all tests
-dotnet test src/TransmissionManager.slnx
-
-# Run a specific test project
-dotnet test src/Tests/TransmissionManager.Database.Tests
-
-# Run a single test by class name
 dotnet test src/TransmissionManager.slnx --filter "ClassName=AddTorrentTests"
-
-# Run a single test by fully qualified name
 dotnet test src/TransmissionManager.slnx --filter "FullyQualifiedName~AddTorrentTests.AddTorrent_Returns201"
 ```
 
-No separate lint command — the projects use `AnalysisLevel: latest-all` which enforces Roslyn analyzers at build time.
-
 ## Architecture
 
-Two deployable apps backed by shared libraries:
+Two deployable apps:
 
-- **TransmissionManager.Api** — ASP.NET Core Minimal API that manages torrents in a Transmission daemon. Schedules automatic downloads via cron expressions.
-- **TransmissionManager.Web** — Blazor WebAssembly SPA served by Nginx. Talks to the API via a typed HTTP client.
+- **TransmissionManager.Api** — ASP.NET Core Minimal API. Schedules cron-driven torrent refreshes via Coravel.
+- **TransmissionManager.Web** — Blazor WebAssembly SPA served by Nginx.
 
 Shared libraries:
 
-- **TransmissionManager.Database** — EF Core + SQLite data access. Single `AppDbContext`, single `Torrent` entity, CRUD via `TorrentService`. Database is created with `EnsureCreatedAsync()` (no migrations).
-- **TransmissionManager.Transmission** — Typed HTTP client for the Transmission RPC protocol. Handles `X-Transmission-Session-Id` header management and uses `HttpStandardResilienceHandler` for retries/timeouts.
-- **TransmissionManager.TorrentWebPages** — HTTP client that scrapes web pages for magnet links using configurable regex patterns.
-- **TransmissionManager.Api.Common** — Shared DTOs, custom validation attributes (`[Cron]`, `[MagnetRegex]`), JSON serialization contexts, and endpoint constants. Referenced by both API and Web projects.
+- **TransmissionManager.Database** — EF Core + SQLite. Single `AppDbContext`, single `Torrent` entity, CRUD via `TorrentService`. Database created with `EnsureCreatedAsync()` — no migrations.
+- **TransmissionManager.Transmission** — Typed HTTP client for Transmission RPC. Manages `X-Transmission-Session-Id` refresh; uses `HttpStandardResilienceHandler`.
+- **TransmissionManager.TorrentWebPages** — HTTP client that scrapes magnet links via configurable regex.
+- **TransmissionManager.Api.Common** — Shared DTOs, validation attributes (`[Cron]`, `[MagnetRegex]`), `JsonSerializerContext` instances, endpoint constants. Referenced by both Api and Web.
 
 ## Key Conventions
 
 ### Endpoint structure (Vertical Slice / Action pattern)
 
-Each API endpoint lives in its own folder under `Actions/{Feature}/{ActionName}/` and contains:
+Endpoints live under `Actions/{Feature}/{ActionName}/` and combine an `{Action}Endpoint.cs`, an optional `{Action}Handler.cs`, an `{Action}Result.cs`/`{Action}Outcome.cs` enum or tuple, and DTOs. Endpoints return `Results<T1, T2, ...>` discriminated unions; errors use Problem Details (RFC 7807). `Actions/Torrents/Add/` is a representative folder.
 
-- `{Action}Endpoint.cs` — route definition via `MapXxx()`, delegates to the handler
-- `{Action}Handler.cs` — business logic, receives dependencies via primary constructor
-- `{Action}Result.cs` or `{Action}Outcome.cs` — result enum/tuple signaling success or failure type
-- Request/response DTOs and validation as needed
-
-Endpoints return `Results<T1, T2, ...>` discriminated unions for type-safe HTTP responses. Error responses use Problem Details (RFC 7807).
-
-**When to extract a Handler.** The `{Action}Handler` indirection earns its keep when the endpoint coordinates multiple services *or* models a non-trivial Outcome union (Success / NotFound / Conflict / external-system failure / etc.). Simple pass-through endpoints — single service call plus response projection — can keep the logic inline in the endpoint with a private static `BuildResponse`/`ToXxxResponse` helper. `GetTorrentPageEndpoint` is the deliberate example of the latter.
+**When to extract a Handler.** Extract when the endpoint coordinates multiple services *or* models a non-trivial Outcome union (Success / NotFound / Conflict / external-system failure / etc.). Simple pass-through endpoints keep logic inline with a private static `BuildResponse`/`ToXxxResponse` helper — `GetTorrentPageEndpoint` is the deliberate inline example.
 
 ### Keyset pagination (GetPage endpoint)
 
-The main communication surface between the Web and API projects is `GET /api/v1/torrents`, which uses **keyset (cursor) pagination** — not offset-based skip/take.
+`GET /api/v1/torrents` uses **keyset (cursor) pagination**. The cursor is `anchorId` (`long?`) + `anchorValue` (`string?`, formatted per sort field; `null` when ordering by `Id` alone).
 
-The cursor is a pair of query parameters:
+Invariants:
 
-- **`anchorId`** (`long?`) — the `Id` of the last item on the current page.
-- **`anchorValue`** (`string?`) — the value of the current sort field for that item. `null` when ordering by `Id` alone; a formatted `DateTimeOffset` string for `RefreshDate`; or the raw string for `Name`/`WebPage`/`DownloadDir`.
+- All non-`Id` orderings use `Id` as a deterministic tiebreaker.
+- Backward pagination **reverses** the sort, fetches `take+1` as a probe, slices from the end, then re-sorts to the original order.
+- Response (`GetTorrentPageResponse`) includes pre-computed `NextPageAddress` / `PreviousPageAddress` URLs as the easy path for clients. Both are `null` at boundaries; the opposite-direction URL is emitted **only** when `parameters.AnchorId != null`.
+- Cursor advancement helpers (`ToNextPageParameters` / `ToPreviousPageParameters`) live in `TransmissionManager.Api.Common` so clients can reconstruct cursors from any page when the pre-computed URLs don't suffice (e.g., to refresh a page in place or change `Take`/`PropertyStartsWith` mid-walk). `Parse` stays in `TransmissionManager.Api` because it returns an internal type.
 
-All non-Id orderings use `Id` as a tiebreaker to guarantee deterministic ordering. Backward pagination reverses the sort, fetches, then re-sorts to the original order.
+### DI registration
 
-The response includes pre-computed `NextPageAddress` and `PreviousPageAddress` URL strings so clients don't need to construct cursors themselves:
-
-```csharp
-record GetTorrentPageResponse(
-    IReadOnlyList<TorrentDto> Torrents,
-    string? NextPageAddress,
-    string? PreviousPageAddress);
-```
-
-Additional query parameters: `orderBy` (10 enum values covering 5 fields × asc/desc), `take` (1–1000, default 20), `direction` (Forward/Backward), `propertyStartsWith` (prefix filter across multiple string columns), `cronExists` (nullable bool filter).
-
-The query construction logic lives in `QueryableTorrentExtensions.WhereOrderByTake` in the Database project.
-
-### DI registration pattern
-
-Each library exposes an `Add{Feature}Services` extension method on `IServiceCollection` (in an `Extensions/` folder). These are composed in `Program.cs`:
-
-```csharp
-builder.Services.AddDatabaseServices();
-builder.Services.AddTorrentWebPagesServices(builder.Configuration);
-builder.Services.AddTransmissionServices(builder.Configuration);
-```
+Each library exposes `Add{Feature}Services(IServiceCollection)` under `Extensions/`; `Program.cs` composes them. New library → new `Add{Feature}Services`.
 
 ### JSON serialization
 
-All JSON serialization uses **source-generated `JsonSerializerContext`** classes for trimming/AOT compatibility. When adding new DTOs or types that need serialization, register them in the appropriate context:
-
-- `DtoJsonSerializerContext` (in Api.Common) — shared DTOs
-- `ApiJsonSerializerContext` (in Api) — API-internal types
-- `TransmissionJsonSerializerContext` (in Transmission) — Transmission RPC types
+All JSON serialization goes through **source-generated `JsonSerializerContext`** classes for trimming/AOT compatibility. New serialized types must be registered in the matching context: `DtoJsonSerializerContext` (Api.Common, shared DTOs), `ApiJsonSerializerContext` (Api, internal), `TransmissionJsonSerializerContext` (Transmission RPC).
 
 ### Code organization
 
-Prefer extracting stateful or self-contained logic into dedicated classes rather than embedding it inline in components or endpoints. This is the pattern across the codebase (e.g., handlers separated from endpoints, wrapper services around HTTP clients, `TorrentSchedulerService` wrapping Coravel scheduling).
+Prefer extracting stateful or self-contained logic into dedicated classes (handlers split from endpoints, wrapper services around HTTP clients, `TorrentSchedulerService` wrapping Coravel). Avoid inlining anything beyond trivial in endpoints or components.
+
+### Concurrency (OCC)
+
+`Torrent.Version` (`long`) is the optimistic-concurrency token. `TorrentService.UpdateOneAsync` and `DeleteOneAsync` take a **required** `version` and return `TorrentMutationOutcome(TorrentMutationResult Result, long? CurrentVersion)`, where `Result` is `Success` / `NotFound` / `Conflict`; on `Conflict`, `CurrentVersion` is the current row version so the caller can retry. `[ConcurrencyCheck]` on `Version` is defence-in-depth for any future code that mutates via the EF change tracker.
+
+### Compiled EF Core model
+
+`AppDbContext` is wired with `UseModel(AppDbContextModel.Instance)` in `DatabaseServiceCollectionExtensions.cs` against a `dotnet ef dbcontext optimize` output checked in under `src/TransmissionManager.Database/DbContextOptimized/`. That single explicit call is the canonical wiring — it also breaks compilation if the generated file is deleted. Every other consumer (including all tests) relies on auto-discovery via the `[assembly: DbContextModel(typeof(AppDbContext), typeof(AppDbContextModel))]` attribute in `AppDbContextAssemblyAttributes.cs`. `CompiledModelTests` guards auto-discovery from silent regression.
+
+Regenerate via `src/scripts/Optimize-DbContext.ps1`. The script accepts `-NoBuild` (CI uses this to reuse the workflow's prior `dotnet build`); `--no-build` is always forwarded to `dotnet ef dbcontext optimize`. CI's "Verify compiled EF Core model is up to date" step fails if the regenerated model differs from the checked-in copy. The `dotnet-ef` version pinned in `src/.config/dotnet-tools.json` and the `Microsoft.EntityFrameworkCore.Design` version pinned in `src/Directory.Packages.props` must be bumped together.
+
+**Gotcha — do not "fix" the missing `Relational:Collation` annotations.** The generated `TorrentEntityType.cs` adds the five `NOCASE`-collated string properties (`HashString`, `Name`, `WebPageUri`, `DownloadDir`, `Cron`) without any collation annotation, and `IProperty.GetCollation()` throws on the read-optimized model. This is by design: the read-optimized (compiled) model carries only what the query pipeline needs; `OnModelCreating` still runs at startup and re-applies `UseCollation("NOCASE")`, so `EnsureCreatedAsync` produces `TEXT COLLATE NOCASE` columns and the unique indexes on `HashString`/`WebPageUri` remain case-insensitive. Verified end-to-end. If a reviewer flags "compiled model drops NOCASE collations", point them here.
 
 ### Independence from Transmission
 
-TransmissionManager and the Transmission daemon are **independent systems** that the user may operate separately. The local catalog is not a mirror of Transmission's state — a torrent may exist in one and not the other by design. Consequently, when a request mutates one side and the other side fails or races (e.g. local OCC conflict after a successful Transmission removal, or vice versa), it is acceptable to surface the partial outcome (`409 Conflict`, `424 Failed Dependency`, etc.) and let the user retry. Do **not** introduce non-OCC fallbacks, compensating writes, or "force-finish" paths to keep the two sides in lockstep.
+TransmissionManager and the Transmission daemon are **independent systems**. The local catalog is not a mirror — a torrent may exist on one side and not the other by design. When a request mutates one side and the other side fails or races (e.g., local OCC conflict after a successful Transmission removal, or vice versa), surface the partial outcome (`409 Conflict`, `424 Failed Dependency`, etc.) and let the user retry. Do **not** introduce non-OCC fallbacks, compensating writes, or "force-finish" paths to keep the two sides in lockstep.
 
 ### C# style
 
-- Primary constructors for DI injection (no manual field declarations)
-- File-scoped namespaces
-- Records for DTOs
-- `internal sealed` for non-public implementation classes
-- `ConfigureAwait(false)` on async calls in library code
+Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal sealed` for non-public implementations; `ConfigureAwait(false)` in library async code.
 
 ### Testing
 
-- **NUnit 4** with `[Parallelizable(ParallelScope.Self)]`
-- Shared test utilities in `TransmissionManager.BaseTests` — includes `FakeHttpMessageHandler` for mocking HTTP calls and `FakeOptionsMonitor<T>` for options
-- Integration tests use `WebApplicationFactory<Program>` with fake HTTP handlers substituted for real external services
-- CA1707 is suppressed in test projects to allow underscores in test method names
-- **Mirrored API ↔ DB enums** — when the API exposes an enum that the DB layer also has (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API project gets the specific name (`Get{Action}{Concept}`) and the DB project gets a generic name so it can be reused; cross-project value/name parity is asserted by a mapping test in `TransmissionManager.Api.IntegrationTests` (see `GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
+**NUnit 4**, parallelism `[Parallelizable(ParallelScope.Self)]`. Shared utilities in `TransmissionManager.BaseTests` (`FakeHttpMessageHandler`, `FakeOptionsMonitor<T>`). Integration tests use `WebApplicationFactory<Program>` with fake HTTP handlers; `TestWebApplicationFactory` composes on top of production DI via `ConfigureDbContext<AppDbContext>` (overriding only the SQLite connection). CA1707 is suppressed in test projects.
+
+**Mirrored API ↔ DB enums.** When an API enum has a DB counterpart (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API gets the specific name (`Get{Action}{Concept}`) and the DB gets a reusable generic name. Cross-project value/name parity is asserted by mapping tests in `TransmissionManager.Api.IntegrationTests` (`GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
 
 ### Docker
 
-Both apps have multi-stage Dockerfiles targeting `linux/amd64` and `linux/arm64`. The API uses `runtime-deps:chiseled-extra` (minimal, non-root). The Web app runs on `nginx:alpine`. Published with `PublishTrimmed=true`.
+Multi-stage Dockerfiles target `linux/amd64` and `linux/arm64`. API uses `runtime-deps:chiseled-extra` (minimal, non-root); Web uses `nginx:alpine`. Published with `PublishTrimmed=true`.
