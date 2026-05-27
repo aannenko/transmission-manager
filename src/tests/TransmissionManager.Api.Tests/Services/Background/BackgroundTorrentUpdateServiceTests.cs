@@ -12,7 +12,7 @@ using TransmissionManager.Database.Services;
 using TransmissionManager.Transmission.Options;
 using TransmissionManager.Transmission.Services;
 
-namespace TransmissionManager.Api.IntegrationTests.Services.Background;
+namespace TransmissionManager.Api.Tests.Services.Background;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class BackgroundTorrentUpdateServiceTests

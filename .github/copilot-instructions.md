@@ -82,7 +82,7 @@ Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal
 
 **NUnit 4**, parallelism `[Parallelizable(ParallelScope.Self)]`. Shared utilities in `TransmissionManager.BaseTests` (`FakeHttpMessageHandler`, `FakeOptionsMonitor<T>`). Integration tests use `WebApplicationFactory<Program>` with fake HTTP handlers; `TestWebApplicationFactory` composes on top of production DI via `ConfigureDbContext<AppDbContext>` (overriding only the SQLite connection). CA1707 is suppressed in test projects.
 
-**Mirrored API ↔ DB enums.** When an API enum has a DB counterpart (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API gets the specific name (`Get{Action}{Concept}`) and the DB gets a reusable generic name. Cross-project value/name parity is asserted by mapping tests in `TransmissionManager.Api.IntegrationTests` (`GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
+**Mirrored API ↔ DB enums.** When an API enum has a DB counterpart (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API gets the specific name (`Get{Action}{Concept}`) and the DB gets a reusable generic name. Cross-project value/name parity is asserted by mapping tests in `TransmissionManager.Api.Tests` (`GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
 
 ### Docker
 

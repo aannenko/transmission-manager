@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Api.Services.Development;
 using TransmissionManager.Database.Services;
 
-namespace TransmissionManager.Api.IntegrationTests.Development;
+namespace TransmissionManager.Api.Tests.Development;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class DevDatabaseSeederTests

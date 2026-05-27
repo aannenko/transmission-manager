@@ -1,7 +1,7 @@
 ﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 
-namespace TransmissionManager.Api.IntegrationTests.Torrents;
+namespace TransmissionManager.Api.Tests.Torrents;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class GetTorrentPageOrderMappingTests
