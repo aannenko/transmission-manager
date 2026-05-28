@@ -197,9 +197,8 @@ internal sealed class DeleteTorrentByIdTests
     [Test]
     public async Task DeleteTorrentByIdAsync_WhenNonLocalAndVersionMismatch_ReturnsConflictAndDoesNotCallTransmission()
     {
-        // Stale version on a non-local delete must short-circuit before any Transmission RPC.
-        // The mock Transmission backend has no mapping for id=3's hash; if the handler reached
-        // it, the response would be a 424 dependency failure or a stray 5xx, never a 409.
+        // Stale version on a non-local delete must short-circuit before the Transmission RPC.
+        // Transmission mock has no mapping for id=3's hash, so any RPC would yield 424 or 5xx, never 409.
         var response = await _client
             .DeleteAsync($"{EndpointAddresses.Torrents}/3?version=999&deleteType=LocalAndTransmissionAndData")
             .ConfigureAwait(false);
