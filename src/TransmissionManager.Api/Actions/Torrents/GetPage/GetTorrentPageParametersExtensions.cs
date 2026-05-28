@@ -1,6 +1,8 @@
 ﻿using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using TransmissionManager.Api.Common.Dto.Torrents;
+using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 using Parameters = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageParameters;
 using ParsedParams = TransmissionManager.Api.Actions.Torrents.GetPage.GetTorrentPageParsedParameters;
@@ -65,4 +67,90 @@ internal static class GetTorrentPageParametersExtensions
                 out result);
         }
     }
+
+    public static Parameters? ToNextPageParameters(
+        this Parameters parameters,
+        IReadOnlyList<TorrentDto> currentPage)
+    {
+        ArgumentNullException.ThrowIfNull(currentPage);
+
+        if (currentPage.Count is 0)
+            return parameters.AnchorId is not null && parameters.Direction is Direction.Backward
+                ? ToEmptyPageFallback(parameters)
+                : null;
+
+        return parameters with
+        {
+            AnchorId = currentPage[^1].Id,
+            AnchorValue = parameters.OrderBy switch
+            {
+                Order.Id or Order.IdDesc => null,
+                Order.RefreshDate or Order.RefreshDateDesc => ToDateTimeAnchorString(currentPage[^1].RefreshDate),
+                Order.Name or Order.NameDesc => currentPage[^1].Name,
+                Order.WebPage or Order.WebPageDesc => currentPage[^1].WebPageUri.OriginalString,
+                Order.DownloadDir or Order.DownloadDirDesc => currentPage[^1].DownloadDir,
+                _ => null,
+            },
+            Direction = Direction.Forward
+        };
+    }
+
+    public static Parameters? ToPreviousPageParameters(
+        this Parameters parameters,
+        IReadOnlyList<TorrentDto> currentPage)
+    {
+        ArgumentNullException.ThrowIfNull(currentPage);
+
+        if (currentPage.Count is 0)
+            return parameters.AnchorId is not null && parameters.Direction is Direction.Forward
+                ? ToEmptyPageFallback(parameters)
+                : null;
+
+        return parameters with
+        {
+            AnchorId = currentPage[0].Id,
+            AnchorValue = parameters.OrderBy switch
+            {
+                Order.Id or Order.IdDesc => null,
+                Order.RefreshDate or Order.RefreshDateDesc => ToDateTimeAnchorString(currentPage[0].RefreshDate),
+                Order.Name or Order.NameDesc => currentPage[0].Name,
+                Order.WebPage or Order.WebPageDesc => currentPage[0].WebPageUri.OriginalString,
+                Order.DownloadDir or Order.DownloadDirDesc => currentPage[0].DownloadDir,
+                _ => null,
+            },
+            Direction = Direction.Backward
+        };
+    }
+
+    // Recovery for empty pages. The DB layer uses strict `<` / `>` comparisons, so shifting
+    // AnchorId by ±1 turns the strict bound into an inclusive one, putting the request's
+    // boundary item back inside the flipped-direction fallback page.
+    //
+    // Bump direction depends on BOTH request direction and OrderBy direction because
+    // WhereOrderByTake reverses OrderBy for Backward requests. The resulting rule simplifies to
+    // `bumpUp = isForward XOR isDescending` (use `< X+1`; otherwise `> X-1`).
+    //
+    // Cap at long.MaxValue / long.MinValue: SQLite AUTOINCREMENT Ids start at 1 and only grow,
+    // so no real row sits at the cap. At the cap, strict comparison degrades to today's
+    // behavior (boundary excluded) only for an impossible Id. Do NOT "fix" the cap.
+    private static Parameters ToEmptyPageFallback(Parameters parameters)
+    {
+        var anchorId = parameters.AnchorId!.Value;
+        var isForward = parameters.Direction is Direction.Forward;
+        var isDescending = parameters.OrderBy.IsDescending();
+
+        var bumpIdUp = isForward != isDescending;
+        var sentinel = bumpIdUp
+            ? (anchorId is long.MaxValue ? long.MaxValue : anchorId + 1)
+            : (anchorId is long.MinValue ? long.MinValue : anchorId - 1);
+
+        return parameters with
+        {
+            AnchorId = sentinel,
+            Direction = isForward ? Direction.Backward : Direction.Forward,
+        };
+    }
+
+    private static string ToDateTimeAnchorString(DateTimeOffset dateTimeOffset) =>
+        dateTimeOffset.ToUniversalTime().ToString(Parameters.DateFormat, CultureInfo.InvariantCulture);
 }

@@ -44,7 +44,7 @@ Invariants:
 - All non-`Id` orderings use `Id` as a deterministic tiebreaker.
 - Backward pagination **reverses** the sort, fetches `take+1` as a probe, slices from the end, then re-sorts to the original order.
 - Response (`GetTorrentPageResponse`) includes pre-computed `NextPageAddress` / `PreviousPageAddress` URLs as the easy path for clients. Both are `null` at boundaries; the opposite-direction URL is emitted **only** when `parameters.AnchorId != null`.
-- Cursor advancement helpers (`ToNextPageParameters` / `ToPreviousPageParameters`) live in `TransmissionManager.Api.Common` so clients can reconstruct cursors from any page when the pre-computed URLs don't suffice (e.g., to refresh a page in place or change `Take`/`PropertyStartsWith` mid-walk). `Parse` stays in `TransmissionManager.Api` because it returns an internal type.
+- `TransmissionManager.Api.Common` exposes `GetTorrentPageParameters.ToPathAndQueryString` (the Web client uses it to format the request URL). Server-side cursor-construction helpers (`ToNextPageParameters` / `ToPreviousPageParameters` / `Parse` / the empty-page fallback) live in `TransmissionManager.Api/Actions/Torrents/GetPage/` because they only shape the server's response and the Web client never reconstructs cursors itself — it follows the `NextPageAddress` / `PreviousPageAddress` strings the server already emits.
 
 ### DI registration
 

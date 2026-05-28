@@ -74,19 +74,6 @@ internal static class GetTorrentPageEndpoint
         var nextParams = emitNext ? parameters.ToNextPageParameters(dtos) : null;
         var prevParams = emitPrevious ? parameters.ToPreviousPageParameters(dtos) : null;
 
-        // Empty page + non-null request anchor: the helpers can't extract an anchor from an
-        // empty list, but a stale/out-of-range cursor still warrants a way back. Fall back to
-        // the request's own anchor in the opposite direction so server-led navigation never
-        // dead-ends. (Opposite-direction URLs remain best-effort: a hand-crafted anchor below
-        // the dataset will produce a fallback URL that itself returns empty. Acceptable.)
-        if (dtos.Length is 0 && parameters.AnchorId is not null)
-        {
-            if (parameters.Direction is Direction.Forward)
-                prevParams ??= parameters with { Direction = Direction.Backward };
-            else
-                nextParams ??= parameters with { Direction = Direction.Forward };
-        }
-
         return new GetTorrentPageResponse(
             dtos,
             nextParams?.ToPathAndQueryString(),

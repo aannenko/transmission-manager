@@ -119,13 +119,13 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
                     .ReadAsStreamAsync(cancellationToken)
                     .ConfigureAwait(false);
 
-                using var document = await System.Text.Json.JsonDocument
+                using var document = await JsonDocument
                     .ParseAsync(stream, cancellationToken: cancellationToken)
                     .ConfigureAwait(false);
 
-                if (document.RootElement.ValueKind is System.Text.Json.JsonValueKind.Object
+                if (document.RootElement.ValueKind is JsonValueKind.Object
                     && document.RootElement.TryGetProperty(ProblemDetailsExtensionKeys.CurrentVersion, out var element)
-                    && element.ValueKind is System.Text.Json.JsonValueKind.Number
+                    && element.ValueKind is JsonValueKind.Number
                     && element.TryGetInt64(out var v))
                 {
                     currentVersion = v;
