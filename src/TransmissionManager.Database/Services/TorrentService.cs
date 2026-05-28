@@ -7,40 +7,32 @@ namespace TransmissionManager.Database.Services;
 
 /// <remarks>
 /// <para>
-/// The OCC mutation paths (<see cref="UpdateOneAsync"/> and
-/// <see cref="DeleteOneAsync"/>) use <c>ExecuteUpdateAsync</c> /
-/// <c>ExecuteDeleteAsync</c> with an explicit
-/// <c>Id == id &amp;&amp; Version == version</c> predicate. They bypass the EF
-/// change tracker and therefore do <b>not</b> throw
-/// <see cref="DbUpdateConcurrencyException"/>; the affected-row count plus a
-/// single disambiguating SELECT (<see cref="ResolveLostRaceAsync"/>) decides
-/// between Success / NotFound / Conflict. This relies on the underlying
-/// provider not reusing primary-key values for deleted rows
-/// (SQLite <c>AUTOINCREMENT</c>, PostgreSQL sequences, SQL Server
-/// <c>IDENTITY</c>, MySQL <c>AUTO_INCREMENT</c>).
+/// The OCC mutation paths (<see cref="UpdateOneAsync"/> and <see cref="DeleteOneAsync"/>) use
+/// <c>ExecuteUpdateAsync</c> / <c>ExecuteDeleteAsync</c> with an explicit
+/// <c>Id == id &amp;&amp; Version == version</c> predicate. They bypass the EF change tracker
+/// and therefore do <b>not</b> throw <see cref="DbUpdateConcurrencyException"/>; the
+/// affected-row count plus a single disambiguating SELECT (<see cref="ResolveLostRaceAsync"/>)
+/// decides between Success / NotFound / Conflict. This relies on SQLite <c>AUTOINCREMENT</c>
+/// not reusing primary-key values for deleted rows.
 /// </para>
 /// <para>
-/// The disambiguation result is best-effort: it reflects the row state at the
-/// follow-up SELECT, which can legitimately differ from the state at the
-/// failed UPDATE/DELETE under continued concurrent churn (e.g. another writer
-/// deletes the row between the failed mutation and the SELECT, turning what
-/// was a Conflict into a NotFound). Do not try to harden this with a
-/// transaction — that would re-introduce the second round-trip on the hot path
-/// that this design was built to eliminate.
+/// The disambiguation result is best-effort: it reflects the row state at the follow-up SELECT,
+/// which can legitimately differ from the state at the failed UPDATE/DELETE under continued
+/// concurrent churn (e.g. another writer deletes the row between the failed mutation and the
+/// SELECT, turning what was a Conflict into a NotFound). Do not try to harden this with a
+/// transaction — that would re-introduce the second round-trip on the hot path that this design
+/// was built to eliminate.
 /// </para>
 /// <para>
-/// <b>Future-maintainer warning:</b> if you add a new method that mutates a
-/// <c>Torrent</c> via the EF change tracker (<c>Add</c> / <c>Update</c> /
-/// <c>Remove</c> followed by <c>SaveChangesAsync</c>), the
-/// <c>[ConcurrencyCheck]</c> attribute on <c>Torrent.Version</c> will arm a
-/// <c>WHERE Version=@orig</c> filter on the generated SQL and
-/// <see cref="DbUpdateConcurrencyException"/> can fire. You must catch it,
-/// map to <c>Conflict</c> / <c>NotFound</c> via
-/// <see cref="ResolveLostRaceAsync"/>, and call
-/// <c>dbContext.ChangeTracker.Clear()</c> in the catch — otherwise the
-/// failed entity stays tracked with stale <c>OriginalValues</c> and the next
-/// <c>SaveChangesAsync</c> on the same scoped <c>DbContext</c> would
-/// silently retry the lost write.
+/// <b>Future-maintainer warning:</b> if you add a new method that mutates a <c>Torrent</c> via
+/// the EF change tracker (<c>Add</c> / <c>Update</c> / <c>Remove</c> followed by
+/// <c>SaveChangesAsync</c>), the <c>[ConcurrencyCheck]</c> attribute on <c>Torrent.Version</c>
+/// will arm a <c>WHERE Version=@orig</c> filter on the generated SQL and
+/// <see cref="DbUpdateConcurrencyException"/> can fire. You must catch it, map to
+/// <c>Conflict</c> / <c>NotFound</c> via <see cref="ResolveLostRaceAsync"/>, and call
+/// <c>dbContext.ChangeTracker.Clear()</c> in the catch — otherwise the failed entity stays
+/// tracked with stale <c>OriginalValues</c> and the next <c>SaveChangesAsync</c> on the same
+/// scoped <c>DbContext</c> would silently retry the lost write.
 /// </para>
 /// </remarks>
 public sealed class TorrentService(AppDbContext dbContext)

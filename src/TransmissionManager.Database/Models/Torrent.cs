@@ -24,18 +24,13 @@ public sealed class Torrent
 
     /// <summary>
     /// Optimistic concurrency token. Initialised to <c>1</c> by
-    /// <c>TorrentAddDtoExtensions.ToTorrent</c> and bumped to <c>(version + 1)</c> by
-    /// <c>TorrentService.UpdateOneAsync</c> via an explicit <c>SetProperty</c> inside
-    /// <c>ExecuteUpdateAsync</c> (the OCC predicate is
-    /// <c>Id == id &amp;&amp; Version == version</c>; see <c>TorrentService</c> for details).
+    /// <c>TorrentAddDtoExtensions.ToTorrent</c> and bumped by <c>TorrentService.UpdateOneAsync</c>
+    /// via an explicit <c>SetProperty</c> inside <c>ExecuteUpdateAsync</c>.
     /// </summary>
     /// <remarks>
-    /// <see cref="ConcurrencyCheckAttribute"/> is kept as defence in depth: any future code
-    /// path that mutates a <c>Torrent</c> via the EF change tracker (<c>Add</c> / <c>Update</c>
-    /// / <c>Remove</c> + <c>SaveChangesAsync</c>) will additionally get a
-    /// <c>WHERE Version=@orig</c> filter and a <c>DbUpdateConcurrencyException</c> on a lost
-    /// race. See the <c>&lt;remarks&gt;</c> on <c>TorrentService</c> for the contract that
-    /// such future code must follow.
+    /// <see cref="ConcurrencyCheckAttribute"/> is defence in depth for any future code path that
+    /// mutates a <c>Torrent</c> via the EF change tracker. See the <c>&lt;remarks&gt;</c> on
+    /// <c>TorrentService</c> for the OCC contract and the constraints such code must follow.
     /// </remarks>
     [ConcurrencyCheck]
     public required long Version { get; set; }
