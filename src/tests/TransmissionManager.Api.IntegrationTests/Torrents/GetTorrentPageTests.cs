@@ -433,6 +433,86 @@ internal sealed class GetTorrentPageTests
         AssertTorrentPage(page, _torrents, null, expectedFallbackRecoveryPrevPage);
     }
 
+    [Test]
+    public async Task GetTorrentPageAsync_WhenOrderByHasDuplicateAnchorValueAndPageIsEmpty_FallbackUrlIncludesBoundaryWithCorrectTieBreaking()
+    {
+        // Seed: Id=2 and Id=3 share Name "TV Show B"; ascending (Name, Id) order is [1, 2, 3].
+        // Forward + Name anchored at the last row (Id=3, "TV Show B") yields empty. The fallback's
+        // +1 bump (forward + asc -> bumpIdUp=true -> anchorId=4, Backward) must include both the
+        // boundary (Id=3) AND its duplicate-Name sibling (Id=2), in correct (Name, Id) order —
+        // proving the (key, id) tie-breaker keeps the strict-to-inclusive flip well-behaved even
+        // when the boundary sits inside a duplicate-AnchorValue group.
+        const string duplicateName = "TV Show B";
+        var refreshDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+        var torrents = new[]
+        {
+            new Torrent
+            {
+                Id = default,
+                HashString = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                Name = "TV Show A",
+                WebPageUri = "https://example.com/forum/viewtopic.php?t=1",
+                DownloadDir = "/tvshows",
+                RefreshDate = refreshDate,
+                Version = 1,
+            },
+            new Torrent
+            {
+                Id = default,
+                HashString = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                Name = duplicateName,
+                WebPageUri = "https://example.com/forum/viewtopic.php?t=2",
+                DownloadDir = "/tvshows",
+                RefreshDate = refreshDate,
+                Version = 1,
+            },
+            new Torrent
+            {
+                Id = default,
+                HashString = "cccccccccccccccccccccccccccccccccccccccc",
+                Name = duplicateName,
+                WebPageUri = "https://example.com/forum/viewtopic.php?t=3",
+                DownloadDir = "/tvshows",
+                RefreshDate = refreshDate,
+                Version = 1,
+            },
+        };
+
+        var factory = new TestWebApplicationFactory<Program>(torrents, null, null);
+        await using var factoryAwaiter = factory.ConfigureAwait(false);
+        using var client = factory.CreateClient();
+
+        var parameters = new Parameters(
+            OrderBy: GetTorrentPageOrder.Name,
+            Take: 10,
+            AnchorId: 3,
+            AnchorValue: duplicateName);
+
+        var response = await client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+
+        var expectedFallbackPreviousPage = EndpointAddresses.Torrents +
+            "?take=10&orderBy=Name&anchorId=4&anchorValue=TV+Show+B&direction=Backward";
+
+        AssertTorrentPage(page, [], null, expectedFallbackPreviousPage);
+
+        // Behavioral: clicking the fallback returns all three rows in (Name, Id) ascending order.
+        // Id=2 and Id=3 share Name; their relative order proves the Id tiebreaker survives the bump.
+        response = await client.GetAsync(expectedFallbackPreviousPage).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+
+        var expectedFallbackRecoveryNextPage = EndpointAddresses.Torrents +
+            "?take=10&orderBy=Name&anchorId=3&anchorValue=TV+Show+B";
+
+        AssertTorrentPage(page, torrents, expectedFallbackRecoveryNextPage, null);
+    }
+
     [TestCaseSource(nameof(GetGetTorrentPageAsyncBadRequestTestCases))]
     public async Task GetTorrentPageAsync_WhenSpecificParametersAreUsed_ReturnsExpectedValidationProblem(
         Parameters parameters,

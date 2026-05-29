@@ -1,6 +1,6 @@
 ﻿namespace TransmissionManager.Database.Dto;
 
-public static class TorrentOrderExtensions
+internal static class TorrentOrderExtensions
 {
     public static bool IsDescending(this TorrentOrder orderBy)
     {
