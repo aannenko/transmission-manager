@@ -11,7 +11,7 @@ namespace TransmissionManager.Database.DbContextOptimized
     public partial class AppDbContextModel
     {
         private AppDbContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("3da05aa4-4234-48e5-a7d5-c9a458e9913b"), entityTypeCount: 1)
+            : base(skipDetectChanges: false, modelId: new Guid("2dfa02a8-cb7a-4a69-aa37-b79ae02ac980"), entityTypeCount: 1)
         {
         }
 

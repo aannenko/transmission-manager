@@ -96,6 +96,20 @@ internal sealed class GetTorrentPageTests
     }
 
     [Test]
+    public async Task GetTorrentPageAsync_WhenCronExistsIsFalse_ReturnsCronLessTorrents()
+    {
+        var parameters = new Parameters(CronExists: false);
+
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+
+        AssertTorrentPage(page, [_torrents[1]], null, null);
+    }
+
+    [Test]
     public async Task GetTorrentPageAsync_WhenPropertyStartsWithPointsToExistingWebPageUri_ReturnsMatchingTorrent()
     {
         var parameters = new Parameters(

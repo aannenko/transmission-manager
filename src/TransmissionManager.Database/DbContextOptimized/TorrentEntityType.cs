@@ -95,7 +95,6 @@ namespace TransmissionManager.Database.DbContextOptimized
 
             var index = runtimeEntityType.AddIndex(
                 new[] { cron });
-            index.AddAnnotation("Relational:Filter", "Cron IS NOT NULL");
 
             var index0 = runtimeEntityType.AddIndex(
                 new[] { downloadDir });

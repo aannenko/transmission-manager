@@ -40,7 +40,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         _ = torrentBuilder.HasIndex(static torrent => torrent.DownloadDir);
         _ = torrentBuilder.Property(static torrent => torrent.DownloadDir).UseCollation(_noCaseCollation);
 
-        _ = torrentBuilder.HasIndex(static torrent => torrent.Cron).HasFilter($"{nameof(Torrent.Cron)} IS NOT NULL");
+        _ = torrentBuilder.HasIndex(static torrent => torrent.Cron);
         _ = torrentBuilder.Property(static torrent => torrent.Cron).UseCollation(_noCaseCollation);
     }
 }

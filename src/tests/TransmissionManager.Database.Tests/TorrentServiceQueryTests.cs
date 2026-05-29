@@ -212,6 +212,18 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
             TestName = "GetPageAsync_WhenCronExistsIsTrueAndDirectionIsBackward_ReturnsFilteredArrayOfTorrents"
         };
 
+        yield return new(new(default, new(CronExists: false), [InitialTorrents[1]]))
+        {
+            TypeArgs = [typeof(string)],
+            TestName = "GetPageAsync_WhenCronExistsIsFalse_ReturnsFilteredArrayOfTorrents"
+        };
+
+        yield return new(new(new(Direction: PaginationDirection.Backward), new(CronExists: false), [InitialTorrents[1]]))
+        {
+            TypeArgs = [typeof(string)],
+            TestName = "GetPageAsync_WhenCronExistsIsFalseAndDirectionIsBackward_ReturnsFilteredArrayOfTorrents"
+        };
+
         yield return new(new(default, new(InitialTorrents[2].Name[..1], true), InitialTorrents[2..]))
         {
             TypeArgs = [typeof(string)],
