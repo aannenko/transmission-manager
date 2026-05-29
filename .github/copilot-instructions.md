@@ -44,6 +44,7 @@ Invariants:
 - All non-`Id` orderings use `Id` as a deterministic tiebreaker.
 - Backward pagination **reverses** the sort, fetches `take+1` as a probe, slices from the end, then re-sorts to the original order.
 - Response (`GetTorrentPageResponse`) includes pre-computed `NextPageAddress` / `PreviousPageAddress` URLs as the easy path for clients. Both are `null` at boundaries; the opposite-direction URL is emitted **only** when `parameters.AnchorId != null`.
+- **Empty-page fallback**: when the DB returns an empty page and `parameters.AnchorId != null`, the opposite-direction URL is computed by `ToEmptyPageFallback` — it flips `Direction` and shifts `AnchorId` by ±1 per `bumpIdUp = isForward XOR isDescending`. The DB layer uses strict `<` / `>` comparisons, so the ±1 sentinel turns the strict bound into an inclusive one, and clicking the fallback URL returns a page that **includes** the original request's boundary item. `AnchorValue` and all filters (`PropertyStartsWith`, `CronExists`) are preserved. The sentinel saturates at `long.MaxValue` / `long.MinValue` — deliberate, because SQLite `AUTOINCREMENT` Ids start at 1 and grow monotonically, so no real row ever sits at the cap; at the cap, strict comparison degrades to pre-bump behavior (boundary excluded) only for an impossible Id. Do **not** "fix" the cap.
 - `TransmissionManager.Api.Common` exposes `GetTorrentPageParameters.ToPathAndQueryString` (the Web client uses it to format the request URL). Server-side cursor-construction helpers (`ToNextPageParameters` / `ToPreviousPageParameters` / `Parse` / the empty-page fallback) live in `TransmissionManager.Api/Actions/Torrents/GetPage/` because they only shape the server's response and the Web client never reconstructs cursors itself — it follows the `NextPageAddress` / `PreviousPageAddress` strings the server already emits.
 
 ### DI registration
@@ -77,6 +78,12 @@ TransmissionManager and the Transmission daemon are **independent systems**. The
 ### C# style
 
 Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal sealed` for non-public implementations; `ConfigureAwait(false)` in library async code.
+
+### Naming conventions
+
+**Extension classes always end in `Extensions`.** Pattern: `<Receiver>Extensions` for receiver-only naming (`RegexExtensions`, `ServiceCollectionExtensions`, `EndpointRouteBuilderExtensions`), or `<Receiver><Entity>Extensions` when the extension targets a specific entity or descriptor (`QueryableTorrentExtensions`, `ModelBuilderTorrentExtensions`, `DatabaseServiceCollectionExtensions`). Even single-method static helper classes follow this rule — if it's a `static class` with extension methods, it ends in `Extensions`.
+
+Static classes that are *not* extension classes (e.g. constants holders like `PageAddresses`, EF Core `IEntityTypeConfiguration<T>` implementations) do not take the suffix.
 
 ### Testing
 
