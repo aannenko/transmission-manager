@@ -1,6 +1,8 @@
 ﻿# Copilot Instructions for Transmission Manager
 
 > **Keep this file current.** When you discover or establish a new convention, invariant, gotcha, or non-obvious design choice during a task — or notice that existing content here is stale or contradicted by the codebase — proactively suggest an update to this file (and apply it if approved). Conversely, do **not** add content that is verifiable in seconds via `grep`/`view` or already obvious from the framework conventions (e.g., "use `dotnet build`"). The goal is signal-dense agent context, not exhaustive documentation.
+>
+> **Keep additions high-signal, low-noise.** State the essence of a rule tersely; capture the *what* and the *why-it's-non-obvious*, not exhaustive detail. Prefer one dense sentence (plus a short example where it disambiguates) over a paragraph. If a rule needs lengthy rationale to justify it, that rationale belongs in code comments or the relevant spec doc, not here.
 
 ## Build, Test, and Lint
 
@@ -79,6 +81,12 @@ TransmissionManager and the Transmission daemon are **independent systems**. The
 
 Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal sealed` for non-public implementations; `ConfigureAwait(false)` in library async code.
 
+**Expression-bodied members:** use `=>` only when the body naturally fits one line (e.g. `ToDateTimeAnchorString`); otherwise use a block body.
+
+**Member ordering:** public before private; within that, group by purpose. The public-before-private rule wins ties — a single-caller private helper still goes at the end of the type or gets inlined/nested into the caller.
+
+**XML docs by content, not visibility:** skip boilerplate `<summary>` that restates a signature; add `<remarks>` / `<exception>` to any member (private included) only when it carries non-obvious info, e.g., an invariant, a concurrency/ordering rationale, a throw condition, or a maintainer warning.
+
 ### Naming conventions
 
 **Extension classes always end in `Extensions`.** Pattern: `<Receiver>Extensions` for receiver-only naming (`RegexExtensions`, `ServiceCollectionExtensions`, `EndpointRouteBuilderExtensions`), or `<Receiver><Entity>Extensions` when the extension targets a specific entity or descriptor (`QueryableTorrentExtensions`, `ModelBuilderTorrentExtensions`, `DatabaseServiceCollectionExtensions`). Even single-method static helper classes follow this rule — if it's a `static class` with extension methods, it ends in `Extensions`.
@@ -88,6 +96,8 @@ Static classes that are *not* extension classes (e.g. constants holders like `Pa
 ### Testing
 
 **NUnit 4**, parallelism `[Parallelizable(ParallelScope.Self)]`. Shared utilities in `TransmissionManager.BaseTests` (`FakeHttpMessageHandler`, `FakeOptionsMonitor<T>`). Integration tests use `WebApplicationFactory<Program>` with fake HTTP handlers; `TestWebApplicationFactory` composes on top of production DI via `ConfigureDbContext<AppDbContext>` (overriding only the SQLite connection). CA1707 is suppressed in test projects.
+
+**Test method names are three-part: `WhatMethod_OnWhatCondition_DoesWhat`** (e.g. `GetCountAsync_WhenCalledWithFilter_ReturnsMatchingCount`, `AddTorrentAsync_WhenWebPageUriExists_ReturnsConflictResponse`). The condition segment is mandatory even when terse; keep it in the middle.
 
 **Mirrored API ↔ DB enums.** When an API enum has a DB counterpart (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API gets the specific name (`Get{Action}{Concept}`) and the DB gets a reusable generic name. Cross-project value/name parity is asserted by mapping tests in `TransmissionManager.Api.Tests` (`GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
 

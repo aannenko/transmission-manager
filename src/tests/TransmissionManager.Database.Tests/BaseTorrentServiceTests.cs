@@ -7,6 +7,7 @@ namespace TransmissionManager.Database.Tests;
 
 internal abstract class BaseTorrentServiceTests
 {
+    private readonly List<TorrentCountCache> _caches = [];
     private SqliteConnection? _connection;
     private DbContextOptions<AppDbContext>? _contextOptions;
 
@@ -28,12 +29,29 @@ internal abstract class BaseTorrentServiceTests
     }
 
     [TearDown]
-    public void TearDown() => _connection?.Dispose();
+    public void TearDown()
+    {
+        foreach (var cache in _caches)
+            cache.Dispose();
+
+        _caches.Clear();
+        _connection?.Dispose();
+    }
 
     private protected AppDbContext CreateContext() =>
         _contextOptions is not null
             ? new(_contextOptions)
             : throw new InvalidOperationException("Context options are not initialized.");
+
+    private protected TorrentCountCache CreateCache()
+    {
+        var cache = new TorrentCountCache();
+        _caches.Add(cache);
+        return cache;
+    }
+
+    private protected TorrentService CreateService(AppDbContext context, TorrentCountCache? cache = null) =>
+        new(context, cache ?? CreateCache());
 
     private static Torrent[] CreateInitialTorrents()
     {

@@ -17,7 +17,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     public async Task FindOneByIdAsync_WhenIdExists_ReturnsTorrent()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var torrent = await service.FindOneByIdAsync(2).ConfigureAwait(false);
 
@@ -28,11 +28,74 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
     public async Task FindOneByIdAsync_WhenIdDoesNotExist_ReturnsNull()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var torrent = await service.FindOneByIdAsync(-1).ConfigureAwait(false);
 
         Assert.That(torrent, Is.Null);
+    }
+
+    private static IEnumerable<TestCaseData<TorrentFilter, long>> GetCountAsyncTestCases()
+    {
+        yield return new(default, 3) { TestName = "GetCountAsync_NoFilter" };
+        yield return new(new(CronExists: true), 2) { TestName = "GetCountAsync_CronExists" };
+        yield return new(new(CronExists: false), 1) { TestName = "GetCountAsync_CronMissing" };
+        yield return new(new(PropertyStartsWith: "/tv"), 1) { TestName = "GetCountAsync_DownloadDirPrefix" };
+        yield return new(new(PropertyStartsWith: "M"), 2) { TestName = "GetCountAsync_NamePrefix" };
+        yield return new(new(PropertyStartsWith: "Mu", CronExists: true), 1) { TestName = "GetCountAsync_BothFilters" };
+        yield return new(new(PropertyStartsWith: "no-such-prefix"), 0) { TestName = "GetCountAsync_NoMatch" };
+    }
+
+    [TestCaseSource(nameof(GetCountAsyncTestCases))]
+    public async Task GetCountAsync_WhenCalledWithFilter_ReturnsMatchingCount(TorrentFilter filter, long expected)
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var count = await service.GetCountAsync(filter).ConfigureAwait(false);
+
+        Assert.That(count, Is.EqualTo(expected));
+    }
+
+    [TestCaseSource(nameof(GetCountAsyncTestCases))]
+    public async Task GetCountAsync_MatchesGetPageAsyncItemCount(TorrentFilter filter, long expected)
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var count = await service.GetCountAsync(filter).ConfigureAwait(false);
+        var page = await service
+            .GetPageAsync(new TorrentPageDescriptor<string>(Take: 1000), filter)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(count, Is.EqualTo(expected));
+            Assert.That(page.Torrents, Has.Count.EqualTo(expected));
+        }
+    }
+
+    [Test]
+    public async Task GetCountAsync_WhenCalledTwice_ServesCachedValueWithoutRequeryingDatabase()
+    {
+        var cache = CreateCache();
+        using var context1 = CreateContext();
+        var service1 = CreateService(context1, cache);
+
+        var first = await service1.GetCountAsync().ConfigureAwait(false);
+
+        // Mutate via a second service that does NOT share the cache, so no invalidation occurs.
+        using var context2 = CreateContext();
+        var service2 = CreateService(context2);
+        _ = await service2.DeleteOneAsync(2, 1).ConfigureAwait(false);
+
+        var second = await service1.GetCountAsync().ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(first, Is.EqualTo(3));
+            Assert.That(second, Is.EqualTo(3));
+        }
     }
 
     [TestCaseSource(nameof(GetGetPageAsyncStringTestCases))]
@@ -43,7 +106,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
         var (page, filter, expectedTorrents) = data;
 
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var result = await service.GetPageAsync(page, filter).ConfigureAwait(false);
         var torrents = result.Torrents;
@@ -547,7 +610,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
         var (page, filter, expectedTorrents, expectedHasMore) = data;
 
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var result = await service.GetPageAsync(page, filter).ConfigureAwait(false);
 

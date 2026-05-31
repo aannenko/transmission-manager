@@ -12,6 +12,7 @@ public static class DatabaseServiceCollectionExtensions
     public static IServiceCollection AddDatabaseServices(this IServiceCollection services)
     {
         return services
+            .AddSingleton<TorrentCountCache>()
             .AddDbContext<AppDbContext>(ConfigureDbContextOptions)
             .AddTransient<TorrentService>();
     }

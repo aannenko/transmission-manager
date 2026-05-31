@@ -12,7 +12,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task AddOneAsync_WhenDataDoesNotConflictWithExistingTorrents_AddsTorrentWithVersion1()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var dto = new TorrentAddDto(
             hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
@@ -42,7 +42,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public void AddOneAsync_WhenHashStringConflictsWithExistingTorrent_ThrowsDbUpdateException()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var dto = new TorrentAddDto(
             hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
@@ -60,7 +60,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public void AddOneAsync_WhenWebPageUriConflictsWithExistingTorrent_ThrowsDbUpdateException()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var dto = new TorrentAddDto(
             hashString: "96a76b68b91ccf8929c5476e35ce42ff39101d2a",
@@ -78,7 +78,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task TryUpdateOneAsync_WhenVersionMatches_ReturnsSuccessAndIncrementsVersion()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var dto = new TorrentUpdateDto(
             hashString: "98ad2e3a694dfc69571c25241bd4042b94a55cf5",
@@ -106,7 +106,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task TryUpdateOneAsync_WhenMagnetAndCronAreEmpty_ClearsThemAndIncrementsVersion()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var dto = new TorrentUpdateDto(magnetRegexPattern: string.Empty, cron: string.Empty);
 
@@ -132,7 +132,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task TryUpdateOneAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var dto = new TorrentUpdateDto(name: "irrelevant");
         var (result, currentVersion) = await service.UpdateOneAsync(-1, 1, dto).ConfigureAwait(false);
@@ -149,7 +149,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     {
         const int torrentId = 2;
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var originalTorrent = await context.Torrents.AsNoTracking()
             .FirstAsync(static t => t.Id == torrentId)
@@ -178,8 +178,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     {
         using var context1 = CreateContext();
         using var context2 = CreateContext();
-        var service1 = new TorrentService(context1);
-        var service2 = new TorrentService(context2);
+        var cache = CreateCache();
+        var service1 = CreateService(context1, cache);
+        var service2 = CreateService(context2, cache);
 
         var dto1 = new TorrentUpdateDto(name: "first writer");
         var dto2 = new TorrentUpdateDto(name: "second writer (loses)");
@@ -200,7 +201,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task TryDeleteOneAsync_WhenVersionMatches_ReturnsSuccess()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var (result, currentVersion) = await service.DeleteOneAsync(2, 1).ConfigureAwait(false);
 
@@ -221,7 +222,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task TryDeleteOneAsync_WhenVersionMismatches_ReturnsConflictWithCurrentVersionAndRowExists()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var (result, currentVersion) = await service.DeleteOneAsync(3, 999).ConfigureAwait(false);
 
@@ -243,8 +244,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     {
         using var context1 = CreateContext();
         using var context2 = CreateContext();
-        var service1 = new TorrentService(context1);
-        var service2 = new TorrentService(context2);
+        var cache = CreateCache();
+        var service1 = CreateService(context1, cache);
+        var service2 = CreateService(context2, cache);
 
         var (result1, version1) = await service1.DeleteOneAsync(2, 1).ConfigureAwait(false);
         var (result2, version2) = await service2.DeleteOneAsync(2, 1).ConfigureAwait(false);
@@ -263,8 +265,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     {
         using var context1 = CreateContext();
         using var context2 = CreateContext();
-        var service1 = new TorrentService(context1);
-        var service2 = new TorrentService(context2);
+        var cache = CreateCache();
+        var service1 = CreateService(context1, cache);
+        var service2 = CreateService(context2, cache);
 
         // service1's update will fail (predicate cannot match) because service2 deletes the row first.
         // The disambiguating SELECT then sees no row and returns NotFound (rather than Conflict).
@@ -285,7 +288,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     public async Task TryDeleteOneAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {
         using var context = CreateContext();
-        var service = new TorrentService(context);
+        var service = CreateService(context);
 
         var (result, currentVersion) = await service.DeleteOneAsync(-1, 1).ConfigureAwait(false);
 
@@ -293,6 +296,151 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         {
             Assert.That(result, Is.EqualTo(TorrentMutationResult.NotFound));
             Assert.That(currentVersion, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task AddOneAsync_WhenSuccessful_InvalidatesCachedCount()
+    {
+        var cache = CreateCache();
+        using var context = CreateContext();
+        var service = CreateService(context, cache);
+
+        var before = await service.GetCountAsync().ConfigureAwait(false);
+
+        var dto = new TorrentAddDto(
+            hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
+            refreshDate: DateTime.UtcNow,
+            name: "New TV show",
+            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
+            downloadDir: "/tvshows");
+
+        _ = await service.AddOneAsync(dto).ConfigureAwait(false);
+        var after = await service.GetCountAsync().ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(before, Is.EqualTo(3));
+            Assert.That(after, Is.EqualTo(4));
+        }
+    }
+
+    [Test]
+    public async Task AddOneAsync_WhenConflicts_DoesNotInvalidateCachedCount()
+    {
+        var cache = CreateCache();
+        using var context = CreateContext();
+        var service = CreateService(context, cache);
+
+        var before = await service.GetCountAsync().ConfigureAwait(false);
+
+        var dto = new TorrentAddDto(
+            hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
+            refreshDate: DateTime.UtcNow,
+            name: "Conflicting hash",
+            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            downloadDir: "/tvshows");
+
+        Assert.That(
+            async () => await service.AddOneAsync(dto).ConfigureAwait(false),
+            Throws.TypeOf<DbUpdateException>());
+
+        var after = await service.GetCountAsync().ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(before, Is.EqualTo(3));
+            Assert.That(after, Is.EqualTo(3));
+        }
+    }
+
+    [Test]
+    public async Task DeleteOneAsync_WhenSuccessful_InvalidatesCachedCount()
+    {
+        var cache = CreateCache();
+        using var context = CreateContext();
+        var service = CreateService(context, cache);
+
+        var before = await service.GetCountAsync().ConfigureAwait(false);
+
+        var (result, _) = await service.DeleteOneAsync(2, 1).ConfigureAwait(false);
+        var after = await service.GetCountAsync().ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
+            Assert.That(before, Is.EqualTo(3));
+            Assert.That(after, Is.EqualTo(2));
+        }
+    }
+
+    [Test]
+    public async Task DeleteOneAsync_WhenNotFoundOrConflict_DoesNotInvalidateCachedCount()
+    {
+        var cache = CreateCache();
+        using var context = CreateContext();
+        var service = CreateService(context, cache);
+
+        var before = await service.GetCountAsync().ConfigureAwait(false);
+
+        var (notFound, _) = await service.DeleteOneAsync(-1, 1).ConfigureAwait(false);
+        var (conflict, _) = await service.DeleteOneAsync(2, 999).ConfigureAwait(false);
+        var after = await service.GetCountAsync().ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(notFound, Is.EqualTo(TorrentMutationResult.NotFound));
+            Assert.That(conflict, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(before, Is.EqualTo(3));
+            Assert.That(after, Is.EqualTo(3));
+        }
+    }
+
+    [Test]
+    public async Task UpdateOneAsync_WhenSuccessful_InvalidatesCachedFilteredCount()
+    {
+        var cache = CreateCache();
+        using var context = CreateContext();
+        var service = CreateService(context, cache);
+
+        var filter = new TorrentFilter(PropertyStartsWith: "renamed");
+        var before = await service.GetCountAsync(filter).ConfigureAwait(false);
+
+        var (result, _) = await service
+            .UpdateOneAsync(2, 1, new TorrentUpdateDto(name: "renamed movie"))
+            .ConfigureAwait(false);
+
+        var after = await service.GetCountAsync(filter).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
+            Assert.That(before, Is.EqualTo(0));
+            Assert.That(after, Is.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public async Task UpdateOneAsync_WhenConflict_DoesNotInvalidateCachedCount()
+    {
+        var cache = CreateCache();
+        using var context = CreateContext();
+        var service = CreateService(context, cache);
+
+        var filter = new TorrentFilter(PropertyStartsWith: "renamed");
+        var before = await service.GetCountAsync(filter).ConfigureAwait(false);
+
+        var (result, _) = await service
+            .UpdateOneAsync(2, 999, new TorrentUpdateDto(name: "renamed movie"))
+            .ConfigureAwait(false);
+
+        var after = await service.GetCountAsync(filter).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(before, Is.EqualTo(0));
+            Assert.That(after, Is.EqualTo(0));
         }
     }
 }

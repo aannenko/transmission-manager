@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
-using System.Text.Json;
 using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Database.Dto;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
 using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 using Parameters = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageParameters;
@@ -11,11 +11,9 @@ namespace TransmissionManager.Api.Actions.Torrents.GetPage;
 
 internal static class GetTorrentPageParametersExtensions
 {
-    private static readonly string _orderByParamName =
-        JsonNamingPolicy.CamelCase.ConvertName(nameof(Parameters.OrderBy));
+    private static readonly string _orderByParamName = ToCamelCase(nameof(Parameters.OrderBy));
 
-    private static readonly string _anchorValueParamName =
-        JsonNamingPolicy.CamelCase.ConvertName(nameof(Parameters.AnchorValue));
+    private static readonly string _anchorValueParamName = ToCamelCase(nameof(Parameters.AnchorValue));
 
     private static readonly CompositeFormat _orderByAndAnchorErrorFormat = CompositeFormat.Parse(
         $"When {_orderByParamName} is '{{0}}', {_anchorValueParamName} must be '{{1}}'.");
@@ -23,7 +21,7 @@ internal static class GetTorrentPageParametersExtensions
     private static readonly CompositeFormat _dateTimeAnchorErrorFormat = CompositeFormat.Parse(
         $"When {_orderByParamName} is '{{0}}', {_anchorValueParamName} must match format '{{1}}'.");
 
-    public static ParsedParams Parse(this Parameters parameters, out KeyValuePair<string, string[]>[]? errors)
+    public static ParsedParams Parse(this in Parameters parameters, out KeyValuePair<string, string[]>[]? errors)
     {
         errors = null;
         if (parameters.AnchorValue is null)
@@ -68,8 +66,15 @@ internal static class GetTorrentPageParametersExtensions
         }
     }
 
+    public static TorrentFilter ToTorrentFilter(this in Parameters parameters)
+    {
+        return new(
+            PropertyStartsWith: parameters.PropertyStartsWith,
+            CronExists: parameters.CronExists);
+    }
+
     public static Parameters? ToNextPageParameters(
-        this Parameters parameters,
+        this in Parameters parameters,
         IReadOnlyList<TorrentDto> currentPage)
     {
         ArgumentNullException.ThrowIfNull(currentPage);
@@ -96,7 +101,7 @@ internal static class GetTorrentPageParametersExtensions
     }
 
     public static Parameters? ToPreviousPageParameters(
-        this Parameters parameters,
+        this in Parameters parameters,
         IReadOnlyList<TorrentDto> currentPage)
     {
         ArgumentNullException.ThrowIfNull(currentPage);
@@ -133,7 +138,7 @@ internal static class GetTorrentPageParametersExtensions
     // Cap at long.MaxValue / long.MinValue: SQLite AUTOINCREMENT Ids start at 1 and only grow,
     // so no real row sits at the cap. At the cap, strict comparison degrades to today's
     // behavior (boundary excluded) only for an impossible Id. Do NOT "fix" the cap.
-    private static Parameters ToEmptyPageFallback(Parameters parameters)
+    private static Parameters ToEmptyPageFallback(in Parameters parameters)
     {
         var anchorId = parameters.AnchorId!.Value;
         var isForward = parameters.Direction is Direction.Forward;
@@ -151,6 +156,15 @@ internal static class GetTorrentPageParametersExtensions
         };
     }
 
-    private static string ToDateTimeAnchorString(DateTimeOffset dateTimeOffset) =>
+    private static string ToDateTimeAnchorString(in DateTimeOffset dateTimeOffset) =>
         dateTimeOffset.ToUniversalTime().ToString(Parameters.DateFormat, CultureInfo.InvariantCulture);
+
+    private static string ToCamelCase(string name)
+    {
+        return string.Create(name.Length, name, (span, value) =>
+        {
+            value.CopyTo(span);
+            span[0] = char.ToLowerInvariant(span[0]);
+        });
+    }
 }

@@ -70,6 +70,32 @@ internal sealed class GetTorrentPageTests
     }
 
     [Test]
+    public async Task GetTorrentPageAsync_RegardlessOfPaging_PopulatesCountWithTheFilteredTotal()
+    {
+        // No filter: Count == seeded total, even on a single small page.
+        var parameters = new Parameters(Take: 1);
+        var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+        AssertTorrentPage(page, _torrents[..1], EndpointAddresses.Torrents + "?take=1&anchorId=1", null, 3);
+
+        // CronExists true -> 2; false -> 1.
+        response = await _client.GetAsync(new Parameters(CronExists: true).ToPathAndQueryString()).ConfigureAwait(false);
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+        AssertTorrentPage(page, [_torrents[0], _torrents[2]], null, null, 2);
+
+        response = await _client.GetAsync(new Parameters(CronExists: false).ToPathAndQueryString()).ConfigureAwait(false);
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+        AssertTorrentPage(page, [_torrents[1]], null, null, 1);
+
+        // Boundary empty page still reports the current filtered total.
+        var beyondEnd = new Parameters(Take: 3, AnchorId: 4, Direction: GetTorrentPageDirection.Backward);
+        response = await _client.GetAsync(beyondEnd.ToPathAndQueryString()).ConfigureAwait(false);
+        page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+        Assert.That(page, Is.Not.Null);
+        Assert.That(page.Count, Is.EqualTo(3));
+    }
+
+    [Test]
     public async Task GetTorrentPageAsync_WhenPropertyStartsWithAndCronExistsPointToExistingNameAndCron_ReturnsMatchingTorrents()
     {
         var parameters = new Parameters(Take: 2, PropertyStartsWith: "TV Show", CronExists: true);
@@ -632,7 +658,8 @@ internal sealed class GetTorrentPageTests
         GetTorrentPageResponse? page,
         Torrent[] expectedTorrents,
         string? expectedNextPage,
-        string? expectedPreviousPage)
+        string? expectedPreviousPage,
+        long? expectedCount = null)
     {
         Assert.That(page, Is.Not.Null);
         using (Assert.EnterMultipleScope())
@@ -640,6 +667,8 @@ internal sealed class GetTorrentPageTests
             Assert.That(page.Torrents, Has.Count.EqualTo(expectedTorrents.Length));
             Assert.That(page.NextPageAddress, Is.EqualTo(expectedNextPage));
             Assert.That(page.PreviousPageAddress, Is.EqualTo(expectedPreviousPage));
+            if (expectedCount is not null)
+                Assert.That(page.Count, Is.EqualTo(expectedCount));
         }
 
         for (var i = 0; i < expectedTorrents.Length; i++)

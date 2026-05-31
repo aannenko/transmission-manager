@@ -134,6 +134,8 @@ internal sealed class AddTorrentTests
             Cron = "0 9,17 * * *"
         };
 
+        var countBefore = await GetTorrentCountAsync().ConfigureAwait(false);
+
         var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
 
         const long expectedId = 2;
@@ -170,6 +172,9 @@ internal sealed class AddTorrentTests
         var newTorrent = await getTorrentResponse.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
 
         TorrentAssertions.AssertEqual(newTorrent, expectedTorrent, TimeSpan.FromSeconds(2));
+
+        var countAfter = await GetTorrentCountAsync().ConfigureAwait(false);
+        Assert.That(countAfter, Is.EqualTo(countBefore + 1));
     }
 
     [Test]
@@ -230,5 +235,15 @@ internal sealed class AddTorrentTests
             Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.MagnetRegexPattern)));
             Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.Cron)));
         }
+    }
+
+    private async Task<long> GetTorrentCountAsync()
+    {
+        var response = await _client
+            .GetAsync(new GetTorrentPageParameters(Take: 1).ToPathAndQueryString())
+            .ConfigureAwait(false);
+
+        var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
+        return page!.Count;
     }
 }

@@ -12,7 +12,7 @@ internal static class TorrentServiceExtensions
         in GetTorrentPageParsedParameters parsedParameters,
         CancellationToken cancellationToken = default)
     {
-        var filter = GetFilter(parameters);
+        var filter = parameters.ToTorrentFilter();
         if (parsedParameters.DateTimeAnchor is not null)
         {
             var pageDescriptor = GetPageDescriptor(parameters, parsedParameters.DateTimeAnchor);
@@ -35,12 +35,5 @@ internal static class TorrentServiceExtensions
             AnchorValue: anchorValue,
             Direction: (PaginationDirection)parameters.Direction,
             Take: parameters.Take);
-    }
-
-    private static TorrentFilter GetFilter(in GetTorrentPageParameters parameters)
-    {
-        return new(
-            PropertyStartsWith: parameters.PropertyStartsWith,
-            CronExists: parameters.CronExists);
     }
 }

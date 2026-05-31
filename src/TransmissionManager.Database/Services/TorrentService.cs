@@ -34,8 +34,14 @@ namespace TransmissionManager.Database.Services;
 /// tracked with stale <c>OriginalValues</c> and the next <c>SaveChangesAsync</c> on the same
 /// scoped <c>DbContext</c> would silently retry the lost write.
 /// </para>
+/// <para>
+/// <b>Future-maintainer warning:</b> any method that changes the set of rows or a filterable
+/// field (<c>HashString</c> / <c>Name</c> / <c>WebPageUri</c> / <c>DownloadDir</c> / <c>Cron</c>)
+/// must call <see cref="TorrentCountCache.Invalidate"/> on its success path, otherwise
+/// <see cref="GetCountAsync"/> may keep serving a stale cached count.
+/// </para>
 /// </remarks>
-public sealed class TorrentService(AppDbContext dbContext)
+public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache countCache)
 {
     public async Task<Torrent?> FindOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
@@ -59,20 +65,7 @@ public sealed class TorrentService(AppDbContext dbContext)
         TorrentFilter filter = default,
         CancellationToken cancellationToken = default)
     {
-        var query = dbContext.Torrents.AsNoTracking();
-
-        // Filter
-        if (!string.IsNullOrEmpty(filter.PropertyStartsWith))
-        {
-            query = query.Where(torrent =>
-                torrent.HashString.StartsWith(filter.PropertyStartsWith) ||
-                torrent.Name.StartsWith(filter.PropertyStartsWith) ||
-                torrent.WebPageUri.StartsWith(filter.PropertyStartsWith) ||
-                torrent.DownloadDir.StartsWith(filter.PropertyStartsWith));
-        }
-
-        if (filter.CronExists is not null)
-            query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
+        var query = ApplyFilter(dbContext.Torrents.AsNoTracking(), filter);
 
         // Paginate
         if (page == default)
@@ -97,6 +90,18 @@ public sealed class TorrentService(AppDbContext dbContext)
         return new TorrentPage(torrents, HasMore: true);
     }
 
+    /// <summary>
+    /// Returns the number of torrents matching <paramref name="filter"/>, served from
+    /// <see cref="TorrentCountCache"/> and recomputed against the database on a miss.
+    /// </summary>
+    public ValueTask<long> GetCountAsync(TorrentFilter filter = default, CancellationToken cancellationToken = default)
+    {
+        return countCache.GetOrAddAsync(filter, CountAsync, (dbContext, filter), cancellationToken);
+
+        static Task<long> CountAsync((AppDbContext Context, TorrentFilter Filter) arg, CancellationToken ct) =>
+            ApplyFilter(arg.Context.Torrents.AsNoTracking(), arg.Filter).LongCountAsync(ct);
+    }
+
     public async Task<Torrent> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
@@ -104,6 +109,7 @@ public sealed class TorrentService(AppDbContext dbContext)
         var torrent = dto.ToTorrent();
         _ = dbContext.Torrents.Add(torrent);
         _ = await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        countCache.Invalidate();
         return torrent;
     }
 
@@ -148,7 +154,7 @@ public sealed class TorrentService(AppDbContext dbContext)
             .ConfigureAwait(false);
 
         return affected is 1
-            ? new(TorrentMutationResult.Success, version + 1)
+            ? Success(version + 1)
             : await ResolveLostRaceAsync(id, cancellationToken).ConfigureAwait(false);
     }
 
@@ -163,13 +169,34 @@ public sealed class TorrentService(AppDbContext dbContext)
             .ConfigureAwait(false);
 
         return affected is 1
-            ? new(TorrentMutationResult.Success, version)
+            ? Success(version)
             : await ResolveLostRaceAsync(id, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<TorrentMutationOutcome> ResolveLostRaceAsync(
-        long id,
-        CancellationToken cancellationToken)
+    private static IQueryable<Torrent> ApplyFilter(IQueryable<Torrent> query, TorrentFilter filter)
+    {
+        if (!string.IsNullOrEmpty(filter.PropertyStartsWith))
+        {
+            query = query.Where(torrent =>
+                torrent.HashString.StartsWith(filter.PropertyStartsWith) ||
+                torrent.Name.StartsWith(filter.PropertyStartsWith) ||
+                torrent.WebPageUri.StartsWith(filter.PropertyStartsWith) ||
+                torrent.DownloadDir.StartsWith(filter.PropertyStartsWith));
+        }
+
+        if (filter.CronExists is not null)
+            query = query.Where(torrent => filter.CronExists.Value ? torrent.Cron != null : torrent.Cron == null);
+
+        return query;
+    }
+
+    private TorrentMutationOutcome Success(long version)
+    {
+        countCache.Invalidate();
+        return new(TorrentMutationResult.Success, version);
+    }
+
+    private async Task<TorrentMutationOutcome> ResolveLostRaceAsync(long id, CancellationToken cancellationToken)
     {
         var current = await dbContext.Torrents
             .AsNoTracking()

@@ -3,4 +3,5 @@
 public sealed record GetTorrentPageResponse(
     IReadOnlyList<TorrentDto> Torrents,
     string? NextPageAddress,
-    string? PreviousPageAddress);
+    string? PreviousPageAddress,
+    long Count);

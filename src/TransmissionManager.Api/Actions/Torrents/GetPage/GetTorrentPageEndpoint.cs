@@ -48,12 +48,14 @@ internal static class GetTorrentPageEndpoint
             return TypedResults.ValidationProblem(errors);
 
         var page = await service.GetPageAsync(parameters, parsed, cancellationToken).ConfigureAwait(false);
-        return TypedResults.Ok(ToTorrentPageResponse(page, parameters));
+        var count = await service.GetCountAsync(parameters.ToTorrentFilter(), cancellationToken).ConfigureAwait(false);
+        return TypedResults.Ok(ToTorrentPageResponse(page, parameters, count));
     }
 
     private static GetTorrentPageResponse ToTorrentPageResponse(
         TorrentPage page,
-        in GetTorrentPageParameters parameters)
+        in GetTorrentPageParameters parameters,
+        long count)
     {
         var dtos = new TorrentDto[page.Torrents.Count];
         for (var i = 0; i < page.Torrents.Count; i++)
@@ -77,6 +79,7 @@ internal static class GetTorrentPageEndpoint
         return new GetTorrentPageResponse(
             dtos,
             nextParams?.ToPathAndQueryString(),
-            prevParams?.ToPathAndQueryString());
+            prevParams?.ToPathAndQueryString(),
+            count);
     }
 }

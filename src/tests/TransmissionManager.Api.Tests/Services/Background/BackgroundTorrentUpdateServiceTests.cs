@@ -46,6 +46,7 @@ internal sealed class BackgroundTorrentUpdateServiceTests
 
         var serviceCollection = new ServiceCollection();
         _ = serviceCollection.AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
+        _ = serviceCollection.AddSingleton<TorrentCountCache>();
         _ = serviceCollection.AddScoped<TorrentService>();
         _ = serviceCollection.AddSingleton<TransmissionClient>(_ =>
             new TransmissionClient(transmissionOptions, new HttpClient(_transmissionHandler)
