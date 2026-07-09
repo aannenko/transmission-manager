@@ -71,7 +71,7 @@ public sealed class TorrentCountCache : IDisposable
         return new Generation(source, new CancellationChangeToken(source.Token));
     }
 
-    private static TorrentFilter Normalize(TorrentFilter filter)
+    private static TorrentFilter Normalize(in TorrentFilter filter)
     {
         return string.IsNullOrEmpty(filter.PropertyStartsWith)
             ? filter with { PropertyStartsWith = null }

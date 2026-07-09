@@ -11,7 +11,7 @@ namespace TransmissionManager.Database.DbContextOptimized
     public partial class AppDbContextModel
     {
         private AppDbContextModel()
-            : base(skipDetectChanges: false, modelId: new Guid("2dfa02a8-cb7a-4a69-aa37-b79ae02ac980"), entityTypeCount: 1)
+            : base(skipDetectChanges: false, modelId: new Guid("c758d2b8-159a-4810-a530-6dc0c4eace25"), entityTypeCount: 1)
         {
         }
 
@@ -21,7 +21,7 @@ namespace TransmissionManager.Database.DbContextOptimized
 
             TorrentEntityType.CreateAnnotations(torrent);
 
-            AddAnnotation("ProductVersion", "10.0.8");
+            AddAnnotation("ProductVersion", "10.0.9");
         }
     }
 }

@@ -24,7 +24,7 @@ Two deployable apps:
 
 Shared libraries:
 
-- **TransmissionManager.Database** — EF Core + SQLite. Single `AppDbContext`, single `Torrent` entity, CRUD via `TorrentService`. Database created with `EnsureCreatedAsync()` — no migrations.
+- **TransmissionManager.Database** — EF Core + SQLite. Single `AppDbContext`, single `Torrent` entity, CRUD via `TorrentService`; filtered/unfiltered total counts via `TorrentCountCache` (any `TorrentService` method that changes rows or a filterable field must call `Invalidate` on its success path; see `TorrentService.<remarks>`). Database created with `EnsureCreatedAsync()` — no migrations.
 - **TransmissionManager.Transmission** — Typed HTTP client for Transmission RPC. Manages `X-Transmission-Session-Id` refresh; uses `HttpStandardResilienceHandler`.
 - **TransmissionManager.TorrentWebPages** — HTTP client that scrapes magnet links via configurable regex.
 - **TransmissionManager.Api.Common** — Shared DTOs, validation attributes (`[Cron]`, `[MagnetRegex]`), `JsonSerializerContext` instances, endpoint constants. Referenced by both Api and Web.
