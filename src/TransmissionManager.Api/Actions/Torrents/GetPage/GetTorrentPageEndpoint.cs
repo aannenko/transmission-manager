@@ -26,7 +26,7 @@ internal static class GetTorrentPageEndpoint
         [FromServices] TorrentService service,
         //[AsParameters] GetTorrentPageParameters parameters,
         [EnumDataType(typeof(Order))] Order orderBy = Order.Id,
-        [Range(1, 1000)] int take = 20,
+        [Range(1, 10000)] int take = 20,
         long? anchorId = null,
         string? anchorValue = null,
         [EnumDataType(typeof(Direction))] Direction direction = Direction.Forward,
