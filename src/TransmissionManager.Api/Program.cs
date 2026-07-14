@@ -1,4 +1,5 @@
 ﻿using Coravel;
+using Microsoft.AspNetCore.ResponseCompression;
 using TransmissionManager.Api.Actions.AppVersion;
 using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Api.Common.Serialization;
@@ -27,6 +28,11 @@ builder.Services.AddSingleton<CacheControlHeaderMiddleware>();
 builder.Services.AddSingleton<XContentTypeOptionsHeaderMiddleware>();
 builder.Services.AddSingleton<AllowPrivateNetworkHeaderMiddleware>();
 builder.Services.AddCorsFromConfiguration(builder.Configuration);
+builder.Services.AddResponseCompression(static options => options.EnableForHttps = true);
+builder.Services.Configure<BrotliCompressionProviderOptions>(
+    static options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
+builder.Services.Configure<GzipCompressionProviderOptions>(
+    static options => options.Level = System.IO.Compression.CompressionLevel.Optimal);
 builder.Services.AddProblemDetails();
 builder.Services.AddValidation();
 
@@ -74,6 +80,7 @@ using (var scope = app.Services.CreateScope())
         .ConfigureAwait(false);
 }
 
+app.UseResponseCompression();
 app.UseMiddleware<CacheControlHeaderMiddleware>();
 app.UseMiddleware<XContentTypeOptionsHeaderMiddleware>();
 app.UseMiddleware<AllowPrivateNetworkHeaderMiddleware>();
