@@ -65,7 +65,7 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
 
         var count = await service.GetCountAsync(filter).ConfigureAwait(false);
         var page = await service
-            .GetPageAsync(new TorrentPageDescriptor<string>(Take: 1000), filter)
+            .GetPageAsync(new TorrentPageDescriptor<string>(Take: 10000), filter)
             .ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())

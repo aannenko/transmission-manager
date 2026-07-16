@@ -15,7 +15,7 @@ public readonly record struct GetTorrentPageParameters(
     [property: MinLength(1)] string? PropertyStartsWith = null,
     bool? CronExists = null)
 {
-    private const int _maxTake = 1000;
+    private const int _maxTake = 10000;
 
     public static int MaxTake => _maxTake;
 

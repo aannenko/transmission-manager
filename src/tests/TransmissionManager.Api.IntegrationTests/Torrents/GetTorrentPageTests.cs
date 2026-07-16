@@ -590,7 +590,7 @@ internal sealed class GetTorrentPageTests
         };
 
         yield return new(
-            new(Take: 1001),
+            new(Take: 10001),
             "take",
             $"The field take must be between 1 and {Parameters.MaxTake}.")
         {
