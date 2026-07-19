@@ -15,7 +15,7 @@ internal static class RefreshTorrentByIdEndpoint
 
     private static async Task<Results<Ok<RefreshTorrentByIdResponse>, ProblemHttpResult, ValidationProblem>>
         RefreshTorrentByIdAsync(
-            [FromServices] RefreshTorrentByIdHandler handler,
+            [FromServices] IRefreshTorrentByIdHandler handler,
             long id,
             CancellationToken cancellationToken)
     {

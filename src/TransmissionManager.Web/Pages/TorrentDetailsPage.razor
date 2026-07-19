@@ -255,7 +255,7 @@
             DeleteTorrentByIdType.LocalAndTransmissionAndData => Operation.DeleteData,
             _ => Operation.DeleteRecord
         };
-        
+
         var current = _currentTorrent!;
         var outcome = await CallNetworkService(
             (Client, current.Id, current.Version, deleteType),

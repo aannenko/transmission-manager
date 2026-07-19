@@ -3,7 +3,7 @@
 namespace TransmissionManager.Web.Components;
 
 #pragma warning disable CA1515 // Consider making public types internal - Blazor components must be public
-public abstract class CommonComponentBase : ComponentBase 
+public abstract class CommonComponentBase : ComponentBase
 #pragma warning restore CA1515 // Consider making public types internal
 {
     private protected bool IsBusy { get; set; }

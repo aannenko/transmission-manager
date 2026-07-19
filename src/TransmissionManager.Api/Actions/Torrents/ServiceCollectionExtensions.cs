@@ -11,7 +11,6 @@ internal static class ServiceCollectionExtensions
     {
         _ = services
             .AddTransient<AddTorrentHandler>()
-            .AddTransient<RefreshTorrentByIdHandler>()
             .AddTransient<IRefreshTorrentByIdHandler, RefreshTorrentByIdHandler>()
             .AddTransient<UpdateTorrentByIdHandler>()
             .AddTransient<DeleteTorrentByIdHandler>();
