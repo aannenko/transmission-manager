@@ -3,6 +3,7 @@
 @using TransmissionManager.Api.Common.Attributes
 @using TransmissionManager.Api.Common.Dto.Torrents
 @using TransmissionManager.Web.Components
+@using TransmissionManager.Web.Dto
 @using TransmissionManager.Web.Extensions
 @using TransmissionManager.Web.Services
 @inherits CommonComponentBase
@@ -149,7 +150,7 @@
 
         _operation = Operation.Load;
 
-        var torrentDto = await CallService(
+        var torrentDto = await CallNetworkService(
             (Client, Id),
             static args => args.Client.GetTorrentById(args.Id));
 
@@ -184,7 +185,7 @@
         };
 
         var current = _currentTorrent!;
-        var outcome = await CallService(
+        var outcome = await CallNetworkService(
             (Client, current.Id, current.Version, request),
             static args => args.Client.UpdateTorrentByIdAsync(args.Id, args.Version, args.request));
 
@@ -216,14 +217,16 @@
 
         _operation = Operation.Refresh;
 
-        var refreshResponse = await CallService(
+        var response = await CallNetworkService(
             (Client, Id),
             static args => args.Client.RefreshTorrentByIdAsync(args.Id));
 
-        if (refreshResponse?.TorrentDto is not null)
+        if (response?.TorrentDto is not null)
         {
-            FillTorrentData(refreshResponse.TorrentDto);
-            Message = $"Torrent refreshed. Transmission result: {refreshResponse.TransmissionResult}.";
+            FillTorrentData(response.TorrentDto);
+            Message = string.IsNullOrEmpty(response.Message)
+                ? $"Torrent refreshed. Transmission result: {response.TransmissionResult}."
+                : $"Torrent refreshed. Transmission result: {response.TransmissionResult}. {response.Message}";
         }
         else if (string.IsNullOrEmpty(Message))
         {
@@ -252,9 +255,9 @@
             DeleteTorrentByIdType.LocalAndTransmissionAndData => Operation.DeleteData,
             _ => Operation.DeleteRecord
         };
-
+        
         var current = _currentTorrent!;
-        var outcome = await CallService(
+        var outcome = await CallNetworkService(
             (Client, current.Id, current.Version, deleteType),
             static args => args.Client.DeleteTorrentByIdAsync(args.Id, args.Version, args.deleteType));
 

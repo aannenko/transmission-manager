@@ -3,7 +3,7 @@
 namespace TransmissionManager.Web.Components;
 
 #pragma warning disable CA1515 // Consider making public types internal - Blazor components must be public
-public abstract class CommonComponentBase : ComponentBase
+public abstract class CommonComponentBase : ComponentBase 
 #pragma warning restore CA1515 // Consider making public types internal
 {
     private protected bool IsBusy { get; set; }
@@ -16,12 +16,12 @@ public abstract class CommonComponentBase : ComponentBase
         "Operation was canceled.";
 
     private protected virtual string GetDisconnectedMessage(HttpRequestException exception) =>
-        $"Connection to Transmission Manager cannot be established: '{exception.Message}'.";
+        $"Connection cannot be established: '{exception.Message}'.";
 
     private protected virtual string GetGenericErrorMessage(HttpRequestException exception) =>
         $"An error occurred: '{exception.Message}'.";
 
-    private protected async Task<TReturn?> CallService<TArg, TReturn>(
+    private protected async Task<TReturn?> CallNetworkService<TArg, TReturn>(
         TArg arg,
         Func<TArg, Task<TReturn>> func)
     {
@@ -40,31 +40,6 @@ public abstract class CommonComponentBase : ComponentBase
         {
             Message = e.StatusCode is null ? GetDisconnectedMessage(e) : GetGenericErrorMessage(e);
             return default;
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private protected async Task<bool> CallService<TArg>(TArg arg, Func<TArg, Task> func)
-    {
-        Message = BusyMessage;
-        IsBusy = true;
-        try
-        {
-            await func(arg).ConfigureAwait(false);
-            return true;
-        }
-        catch (OperationCanceledException e)
-        {
-            Message = GetOperationCanceledMessage(e);
-            return false;
-        }
-        catch (HttpRequestException e)
-        {
-            Message = e.StatusCode is null ? GetDisconnectedMessage(e) : GetGenericErrorMessage(e);
-            return false;
         }
         finally
         {

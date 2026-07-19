@@ -1,7 +1,7 @@
 ﻿@using TransmissionManager.Api.Common.Dto.Torrents
 @using TransmissionManager.Web.Constants
+@using TransmissionManager.Web.Dto
 @using TransmissionManager.Web.Extensions
-@using TransmissionManager.Web.Services
 @inherits CommonComponentBase
 @inject NavigationManager Navigation
 
@@ -51,10 +51,10 @@
     public TorrentDto Torrent { get; set; }
 
     [Parameter, EditorRequired]
-    public Func<long, Task> RefreshAsync { get; set; }
+    public Func<long, Task<RefreshTorrentByIdResponse>> RefreshAsync { get; set; }
 
     [Parameter, EditorRequired]
-    public Func<long, long, DeleteTorrentByIdType, Task> DeleteAsync { get; set; }
+    public Func<long, long, DeleteTorrentByIdType, Task<MutationOutcome>> DeleteAsync { get; set; }
 
     private protected override string BusyMessage => string.Empty;
 
@@ -76,12 +76,11 @@
         _operation = Operation.Refresh;
         _isRefreshDisabled = true;
 
-        var isRefreshSuccessful = await CallService(
+        _ = await CallNetworkService(
             this,
             static self => self.RefreshAsync(self.Torrent.Id));
 
-        if (isRefreshSuccessful)
-            StateHasChanged();
+        StateHasChanged();
 
         await Task.Delay(TimeSpan.FromSeconds(10));
         _isRefreshDisabled = false;
@@ -106,11 +105,11 @@
 
         _operation = Operation.Delete;
 
-        var isDeleteSuccessful = await CallService(
+        var outcome = await CallNetworkService(
             (Self: this, deleteType),
             static args => args.Self.DeleteAsync(args.Self.Torrent.Id, args.Self.Torrent.Version, args.deleteType));
 
-        if (!isDeleteSuccessful && string.IsNullOrEmpty(Message))
+        if (outcome.Status != MutationStatus.Success && string.IsNullOrEmpty(Message))
             Message = "Failed to delete torrent.";
     }
 }

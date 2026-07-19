@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using TransmissionManager.Transmission.Dto;
 using TransmissionManager.Transmission.Options;
@@ -101,16 +102,28 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
 
         using (response)
         {
-            var responseObject = await response.EnsureSuccessStatusCode().Content
-                .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
-                .ConfigureAwait(false);
+            _ = response.EnsureSuccessStatusCode();
+
+            TResponse? responseObject = default;
+            JsonException? jsonException = null;
+            try
+            {
+                responseObject = await response.Content
+                    .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (JsonException e)
+            {
+                jsonException = e;
+            }
 
             if (responseObject is null)
             {
                 var responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
                 throw new HttpRequestException(
                     "Unexpected response from Transmission. " +
-                    $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.");
+                    $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.",
+                    jsonException);
             }
 
             return responseObject.IsSuccess()
