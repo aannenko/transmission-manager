@@ -97,7 +97,7 @@
             Cron = string.IsNullOrEmpty(Cron) ? null : Cron
         };
 
-        var response = await CallService(
+        var response = await CallNetworkService(
             (Client, request),
             static args => args.Client.AddTorrentAsync(args.request));
 

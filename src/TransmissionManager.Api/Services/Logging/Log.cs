@@ -25,13 +25,13 @@ internal sealed partial class Log<T>(ILogger<T> logger)
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "Scheduled refresh of the torrent with id {TorrentId} succeeded. Transmission response: {TransmissionResult}.")]
-    public partial void ScheduledRefreshSucceeded(long torrentId, TransmissionAddResult? transmissionResult);
+        Message = "Scheduled refresh of the torrent with id {TorrentId} succeeded. Transmission response: {TransmissionResult}. Message: '{Message}'")]
+    public partial void ScheduledRefreshSucceeded(long torrentId, TransmissionAddResult? transmissionResult, string? message);
 
     [LoggerMessage(
         Level = LogLevel.Warning,
-        Message = "Scheduled refresh of the torrent with id {TorrentId} failed: '{Error}'. Transmission response: {TransmissionResult}.")]
-    public partial void ScheduledRefreshFailed(long torrentId, string error, TransmissionAddResult? transmissionResult);
+        Message = "Scheduled refresh of the torrent with id {TorrentId} failed: '{Message}'. Transmission response: {TransmissionResult}.")]
+    public partial void ScheduledRefreshFailed(long torrentId, string? message, TransmissionAddResult? transmissionResult);
 
     // Background torrent name update
 

@@ -7,5 +7,5 @@ internal readonly record struct RefreshTorrentByIdOutcome(
     RefreshTorrentByIdResult Result,
     TorrentDto? TorrentDto,
     TransmissionAddResult? TransmissionResult,
-    string? Error,
+    string? Message,
     long? CurrentVersion = null);

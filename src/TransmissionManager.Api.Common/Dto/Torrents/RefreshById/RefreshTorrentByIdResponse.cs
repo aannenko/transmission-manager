@@ -4,4 +4,5 @@ namespace TransmissionManager.Api.Common.Dto.Torrents;
 
 public sealed record RefreshTorrentByIdResponse(
     TorrentDto TorrentDto,
-    TransmissionAddResult TransmissionResult);
+    TransmissionAddResult TransmissionResult,
+    string? Message = null);

@@ -16,6 +16,7 @@ internal sealed class RefreshTorrentByIdHandler(
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
     BackgroundTorrentUpdateService backgroundUpdateService)
+    : IRefreshTorrentByIdHandler
 {
     private static readonly CompositeFormat _error =
         CompositeFormat.Parse("Torrent '{0}' refresh failed: '{1}'.");
@@ -92,8 +93,7 @@ internal sealed class RefreshTorrentByIdHandler(
                     torrent.Version);
             }
 
-            if (transmissionRemoveError is not null)
-                return OnDependencyFailed(id, transmissionAddResult, transmissionRemoveError);
+            return OnRefreshed(torrent.ToDto(), transmissionAddResult, transmissionRemoveError);
         }
         else if (torrent.Name == torrent.HashString)
         {
@@ -109,8 +109,9 @@ internal sealed class RefreshTorrentByIdHandler(
 
     private static RefreshTorrentByIdOutcome OnRefreshed(
         TorrentDto torrent,
-        TransmissionAddResult? transmissionResult) =>
-        new(Result.Refreshed, torrent, transmissionResult, null);
+        TransmissionAddResult? transmissionResult,
+        string? message = null) =>
+        new(Result.Refreshed, torrent, transmissionResult, message);
 
     private static RefreshTorrentByIdOutcome OnNotFoundLocally(long id) =>
         new(Result.NotFoundLocally, null, null, GetError(id, EndpointMessages.NoSuchTorrent));

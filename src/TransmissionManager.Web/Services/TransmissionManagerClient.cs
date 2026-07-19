@@ -3,6 +3,7 @@ using System.Text.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Serialization;
+using TransmissionManager.Web.Dto;
 
 namespace TransmissionManager.Web.Services;
 

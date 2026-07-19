@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
@@ -12,7 +12,30 @@ namespace TransmissionManager.Api.IntegrationTests.Torrents;
 [Parallelizable(ParallelScope.Self)]
 internal sealed class RefreshTorrentByIdTests
 {
-    private static readonly Torrent[] _initialTorrents = TestData.Database.CreateInitialTorrents();
+    private const string CleanupWarningTorrentHashString = "4f0334f9eac58c76d128cdb4ba7a62c269e98559";
+    private const string CleanupWarningTorrentUpdatedHashString = "3a81aaa70e75439d332c146abde899e546356be2";
+    private const string CleanupWarningTorrentName = "TV Show 4";
+    private const string CleanupWarningTorrentUpdatedName = "TV Show 4 Updated";
+    private const string CleanupWarningTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234570";
+    private const string CleanupWarningTorrentDownloadDir = "/tvshows";
+
+    private static readonly DateTime _cleanupWarningTorrentRefreshDate =
+        new(2021, 9, 4, 13, 45, 57, 888, DateTimeKind.Utc);
+
+    private static readonly Torrent[] _initialTorrents =
+    [
+        .. TestData.Database.CreateInitialTorrents(),
+        new()
+        {
+            Id = default,
+            HashString = CleanupWarningTorrentHashString,
+            Name = CleanupWarningTorrentName,
+            WebPageUri = CleanupWarningTorrentWebPageAddress,
+            DownloadDir = CleanupWarningTorrentDownloadDir,
+            RefreshDate = _cleanupWarningTorrentRefreshDate,
+            Version = 1,
+        },
+    ];
 
     #region Transmission Test Data
 
@@ -156,6 +179,82 @@ internal sealed class RefreshTorrentByIdTests
         TestData.Transmission.DefaultResponseHeaders,
         TestData.Transmission.DeleteTorrentResponseBody);
 
+    // Get Cleanup-Warning Torrent
+
+    private static readonly string _getCleanupWarningTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        _initialTorrents[3].HashString);
+
+    private static readonly TestRequest _getCleanupWarningTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getCleanupWarningTorrentRequestBody);
+
+    private static readonly TestRequest _getCleanupWarningTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getCleanupWarningTorrentRequestBody);
+
+    private static readonly string _getCleanupWarningTorrentResponseBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentResponseBodyFormat,
+        _initialTorrents[3].DownloadDir,
+        _initialTorrents[3].HashString,
+        _initialTorrents[3].Name);
+
+    private static readonly TestResponse _getCleanupWarningTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        _getCleanupWarningTorrentResponseBody);
+
+    // Add Cleanup-Warning Torrent
+
+    private static readonly string _addCleanupWarningTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.AddTorrentRequestBodyFormat,
+        TestData.WebPages.FourthPageMagnetNew,
+        _initialTorrents[3].DownloadDir);
+
+    private static readonly TestRequest _addCleanupWarningTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _addCleanupWarningTorrentRequestBody);
+
+    private static readonly string _addCleanupWarningTorrentResponseBody = string.Format(
+        null,
+        TestData.Transmission.AddTorrentAddedResponseBodyFormat,
+        CleanupWarningTorrentUpdatedHashString,
+        27,
+        CleanupWarningTorrentUpdatedName);
+
+    private static readonly TestResponse _addCleanupWarningTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        _addCleanupWarningTorrentResponseBody);
+
+    // Remove Cleanup-Warning Torrent
+
+    private static readonly string _removeCleanupWarningTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.DeleteTorrentRequestBodyFormat,
+        _initialTorrents[3].HashString,
+        "false");
+
+    private static readonly TestRequest _removeCleanupWarningTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _removeCleanupWarningTorrentRequestBody);
+
+    private static readonly TestResponse _removeCleanupWarningTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        """{"arguments":{},"result":"remove failed"}""");
+
     // Get Removed Torrent
 
     private static readonly string _getRemovedTorrentRequestBody = string.Format(
@@ -191,6 +290,10 @@ internal sealed class RefreshTorrentByIdTests
         [_getOutdatedTorrentValidHeaderRequest] = _getOutdatedTorrentValidHeaderResponse,
         [_addUpdatedTorrentValidHeaderRequest] = _addOutdatedTorrentValidHeaderResponse,
         [_removeOutdatedTorrentValidHeaderRequest] = _removeOutdatedTorrentValidHeaderResponse,
+        [_getCleanupWarningTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getCleanupWarningTorrentValidHeaderRequest] = _getCleanupWarningTorrentValidHeaderResponse,
+        [_addCleanupWarningTorrentValidHeaderRequest] = _addCleanupWarningTorrentValidHeaderResponse,
+        [_removeCleanupWarningTorrentValidHeaderRequest] = _removeCleanupWarningTorrentValidHeaderResponse,
         [_getRemovedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getRemovedTorrentValidHeaderRequest] = _getRemovedTorrentValidHeaderResponse,
     };
@@ -256,10 +359,44 @@ internal sealed class RefreshTorrentByIdTests
             DownloadDir = source.DownloadDir,
             MagnetRegexPattern = source.MagnetRegexPattern,
             Cron = source.Cron,
-            RefreshDate = source.RefreshDate,
+            RefreshDate = DateTime.Now,
             Version = source.Version + 1,
         };
-        TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.MaxValue);
+
+        TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.FromSeconds(1));
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenOldTorrentCleanupFails_ReturnsRefreshedTorrentWithWarning()
+    {
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/4", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
+
+        Assert.That(result, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
+            Assert.That(result.Message, Is.Not.Null.And.Not.Empty);
+        }
+
+        var source = _initialTorrents[3];
+        var expected = new Torrent
+        {
+            Id = source.Id,
+            HashString = CleanupWarningTorrentUpdatedHashString,
+            Name = CleanupWarningTorrentUpdatedName,
+            WebPageUri = source.WebPageUri,
+            DownloadDir = source.DownloadDir,
+            MagnetRegexPattern = source.MagnetRegexPattern,
+            Cron = source.Cron,
+            RefreshDate = DateTime.Now,
+            Version = source.Version + 1,
+        };
+
+        TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.FromSeconds(1));
     }
 
     [Test]

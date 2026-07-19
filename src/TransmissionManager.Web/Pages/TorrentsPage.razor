@@ -1,10 +1,10 @@
 ﻿@page "/"
 @page "/torrents"
-@using System.Globalization
 @using TransmissionManager.Api.Common.Dto.Torrents
 @using TransmissionManager.Api.Common.Dto.Transmission
 @using TransmissionManager.Web.Components
 @using TransmissionManager.Web.Constants
+@using TransmissionManager.Web.Dto
 @using TransmissionManager.Web.Services
 @inherits CommonComponentBase
 @inject TransmissionManagerClient Client
@@ -23,7 +23,10 @@ else
 {
     <Virtualize TItem="TorrentDto" Items="_torrents" Context="torrent">
         <ItemContent>
-            <TorrentCard @key="torrent.Id" Torrent="torrent" RefreshAsync="RefreshTorrentAsync" DeleteAsync="DeleteTorrentAsync" />
+            <TorrentCard @key="torrent.Id"
+                         Torrent="torrent"
+                         RefreshAsync="RefreshTorrentAsync"
+                         DeleteAsync="DeleteTorrentAsync" />
         </ItemContent>
     </Virtualize>
 }
@@ -47,7 +50,7 @@ else
         _suggestedAddress = string.Empty;
         _suggestedAction = string.Empty;
 
-        var torrentPage = await CallService(
+        var torrentPage = await CallNetworkService(
             Client,
             static client => client.GetTorrentPageAsync(new()
             {
@@ -77,7 +80,7 @@ else
         }
     }
 
-    private async Task RefreshTorrentAsync(long id)
+    private async Task<RefreshTorrentByIdResponse> RefreshTorrentAsync(long id)
     {
         var response = await Client.RefreshTorrentByIdAsync(id);
         if (response.TransmissionResult is TransmissionAddResult.Added)
@@ -85,12 +88,15 @@ else
             await LoadTorrentsAsync();
             StateHasChanged();
         }
+
+        return response;
     }
 
-    private async Task DeleteTorrentAsync(long id, long version, DeleteTorrentByIdType deleteType)
+    private async Task<MutationOutcome> DeleteTorrentAsync(long id, long version, DeleteTorrentByIdType deleteType)
     {
-        await Client.DeleteTorrentByIdAsync(id, version, deleteType);
+        var outcome = await Client.DeleteTorrentByIdAsync(id, version, deleteType);
         await LoadTorrentsAsync();
         StateHasChanged();
+        return outcome;
     }
 }

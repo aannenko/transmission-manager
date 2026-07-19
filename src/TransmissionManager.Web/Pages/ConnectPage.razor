@@ -1,9 +1,6 @@
 ﻿@page "/connect"
 @using System.ComponentModel.DataAnnotations
-@using System.Diagnostics.CodeAnalysis
-@using TransmissionManager.Api.Common.Serialization
 @using TransmissionManager.Web.Components
-@using TransmissionManager.Web.Extensions
 @using TransmissionManager.Web.Services
 @using TransmissionManager.Web.Validation
 @inherits CommonComponentBase
@@ -72,7 +69,7 @@
             return;
         }
 
-        var appVersion = await CallService(
+        var appVersion = await CallNetworkService(
             (ConnectionService, baseAddress),
             static args => args.ConnectionService.ConnectAsync(args.baseAddress));
 

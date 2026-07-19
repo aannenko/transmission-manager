@@ -390,6 +390,32 @@ internal sealed class TransmissionClientTests
         AssertTransmissionTorrentRemoveResponse(response, _removedSuccessfullyResponse);
     }
 
+    [Test]
+    public void RemoveTorrentAsync_WhenResponseIsMalformed_ThrowsHttpRequestException()
+    {
+        const string expectedRequest =
+            """{"method":"torrent-remove","arguments":{"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa"],"delete-local-data":false}}""";
+
+        const string malformedResponse = "<html><body>502 Bad Gateway</body></html>";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Post, new(_transmissionRpcUri), Content: expectedRequest),
+            new(HttpStatusCode.OK, Content: malformedResponse));
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+        var client = new TransmissionClient(_options, httpClient);
+
+        var task = client
+            .RemoveTorrentsAsync(["0bda511316a069e86dd8ee8a3610475d2013a7fa"], false)
+            .ConfigureAwait(false);
+
+        Assert.That(
+            async () => await task,
+            Throws.TypeOf<HttpRequestException>()
+                .With.Message.Contains("Unexpected response from Transmission")
+                .And.InnerException.TypeOf<JsonException>());
+    }
+
     private static void AssertTransmissionTorrentGetResponse(TransmissionTorrentGetResponse actual, string expected)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expected);
