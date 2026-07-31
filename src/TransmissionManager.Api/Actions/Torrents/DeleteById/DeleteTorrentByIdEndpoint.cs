@@ -31,7 +31,7 @@ internal static class DeleteTorrentByIdEndpoint
                 TypedResults.NoContent(),
             DeleteTorrentByIdResult.NotFound =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
-            DeleteTorrentByIdResult.Conflict =>
+            DeleteTorrentByIdResult.VersionConflict =>
                 TypedResults.Problem(
                     error,
                     statusCode: StatusCodes.Status409Conflict,

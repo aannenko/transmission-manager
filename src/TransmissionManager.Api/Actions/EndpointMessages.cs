@@ -8,5 +8,5 @@ internal static class EndpointMessages
 
     public const string TorrentRemovedConflict = "The torrent has been removed by another client.";
 
-    public const string TorrentAlreadyExists = "Torrent already exists.";
+    public const string TorrentAlreadyExists = "A torrent with the same URI or hash already exists.";
 }

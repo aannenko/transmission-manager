@@ -23,12 +23,13 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             magnetRegexPattern: @"magnet:\?xt=urn:[^""]+",
             cron: "0 10,18 * * *");
 
-        var torrent = await service.AddOneAsync(dto).ConfigureAwait(false);
+        var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
 
         const long expectedId = 4;
 
+        Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
         TorrentAssertions.AssertEqual(torrent, expectedId, dto);
-        Assert.That(torrent.Version, Is.EqualTo(1));
+        Assert.That(torrent!.Version, Is.EqualTo(1));
 
         var actual = await context.Torrents
             .FirstOrDefaultAsync(static t => t.Id == expectedId)
@@ -39,7 +40,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public void AddOneAsync_WhenHashStringConflictsWithExistingTorrent_ThrowsDbUpdateException()
+    public async Task AddOneAsync_WhenHashStringConflictsWithExistingTorrent_ReturnsExists()
     {
         using var context = CreateContext();
         var service = CreateService(context);
@@ -51,13 +52,17 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
             downloadDir: "/tvshows");
 
-        Assert.That(
-            async () => await service.AddOneAsync(dto).ConfigureAwait(false),
-            Throws.TypeOf<DbUpdateException>());
+        var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.NotUnique));
+            Assert.That(torrent, Is.Null);
+        }
     }
 
     [Test]
-    public void AddOneAsync_WhenWebPageUriConflictsWithExistingTorrent_ThrowsDbUpdateException()
+    public async Task AddOneAsync_WhenWebPageUriConflictsWithExistingTorrent_ReturnsExists()
     {
         using var context = CreateContext();
         var service = CreateService(context);
@@ -69,9 +74,53 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
             downloadDir: "/tvshows");
 
-        Assert.That(
-            async () => await service.AddOneAsync(dto).ConfigureAwait(false),
-            Throws.TypeOf<DbUpdateException>());
+        var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.NotUnique));
+            Assert.That(torrent, Is.Null);
+        }
+    }
+
+    [Test]
+    public async Task AddOneAsync_WhenPreviousAddConflictedOnSameContext_AddsWithoutReplayingFailedInsert()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var conflicting = new TorrentAddDto(
+            hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
+            refreshDate: DateTime.UtcNow,
+            name: "Conflicting hash",
+            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            downloadDir: "/tvshows");
+
+        var (conflictResult, _) = await service.AddOneAsync(conflicting).ConfigureAwait(false);
+
+        var valid = new TorrentAddDto(
+            hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
+            refreshDate: DateTime.UtcNow,
+            name: "New TV show",
+            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234572"),
+            downloadDir: "/tvshows");
+
+        var (validResult, torrent) = await service.AddOneAsync(valid).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(conflictResult, Is.EqualTo(TorrentMutationResult.NotUnique));
+            Assert.That(validResult, Is.EqualTo(TorrentMutationResult.Success));
+            Assert.That(torrent, Is.Not.Null);
+        }
+
+        var stored = await context.Torrents.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(stored, Has.Length.EqualTo(4));
+            Assert.That(stored.Count(t => t.Name == "Conflicting hash"), Is.Zero);
+        }
     }
 
     [Test]
@@ -160,7 +209,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.VersionConflict));
             Assert.That(currentVersion, Is.EqualTo(1));
         }
 
@@ -192,7 +241,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         {
             Assert.That(result1, Is.EqualTo(TorrentMutationResult.Success));
             Assert.That(version1, Is.EqualTo(2));
-            Assert.That(result2, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(result2, Is.EqualTo(TorrentMutationResult.VersionConflict));
             Assert.That(version2, Is.EqualTo(2));
         }
     }
@@ -228,7 +277,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.VersionConflict));
             Assert.That(currentVersion, Is.EqualTo(1));
         }
 
@@ -342,8 +391,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             downloadDir: "/tvshows");
 
         Assert.That(
-            async () => await service.AddOneAsync(dto).ConfigureAwait(false),
-            Throws.TypeOf<DbUpdateException>());
+            (await service.AddOneAsync(dto).ConfigureAwait(false)).Result,
+            Is.EqualTo(TorrentMutationResult.NotUnique));
 
         var after = await service.GetCountAsync().ConfigureAwait(false);
 
@@ -351,6 +400,54 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         {
             Assert.That(before, Is.EqualTo(3));
             Assert.That(after, Is.EqualTo(3));
+        }
+    }
+
+    [Test]
+    public async Task UpdateOneAsync_WhenHashStringConflictsWithExistingTorrent_ReturnsExists()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        // Torrent 2's hash; repointing torrent 1 at it violates the unique index on HashString.
+        // ExecuteUpdateAsync bypasses the change tracker, so SQLite throws a bare SqliteException
+        // rather than a DbUpdateException; before this was mapped it escaped as an HTTP 500.
+        var dto = new TorrentUpdateDto(hashString: "738c60cbd44f0e9457ba2afdad9e9231d76243fe");
+
+        var (result, currentVersion) = await service.UpdateOneAsync(1, 1, dto).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.NotUnique));
+            Assert.That(currentVersion, Is.Null);
+        }
+
+        var unchanged = await context.Torrents.AsNoTracking()
+            .FirstAsync(static t => t.Id == 1)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(unchanged.HashString, Is.EqualTo("0bda511316a069e86dd8ee8a3610475d2013a7fa"));
+            Assert.That(unchanged.Version, Is.EqualTo(1));
+        }
+    }
+
+    [Test]
+    public async Task UpdateOneAsync_WhenTargetHashIsUnchanged_ReturnsSuccess()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        // Complements the Exists case: re-writing a row's own hash must not trip the unique index.
+        var dto = new TorrentUpdateDto(hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa");
+
+        var (result, currentVersion) = await service.UpdateOneAsync(1, 1, dto).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
+            Assert.That(currentVersion, Is.EqualTo(2));
         }
     }
 
@@ -390,7 +487,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(notFound, Is.EqualTo(TorrentMutationResult.NotFound));
-            Assert.That(conflict, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(conflict, Is.EqualTo(TorrentMutationResult.VersionConflict));
             Assert.That(before, Is.EqualTo(3));
             Assert.That(after, Is.EqualTo(3));
         }
@@ -438,7 +535,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.EqualTo(TorrentMutationResult.Conflict));
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.VersionConflict));
             Assert.That(before, Is.EqualTo(0));
             Assert.That(after, Is.EqualTo(0));
         }

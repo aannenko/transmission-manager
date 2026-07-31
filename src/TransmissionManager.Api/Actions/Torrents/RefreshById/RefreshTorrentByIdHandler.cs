@@ -67,8 +67,10 @@ internal sealed class RefreshTorrentByIdHandler(
                     break;
                 case TorrentMutationResult.NotFound:
                     return OnRemoved(id, transmissionAddResult);
-                case TorrentMutationResult.Conflict:
+                case TorrentMutationResult.VersionConflict:
                     return OnConflict(id, transmissionAddResult, currentVersion!.Value);
+                case TorrentMutationResult.NotUnique:
+                    return OnExists(id, transmissionAddResult);
                 default:
                     throw new InvalidOperationException(
                         $"Unexpected {nameof(TorrentMutationResult)}: {updateResult}");
@@ -128,12 +130,21 @@ internal sealed class RefreshTorrentByIdHandler(
     private static RefreshTorrentByIdOutcome OnRemoved(long id, TransmissionAddResult? transmissionResult) =>
         new(Result.Removed, null, transmissionResult, GetError(id, EndpointMessages.TorrentRemovedConflict));
 
+    /// <remarks>
+    /// The refreshed magnet has already been added to Transmission and the previous torrent has
+    /// <b>not</b> been removed, because the local row could not be repointed at the new hash — another
+    /// row already holds it. Per the project's independence-from-Transmission rule the partial
+    /// outcome is surfaced as-is and the user retries; no compensating removal is performed.
+    /// </remarks>
+    private static RefreshTorrentByIdOutcome OnExists(long id, TransmissionAddResult? transmissionResult) =>
+        new(Result.Exists, null, transmissionResult, GetError(id, EndpointMessages.TorrentAlreadyExists));
+
     private static RefreshTorrentByIdOutcome OnConflict(
         long id,
         TransmissionAddResult? transmissionResult,
         long currentVersion) =>
         new(
-            Result.Conflict,
+            Result.VersionConflict,
             null,
             transmissionResult,
             GetError(id, EndpointMessages.TorrentModifiedConflict),

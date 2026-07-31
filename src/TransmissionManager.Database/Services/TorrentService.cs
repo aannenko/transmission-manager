@@ -1,3 +1,4 @@
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Extensions;
@@ -40,9 +41,23 @@ namespace TransmissionManager.Database.Services;
 /// must call <see cref="TorrentCountCache.Invalidate"/> on its success path, otherwise
 /// <see cref="GetCountAsync"/> may keep serving a stale cached count.
 /// </para>
+/// <para>
+/// <b>Unique-index violations surface differently per path.</b> <see cref="AddOneAsync"/> goes
+/// through the change tracker, so SQLite's error arrives wrapped in a
+/// <see cref="DbUpdateException"/>; <see cref="UpdateOneAsync"/> uses <c>ExecuteUpdateAsync</c>,
+/// which issues raw SQL and therefore throws a bare <see cref="SqliteException"/>. Both are
+/// mapped to <see cref="TorrentMutationResult.NotUnique"/> here so that callers never have to know
+/// which persistence primitive was used. Detection keys off
+/// <see cref="SqliteException.SqliteExtendedErrorCode"/> <c>== 2067</c>
+/// (<c>SQLITE_CONSTRAINT_UNIQUE</c>), not <see cref="SqliteException.SqliteErrorCode"/> <c>== 19</c>
+/// (<c>SQLITE_CONSTRAINT</c>), which also covers NOT NULL / CHECK / FK / PK failures that must
+/// keep propagating as faults.
+/// </para>
 /// </remarks>
 public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache countCache)
 {
+    private const int _sqliteConstraintUnique = 2067;
+
     public async Task<Torrent?> FindOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         return await dbContext.Torrents.AsNoTracking()
@@ -102,15 +117,26 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
             ApplyFilter(arg.Context.Torrents.AsNoTracking(), arg.Filter).LongCountAsync(ct);
     }
 
-    public async Task<Torrent> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
+    public async Task<TorrentAddOutcome> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
 
         var torrent = dto.ToTorrent();
         _ = dbContext.Torrents.Add(torrent);
-        _ = await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            _ = await dbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbUpdateException e) when (IsUniqueViolation(e.InnerException))
+        {
+            // Without this the rejected entity stays tracked with stale state and the next
+            // SaveChangesAsync on this scoped DbContext would silently retry the failed insert.
+            dbContext.ChangeTracker.Clear();
+            return new(TorrentMutationResult.NotUnique, null);
+        }
+
         countCache.Invalidate();
-        return torrent;
+        return new(TorrentMutationResult.Success, torrent);
     }
 
     public async Task<TorrentMutationOutcome> UpdateOneAsync(
@@ -121,37 +147,45 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
     {
         ArgumentNullException.ThrowIfNull(dto);
 
-        var affected = await dbContext.Torrents
-            .Where(torrent => torrent.Id == id && torrent.Version == version)
-            .ExecuteUpdateAsync(
-                properties => properties
-                    .SetProperty(
-                        static torrent => torrent.HashString,
-                        torrent => dto.HashString ?? torrent.HashString)
-                    .SetProperty(
-                        static torrent => torrent.RefreshDate,
-                        torrent => dto.RefreshDate ?? torrent.RefreshDate)
-                    .SetProperty(
-                        static torrent => torrent.Name,
-                        torrent => dto.Name ?? torrent.Name)
-                    .SetProperty(
-                        static torrent => torrent.DownloadDir,
-                        torrent => dto.DownloadDir ?? torrent.DownloadDir)
-                    .SetProperty(
-                        static torrent => torrent.MagnetRegexPattern,
-                        torrent => dto.MagnetRegexPattern != null && dto.MagnetRegexPattern.Length == 0
-                            ? null
-                            : dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
-                    .SetProperty(
-                        static torrent => torrent.Cron,
-                        torrent => dto.Cron != null && dto.Cron.Length == 0
-                            ? null
-                            : dto.Cron ?? torrent.Cron)
-                    .SetProperty(
-                        static torrent => torrent.Version,
-                        static torrent => torrent.Version + 1),
-                cancellationToken)
-            .ConfigureAwait(false);
+        int affected;
+        try
+        {
+            affected = await dbContext.Torrents
+                .Where(torrent => torrent.Id == id && torrent.Version == version)
+                .ExecuteUpdateAsync(
+                    properties => properties
+                        .SetProperty(
+                            static torrent => torrent.HashString,
+                            torrent => dto.HashString ?? torrent.HashString)
+                        .SetProperty(
+                            static torrent => torrent.RefreshDate,
+                            torrent => dto.RefreshDate ?? torrent.RefreshDate)
+                        .SetProperty(
+                            static torrent => torrent.Name,
+                            torrent => dto.Name ?? torrent.Name)
+                        .SetProperty(
+                            static torrent => torrent.DownloadDir,
+                            torrent => dto.DownloadDir ?? torrent.DownloadDir)
+                        .SetProperty(
+                            static torrent => torrent.MagnetRegexPattern,
+                            torrent => dto.MagnetRegexPattern != null && dto.MagnetRegexPattern.Length == 0
+                                ? null
+                                : dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
+                        .SetProperty(
+                            static torrent => torrent.Cron,
+                            torrent => dto.Cron != null && dto.Cron.Length == 0
+                                ? null
+                                : dto.Cron ?? torrent.Cron)
+                        .SetProperty(
+                            static torrent => torrent.Version,
+                            static torrent => torrent.Version + 1),
+                    cancellationToken)
+                .ConfigureAwait(false);
+        }
+        catch (SqliteException e) when (IsUniqueViolation(e))
+        {
+            return new(TorrentMutationResult.NotUnique, null);
+        }
 
         return affected is 1
             ? Success(version + 1)
@@ -190,6 +224,9 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
         return query;
     }
 
+    private static bool IsUniqueViolation(Exception? exception) =>
+        exception is SqliteException { SqliteExtendedErrorCode: _sqliteConstraintUnique };
+
     private TorrentMutationOutcome Success(long version)
     {
         countCache.Invalidate();
@@ -207,6 +244,6 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
 
         return current is null
             ? new(TorrentMutationResult.NotFound, null)
-            : new(TorrentMutationResult.Conflict, current);
+            : new(TorrentMutationResult.VersionConflict, current);
     }
 }

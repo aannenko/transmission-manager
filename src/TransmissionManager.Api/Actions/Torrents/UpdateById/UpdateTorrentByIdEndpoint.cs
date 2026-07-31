@@ -32,11 +32,13 @@ internal static class UpdateTorrentByIdEndpoint
                 TypedResults.NoContent(),
             UpdateTorrentByIdResult.NotFound =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
-            UpdateTorrentByIdResult.Conflict =>
+            UpdateTorrentByIdResult.VersionConflict =>
                 TypedResults.Problem(
                     error,
                     statusCode: StatusCodes.Status409Conflict,
                     extensions: [new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion)]),
+            UpdateTorrentByIdResult.Exists =>
+                TypedResults.Problem(error, statusCode: StatusCodes.Status409Conflict),
             _ => throw new NotImplementedException(),
         };
     }

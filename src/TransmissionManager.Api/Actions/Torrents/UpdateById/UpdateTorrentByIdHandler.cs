@@ -25,7 +25,8 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         {
             TorrentMutationResult.Success => OnUpdated(id, dto.Cron),
             TorrentMutationResult.NotFound => OnNotFound(id),
-            TorrentMutationResult.Conflict => OnConflict(id, currentVersion!.Value),
+            TorrentMutationResult.VersionConflict => OnConflict(id, currentVersion!.Value),
+            TorrentMutationResult.NotUnique => OnExists(id),
             _ => throw new InvalidOperationException($"Unexpected {nameof(TorrentMutationResult)}: {result}")
         };
     }
@@ -46,7 +47,10 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         new(UpdateTorrentByIdResult.NotFound, null, GetError(id, EndpointMessages.NoSuchTorrent));
 
     private static UpdateTorrentByIdOutcome OnConflict(long id, long version) =>
-        new(UpdateTorrentByIdResult.Conflict, version, GetError(id, EndpointMessages.TorrentModifiedConflict));
+        new(UpdateTorrentByIdResult.VersionConflict, version, GetError(id, EndpointMessages.TorrentModifiedConflict));
+
+    private static UpdateTorrentByIdOutcome OnExists(long id) =>
+        new(UpdateTorrentByIdResult.Exists, null, GetError(id, EndpointMessages.TorrentAlreadyExists));
 
     private static string GetError(long id, string? message) =>
         string.Format(CultureInfo.InvariantCulture, _error, id, message);

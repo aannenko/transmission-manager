@@ -4,5 +4,6 @@ internal enum UpdateTorrentByIdResult
 {
     Updated,
     NotFound,
-    Conflict
+    VersionConflict,
+    Exists,
 }

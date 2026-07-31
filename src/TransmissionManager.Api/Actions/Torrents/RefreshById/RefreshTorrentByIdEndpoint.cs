@@ -31,11 +31,13 @@ internal static class RefreshTorrentByIdEndpoint
                 TypedResults.Problem(message, statusCode: StatusCodes.Status404NotFound),
             RefreshTorrentByIdResult.NotFoundInTransmission =>
                 TypedResults.Problem(message, statusCode: StatusCodes.Status422UnprocessableEntity),
-            RefreshTorrentByIdResult.Conflict =>
+            RefreshTorrentByIdResult.VersionConflict =>
                 TypedResults.Problem(
                     message,
                     statusCode: StatusCodes.Status409Conflict,
                     extensions: [new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion)]),
+            RefreshTorrentByIdResult.Exists =>
+                TypedResults.Problem(message, statusCode: StatusCodes.Status409Conflict),
             RefreshTorrentByIdResult.DependencyFailed =>
                 TypedResults.Problem(message, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException(),

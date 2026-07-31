@@ -1,4 +1,3 @@
-﻿using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
@@ -7,6 +6,7 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 using Outcome = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentOutcome;
@@ -40,19 +40,14 @@ internal sealed class AddTorrentHandler(
         if (transmissionTorrent is null)
             return OnDependencyFailed(request.WebPageUri, null, transmissionError);
 
-        Torrent torrent;
-        try
-        {
-            torrent = await torrentService
-                .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
-                .ConfigureAwait(false);
-        }
-        catch (DbUpdateException)
-        {
-            return OnExists(request.WebPageUri, transmissionResult);
-        }
+        var (addResult, torrent) = await torrentService
+            .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
+            .ConfigureAwait(false);
 
-        return OnAdded(torrent, transmissionResult, request.Cron);
+        if (addResult is TorrentMutationResult.NotUnique)
+            return OnExists(request.WebPageUri, transmissionResult);
+
+        return OnAdded(torrent!, transmissionResult, request.Cron);
     }
 
     private Outcome OnAdded(Torrent torrent, TransmissionAddResult? transmissionResult, string? cron)

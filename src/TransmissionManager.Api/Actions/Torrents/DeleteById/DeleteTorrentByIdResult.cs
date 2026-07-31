@@ -4,6 +4,6 @@ internal enum DeleteTorrentByIdResult
 {
     Deleted,
     NotFound,
-    Conflict,
+    VersionConflict,
     DependencyFailed
 }

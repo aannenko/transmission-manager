@@ -51,7 +51,7 @@ internal sealed class DeleteTorrentByIdHandler(
         {
             TorrentMutationResult.Success => OnRemoved(id),
             TorrentMutationResult.NotFound => OnNotFound(id),
-            TorrentMutationResult.Conflict => OnConflict(id, result.CurrentVersion!.Value),
+            TorrentMutationResult.VersionConflict => OnConflict(id, result.CurrentVersion!.Value),
             _ => throw new InvalidOperationException($"Unexpected {nameof(TorrentMutationResult)}: {result}")
         };
     }
@@ -66,7 +66,7 @@ internal sealed class DeleteTorrentByIdHandler(
         new(Result.NotFound, null, GetError(id, EndpointMessages.NoSuchTorrent));
 
     private static DeleteTorrentByIdOutcome OnConflict(long id, long version) =>
-        new(Result.Conflict, version, GetError(id, EndpointMessages.TorrentModifiedConflict));
+        new(Result.VersionConflict, version, GetError(id, EndpointMessages.TorrentModifiedConflict));
 
     private static DeleteTorrentByIdOutcome OnDependencyFailed(long id, string message) =>
         new(Result.DependencyFailed, null, GetError(id, message));

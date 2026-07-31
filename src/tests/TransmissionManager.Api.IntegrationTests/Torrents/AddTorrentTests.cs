@@ -197,7 +197,7 @@ internal sealed class AddTorrentTests
         using (Assert.EnterMultipleScope())
         {
             var error =
-                $"Torrent '{dto.WebPageUri}' addition failed: 'Torrent already exists.'.";
+                $"Torrent '{dto.WebPageUri}' addition failed: 'A torrent with the same URI or hash already exists.'.";
 
             Assert.That(problemDetails.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
