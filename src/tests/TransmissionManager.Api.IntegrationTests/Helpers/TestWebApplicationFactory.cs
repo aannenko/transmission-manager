@@ -8,7 +8,7 @@ using Microsoft.Extensions.Http;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
-using TransmissionManager.TorrentWebPages.Services;
+using TransmissionManager.TorrentSources.Services;
 using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.IntegrationTests.Helpers;

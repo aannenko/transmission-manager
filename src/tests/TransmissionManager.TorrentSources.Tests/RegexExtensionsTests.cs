@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace TransmissionManager.TorrentWebPages.Tests;
+namespace TransmissionManager.TorrentSources.Tests;
 
 internal sealed partial class RegexExtensionsTests
 {

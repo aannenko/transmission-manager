@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace TransmissionManager.TorrentWebPages.Utils;
+namespace TransmissionManager.TorrentSources.Utils;
 
 internal static class RegexUtils
 {

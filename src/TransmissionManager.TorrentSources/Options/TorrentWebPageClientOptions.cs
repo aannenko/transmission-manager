@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using TransmissionManager.TorrentWebPages.Constants;
-using TransmissionManager.TorrentWebPages.Utils;
+using TransmissionManager.TorrentSources.Constants;
+using TransmissionManager.TorrentSources.Utils;
 
-namespace TransmissionManager.TorrentWebPages.Options;
+namespace TransmissionManager.TorrentSources.Options;
 
 public sealed class TorrentWebPageClientOptions
 {

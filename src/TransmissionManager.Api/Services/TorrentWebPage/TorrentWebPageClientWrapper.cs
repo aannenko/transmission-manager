@@ -1,5 +1,5 @@
 ﻿using Polly.Timeout;
-using TransmissionManager.TorrentWebPages.Services;
+using TransmissionManager.TorrentSources.Services;
 
 namespace TransmissionManager.Api.Services.TorrentWebPage;
 

@@ -12,13 +12,13 @@
     <Project Path="tests/TransmissionManager.Api.Tests/TransmissionManager.Api.Tests.csproj" />
     <Project Path="tests/TransmissionManager.BaseTests/TransmissionManager.BaseTests.csproj" />
     <Project Path="tests/TransmissionManager.Database.Tests/TransmissionManager.Database.Tests.csproj" />
-    <Project Path="tests/TransmissionManager.TorrentWebPages.Tests/TransmissionManager.TorrentWebPages.Tests.csproj" />
+    <Project Path="tests/TransmissionManager.TorrentSources.Tests/TransmissionManager.TorrentSources.Tests.csproj" />
     <Project Path="tests/TransmissionManager.Transmission.Tests/TransmissionManager.Transmission.Tests.csproj" />
   </Folder>
   <Project Path="TransmissionManager.Api.Common/TransmissionManager.Api.Common.csproj" />
   <Project Path="TransmissionManager.Api/TransmissionManager.Api.csproj" />
   <Project Path="TransmissionManager.Database/TransmissionManager.Database.csproj" />
-  <Project Path="TransmissionManager.TorrentWebPages/TransmissionManager.TorrentWebPages.csproj" />
+  <Project Path="TransmissionManager.TorrentSources/TransmissionManager.TorrentSources.csproj" />
   <Project Path="TransmissionManager.Transmission/TransmissionManager.Transmission.csproj" />
   <Project Path="TransmissionManager.Web/TransmissionManager.Web.csproj" />
 </Solution>

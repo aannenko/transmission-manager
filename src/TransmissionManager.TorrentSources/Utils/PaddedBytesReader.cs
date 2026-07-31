@@ -1,4 +1,4 @@
-﻿namespace TransmissionManager.TorrentWebPages.Utils;
+﻿namespace TransmissionManager.TorrentSources.Utils;
 
 internal sealed class PaddedBytesReader
 {

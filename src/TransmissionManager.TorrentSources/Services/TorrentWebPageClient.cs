@@ -3,11 +3,11 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
-using TransmissionManager.TorrentWebPages.Constants;
-using TransmissionManager.TorrentWebPages.Options;
-using TransmissionManager.TorrentWebPages.Utils;
+using TransmissionManager.TorrentSources.Constants;
+using TransmissionManager.TorrentSources.Options;
+using TransmissionManager.TorrentSources.Utils;
 
-namespace TransmissionManager.TorrentWebPages.Services;
+namespace TransmissionManager.TorrentSources.Services;
 
 public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
 {

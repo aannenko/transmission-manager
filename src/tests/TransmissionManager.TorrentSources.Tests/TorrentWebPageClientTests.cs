@@ -1,10 +1,10 @@
 using System.Net;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
-using TransmissionManager.TorrentWebPages.Options;
-using TransmissionManager.TorrentWebPages.Services;
+using TransmissionManager.TorrentSources.Options;
+using TransmissionManager.TorrentSources.Services;
 
-namespace TransmissionManager.TorrentWebPages.Tests;
+namespace TransmissionManager.TorrentSources.Tests;
 
 [Parallelizable(ParallelScope.Self)]
 internal sealed class TorrentWebPageClientTests

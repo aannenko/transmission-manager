@@ -1,7 +1,7 @@
 ﻿using System.Text;
-using TransmissionManager.TorrentWebPages.Utils;
+using TransmissionManager.TorrentSources.Utils;
 
-namespace TransmissionManager.TorrentWebPages.Tests;
+namespace TransmissionManager.TorrentSources.Tests;
 
 [Parallelizable(ParallelScope.All)]
 internal sealed class PaddedBytesReaderTests

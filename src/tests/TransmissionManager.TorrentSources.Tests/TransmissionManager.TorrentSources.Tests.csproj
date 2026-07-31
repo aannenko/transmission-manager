@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\TransmissionManager.TorrentWebPages\TransmissionManager.TorrentWebPages.csproj" />
+    <ProjectReference Include="..\..\TransmissionManager.TorrentSources\TransmissionManager.TorrentSources.csproj" />
     <ProjectReference Include="..\TransmissionManager.BaseTests\TransmissionManager.BaseTests.csproj" />
   </ItemGroup>
 

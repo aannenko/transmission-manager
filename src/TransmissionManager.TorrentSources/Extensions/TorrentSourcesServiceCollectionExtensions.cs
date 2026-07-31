@@ -1,24 +1,24 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
-using TransmissionManager.TorrentWebPages.Options;
-using TransmissionManager.TorrentWebPages.Options.Validation;
-using TransmissionManager.TorrentWebPages.Services;
+using TransmissionManager.TorrentSources.Options;
+using TransmissionManager.TorrentSources.Options.Validation;
+using TransmissionManager.TorrentSources.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
-public static class TorrentWebPagesServiceCollectionExtensions
+public static class TorrentSourcesServiceCollectionExtensions
 {
-    private const string _torrentWebPagesConfigKey = "TorrentWebPages";
+    private const string _torrentSourcesConfigKey = "TorrentSources";
 
-    public static IServiceCollection AddTorrentWebPagesServices(
+    public static IServiceCollection AddTorrentSourcesServices(
         this IServiceCollection services,
         IConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
         _ = services
-            .Configure<TorrentWebPageClientOptions>(configuration.GetRequiredSection(_torrentWebPagesConfigKey))
+            .Configure<TorrentWebPageClientOptions>(configuration.GetRequiredSection(_torrentSourcesConfigKey))
             .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()
             .AddHttpClient<TorrentWebPageClient>()
             .AddStandardResilienceHandler(ConfigureResilience);

@@ -39,7 +39,7 @@ builder.Services.AddValidation();
 builder.Services.AddScheduler();
 
 builder.Services.AddDatabaseServices();
-builder.Services.AddTorrentWebPagesServices(builder.Configuration);
+builder.Services.AddTorrentSourcesServices(builder.Configuration);
 builder.Services.AddTransmissionServices(builder.Configuration);
 
 builder.Services.AddSingleton<TorrentSchedulerService>();
