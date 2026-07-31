@@ -58,7 +58,7 @@ jobs:
       # Among other things, make buildx support multiplatform builds
       # https://github.com/docker/setup-buildx-action
       - name: Set up Docker buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       # Extract metadata (tags, labels) for Docker
       # https://github.com/docker/metadata-action
