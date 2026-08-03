@@ -26,6 +26,19 @@ internal sealed class PaddedBytesReader
 
     public ReadOnlySpan<byte> Bytes => new(_buffer, 0, _bytesLength);
 
+    /// <summary>
+    /// Reads the next chunk of bytes from the stream into the buffer, shifting a <paramref name="padding"/>
+    /// of bytes from the end of the current <see cref="Bytes"/> span to the start of the buffer with each read.
+    /// </summary>
+    /// <param name="padding">The number of bytes to shift from the end of the current <see cref="Bytes"/> span.</param>
+    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+    /// <returns>
+    /// Whether any new bytes were read from the stream. A <see langword="false"/> result means the stream is exhausted,
+    /// not that the reader is empty: <see cref="Bytes"/> still exposes the retained <paramref name="padding"/> bytes.
+    /// </returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown if the padding is negative, exceeds the current buffer length, or equals the buffer size.
+    /// </exception>
     public async ValueTask<bool> ReadNextAsync(int padding, CancellationToken cancellationToken = default)
     {
         if (padding > _bytesLength || padding == _buffer.Length)
@@ -48,9 +61,6 @@ internal sealed class PaddedBytesReader
         }
         while (read > 0 && _buffer.Length - _bytesLength > _maxBufferFreeSpace);
 
-        if (_bytesLength == padding) // No bytes were read
-            _bytesLength = 0;
-
-        return _bytesLength > 0;
+        return _bytesLength > padding;
     }
 }

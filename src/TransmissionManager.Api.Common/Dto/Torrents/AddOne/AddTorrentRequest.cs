@@ -7,6 +7,7 @@ namespace TransmissionManager.Api.Common.Dto.Torrents;
 public sealed class AddTorrentRequest
 {
     [Required]
+    [HttpUri]
     public required Uri WebPageUri { get; init; }
 
     [Required]

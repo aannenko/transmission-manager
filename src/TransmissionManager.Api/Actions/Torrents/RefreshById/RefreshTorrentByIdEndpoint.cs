@@ -29,7 +29,7 @@ internal static class RefreshTorrentByIdEndpoint
                 TypedResults.Ok(new RefreshTorrentByIdResponse(torrentDto!, transmissionResult!.Value, message)),
             RefreshTorrentByIdResult.NotFoundLocally or RefreshTorrentByIdResult.Removed =>
                 TypedResults.Problem(message, statusCode: StatusCodes.Status404NotFound),
-            RefreshTorrentByIdResult.NotFoundInTransmission =>
+            RefreshTorrentByIdResult.NotFoundInTransmission or RefreshTorrentByIdResult.InvalidConfiguration =>
                 TypedResults.Problem(message, statusCode: StatusCodes.Status422UnprocessableEntity),
             RefreshTorrentByIdResult.VersionConflict =>
                 TypedResults.Problem(

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
@@ -235,6 +236,39 @@ internal sealed class AddTorrentTests
             Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.MagnetRegexPattern)));
             Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.Cron)));
         }
+    }
+
+    /// <remarks>
+    /// Proves <c>[HttpUri]</c> is actually wired into minimal-API validation. It is the first plain
+    /// <c>ValidationAttribute</c> in this project - its siblings all derive from
+    /// <c>RegularExpressionAttribute</c> - so without this the 400 it is supposed to produce could
+    /// silently be no validation at all, and a relative address would reach <c>HttpClient</c>.
+    /// </remarks>
+    [TestCase("/forum/viewtopic.php?t=1234570", UriKind.Relative)]
+    [TestCase("ftp://torrenttracker.com/file", UriKind.Absolute)]
+    public async Task AddTorrentAsync_WhenWebPageUriIsNotFetchable_ReturnsValidationError(
+        string address,
+        UriKind uriKind)
+    {
+        var dto = new AddTorrentRequest
+        {
+            WebPageUri = new(address, uriKind),
+            DownloadDir = "/tvshows",
+        };
+
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Errors, Contains.Key(nameof(AddTorrentRequest.WebPageUri)));
+
+        var errors = problem.Errors[nameof(AddTorrentRequest.WebPageUri)];
+
+        Assert.That(errors, Is.Not.Empty);
+        Assert.That(errors[0], Contains.Substring("absolute http or https address"));
     }
 
     private async Task<long> GetTorrentCountAsync()

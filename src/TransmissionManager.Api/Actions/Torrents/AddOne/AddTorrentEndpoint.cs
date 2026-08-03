@@ -34,6 +34,8 @@ internal static class AddTorrentEndpoint
                     error,
                     statusCode: StatusCodes.Status409Conflict,
                     extensions: [new(nameof(transmissionResult), transmissionResult)]),
+            AddTorrentResult.InvalidRequest =>
+                TypedResults.Problem(error, statusCode: StatusCodes.Status400BadRequest),
             AddTorrentResult.DependencyFailed =>
                 TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException()

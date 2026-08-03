@@ -26,7 +26,7 @@ Shared libraries:
 
 - **TransmissionManager.Database** — EF Core + SQLite. Single `AppDbContext`, single `Torrent` entity, CRUD via `TorrentService`; filtered/unfiltered total counts via `TorrentCountCache` (any `TorrentService` method that changes rows or a filterable field must call `Invalidate` on its success path; see `TorrentService.<remarks>`). Database created with `EnsureCreatedAsync()` — no migrations.
 - **TransmissionManager.Transmission** — Typed HTTP client for Transmission RPC. Manages `X-Transmission-Session-Id` refresh; uses `HttpStandardResilienceHandler`.
-- **TransmissionManager.TorrentSources** — HTTP client that scrapes magnet links via configurable regex.
+- **TransmissionManager.TorrentSources** — HTTP client that scrapes magnet links via configurable regex. Reports expected failures as `MagnetSearchOutcome`/`MagnetSearchResult` instead of throwing; `InvalidSource`/`InvalidSelector` are caller errors (400 on add, 422 on refresh), everything else is a dependency failure (424). Anti-bot challenges are **not** detected: recognising one vendor's challenge would imply recognising every vendor's across all the trackers users point this at, so a challenged fetch is reported like any other rejection.
 - **TransmissionManager.Api.Common** — Shared DTOs, validation attributes (`[Cron]`, `[MagnetRegex]`), `JsonSerializerContext` instances, endpoint constants. Referenced by both Api and Web.
 
 ## Key Conventions
@@ -52,6 +52,10 @@ Invariants:
 ### DI registration
 
 Each library exposes `Add{Feature}Services(IServiceCollection)` under `Extensions/`; `Program.cs` composes them. New library → new `Add{Feature}Services`.
+
+**Gotcha — a typed HTTP client's registered name must match what the tests configure.** `AddHttpClient<TConcrete>()` names the client `"TConcrete"`, but `AddHttpClient<IFoo, Foo>()` names it **`"IFoo"`**. `TestWebApplicationFactory` installs its fake handlers via `services.PostConfigure(nameof(TConcrete), …)` — a *string* key — and `PostConfigure` against an unregistered name is **silently ignored**, so a mismatch makes integration tests issue real outbound requests instead of failing. Registering behind an interface is fine as long as the name is pinned explicitly: `AddHttpClient<IFoo, Foo>("Foo")` keeps the name `"Foo"` (verified). Note that overload registers **only** `IFoo` — the concrete type stops being resolvable, so every consumer must inject the interface.
+
+**Gotcha — never send an outbound `User-Agent` naming this application.** At least one major tracker's WAF answers `HTTP 520` to any UA containing "transmission" (case-insensitive); verified across 9 variants, while sending no header, `curl/8.0` and a browser token all succeed. The app sends **no** `User-Agent` (the `HttpClient` default) and must keep doing so unless a source is measured to require one.
 
 ### JSON serialization
 
@@ -92,6 +96,8 @@ Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal
 **Extension classes always end in `Extensions`.** Pattern: `<Receiver>Extensions` for receiver-only naming (`RegexExtensions`, `ServiceCollectionExtensions`, `EndpointRouteBuilderExtensions`), or `<Receiver><Entity>Extensions` when the extension targets a specific entity or descriptor (`QueryableTorrentExtensions`, `ModelBuilderTorrentExtensions`, `DatabaseServiceCollectionExtensions`). Even single-method static helper classes follow this rule — if it's a `static class` with extension methods, it ends in `Extensions`.
 
 Static classes that are *not* extension classes (e.g. constants holders like `PageAddresses`, EF Core `IEntityTypeConfiguration<T>` implementations) do not take the suffix.
+
+**Placement follows scope, not file type.** In the libraries every extension class lives in `Extensions/`. In `TransmissionManager.Api` the `Extensions/` folder is **not** a catch-all — it holds only app-level cross-cutting wiring (`CorsServiceCollectionExtensions`, `StartupLoggerExtensions`); feature-scoped extensions live with the slice they serve, at `Actions/{Feature}/{Action}/` when one action uses them (`Actions/Torrents/GetPage/GetTorrentPageOrderExtensions.cs`) or at `Actions/{Feature}/` when several do (`Actions/Torrents/TorrentExtensions.cs`). `Services/` is for stateful services and their DTOs — never for extension classes.
 
 ### Testing
 

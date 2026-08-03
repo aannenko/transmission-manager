@@ -3,16 +3,16 @@ using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
-using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
+using TransmissionManager.TorrentSources.Services;
 using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 
 namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 
 internal sealed class RefreshTorrentByIdHandler(
-    TorrentWebPageClientWrapper torrentWebPageService,
+    TorrentWebPageClient torrentWebPageClient,
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
     BackgroundTorrentUpdateService backgroundUpdateService)
@@ -34,12 +34,16 @@ internal sealed class RefreshTorrentByIdHandler(
         if (transmissionGetError is not null)
             return OnNotFoundInTransmission(id, transmissionGetError);
 
-        var (magnetUri, getMagnetError) = await torrentWebPageService
-            .GetMagnetUriAsync(new(torrent.WebPageUri), torrent.MagnetRegexPattern, cancellationToken)
+        var (searchResult, magnetUri, getMagnetError) = await torrentWebPageClient
+            .FindMagnetUriAsync(new(torrent.WebPageUri), torrent.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)
-            return OnDependencyFailed(id, null, getMagnetError);
+        {
+            return searchResult.IsInvalidInput()
+                ? OnInvalidConfiguration(id, getMagnetError)
+                : OnDependencyFailed(id, null, getMagnetError);
+        }
 
         var (transmissionAddResult, transmissionAddTorrent, transmissionAddError) = await transmissionService
             .AddTorrentUsingMagnetAsync(magnetUri, torrent.DownloadDir, cancellationToken)
@@ -126,6 +130,9 @@ internal sealed class RefreshTorrentByIdHandler(
         TransmissionAddResult? transmissionResult,
         string? message) =>
         new(Result.DependencyFailed, null, transmissionResult, GetError(id, message));
+
+    private static RefreshTorrentByIdOutcome OnInvalidConfiguration(long id, string? message) =>
+        new(Result.InvalidConfiguration, null, null, GetError(id, message));
 
     private static RefreshTorrentByIdOutcome OnRemoved(long id, TransmissionAddResult? transmissionResult) =>
         new(Result.Removed, null, transmissionResult, GetError(id, EndpointMessages.TorrentRemovedConflict));

@@ -38,15 +38,15 @@ internal sealed class PaddedBytesReaderTests
         result = await reader.ReadNextAsync(5).ConfigureAwait(false);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.False);
-            Assert.That(reader.Bytes.Length, Is.EqualTo(0));
+            Assert.That(result, Is.False); // nothing new was read
+            Assert.That(reader.Bytes.SequenceEqual("pqrst"u8), Is.True); // the retained window survives
         }
 
         result = await reader.ReadNextAsync(0).ConfigureAwait(false);
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.False);
-            Assert.That(reader.Bytes.Length, Is.EqualTo(0));
+            Assert.That(reader.Bytes.Length, Is.EqualTo(0)); // nothing retained, nothing read
         }
     }
 
@@ -88,7 +88,7 @@ internal sealed class PaddedBytesReaderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.False);
-            Assert.That(reader.Bytes.Length, Is.EqualTo(0));
+            Assert.That(reader.Bytes.SequenceEqual("cde"u8), Is.True);
         }
     }
 
@@ -109,7 +109,7 @@ internal sealed class PaddedBytesReaderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.False);
-            Assert.That(reader.Bytes.Length, Is.EqualTo(0));
+            Assert.That(reader.Bytes.SequenceEqual("abcde"u8), Is.True);
         }
 
         result = await reader.ReadNextAsync(0).ConfigureAwait(false);
@@ -117,6 +117,28 @@ internal sealed class PaddedBytesReaderTests
         {
             Assert.That(result, Is.False);
             Assert.That(reader.Bytes.Length, Is.EqualTo(0));
+        }
+    }
+
+    /// <remarks>
+    /// Pins the guarantee the magnet scan depends on: a caller may retain a window, discover the
+    /// stream is exhausted, and still read that window back. Losing it silently discarded magnets
+    /// that were already fully buffered.
+    /// </remarks>
+    [Test]
+    public async Task ReadNextAsync_WhenNothingNewIsReadAfterRetainingBytes_KeepsTheRetainedWindow()
+    {
+        using var stream = new MemoryStream("abcdefgh"u8.ToArray());
+        var reader = new PaddedBytesReader(stream, new byte[10]);
+
+        _ = await reader.ReadNextAsync(0).ConfigureAwait(false);
+
+        var result = await reader.ReadNextAsync(6).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.False);
+            Assert.That(reader.Bytes.SequenceEqual("cdefgh"u8), Is.True);
         }
     }
 

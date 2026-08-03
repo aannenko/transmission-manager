@@ -48,6 +48,11 @@ internal sealed class TestWebApplicationFactory<TProgram>(
         {
             _ = services.ConfigureDbContext<AppDbContext>(options => options.UseSqlite(_connection));
 
+            // Keyed by the typed client's NAME, and PostConfigure against an unregistered name is
+            // silently ignored - a no-op here means real outbound requests, not a failing test.
+            // AddHttpClient<TConcrete>() names the client "TConcrete", but
+            // AddHttpClient<IFoo, Foo>() names it "IFoo"; a client registered behind an interface
+            // must therefore pin its name via AddHttpClient<IFoo, Foo>("Foo") to stay hooked here.
             _ = services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>

@@ -10,7 +10,6 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Development;
 using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.Api.Services.Scheduling;
-using TransmissionManager.Api.Services.TorrentWebPage;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Services;
 
@@ -45,7 +44,6 @@ builder.Services.AddTransmissionServices(builder.Configuration);
 builder.Services.AddSingleton<TorrentSchedulerService>();
 builder.Services.AddTransient<StartupTorrentSchedulerService>();
 
-builder.Services.AddTransient<TorrentWebPageClientWrapper>();
 builder.Services.AddTransient<TransmissionClientWrapper>();
 builder.Services.AddSingleton<BackgroundTorrentUpdateService>();
 
