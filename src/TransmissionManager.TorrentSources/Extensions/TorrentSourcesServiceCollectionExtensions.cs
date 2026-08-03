@@ -18,8 +18,12 @@ public static class TorrentSourcesServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         _ = services
-            .Configure<TorrentWebPageClientOptions>(configuration.GetRequiredSection(_torrentSourcesConfigKey))
             .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()
+            .AddOptions<TorrentWebPageClientOptions>()
+            .Bind(configuration.GetRequiredSection(_torrentSourcesConfigKey))
+            .ValidateOnStart();
+
+        _ = services
             .AddHttpClient<TorrentWebPageClient>()
             .AddStandardResilienceHandler(ConfigureResilience);
 

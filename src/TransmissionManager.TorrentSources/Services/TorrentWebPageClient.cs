@@ -29,6 +29,10 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
     /// A <see cref="MagnetSearchOutcome"/> representing the result of the search, including failures.
     /// Cancellation requested through <paramref name="cancellationToken"/> still propagates.
     /// </returns>
+    /// <remarks>
+    /// The search is bounded by <see cref="TorrentWebPageClientOptions.MagnetSearchTimeout"/>, which
+    /// covers reading the response body as well as obtaining it.
+    /// </remarks>
     public async Task<MagnetSearchOutcome> FindMagnetUriAsync(
         Uri torrentWebPageUri,
         [StringSyntax(StringSyntaxAttribute.Regex)] string? regexPattern = null,
@@ -47,24 +51,36 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         if (!TryGetMagnetRegex(regexPattern, out var regex, out var regexError))
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, regexError);
 
+        var searchTimeout = options.CurrentValue.MagnetSearchTimeout;
+
+        // The resilience pipeline stops at the response headers, so only this token can cancel the
+        // body read; without it a source that sends headers and then stalls blocks forever.
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(searchTimeout);
+
         try
         {
-            return await FindMagnetUriOnWebPageAsync(torrentWebPageUri, regex, cancellationToken).ConfigureAwait(false);
+            return await FindMagnetUriOnWebPageAsync(torrentWebPageUri, regex, timeoutCts.Token)
+                .ConfigureAwait(false);
         }
         catch (RegexMatchTimeoutException e) when (regexPattern is not null)
         {
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, e.Message);
         }
         catch (Exception e) when (e is
+            OperationCanceledException or // the budget expired, or the caller cancelled
             HttpRequestException or
             IOException or // a connection dropped mid-body surfaces here, not as HttpRequestException
             ExecutionRejectedException) // Polly: attempt/total timeout, open circuit, rate limiter
         {
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.RetrievalFailed, e.Message);
-        }
-        catch (OperationCanceledException e) when (!cancellationToken.IsCancellationRequested)
-        {
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.RetrievalFailed, e.Message);
+            // An abort need not surface as an OperationCanceledException, so the caller's token decides.
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return MagnetSearchOutcome.Failure(
+                MagnetSearchResult.RetrievalFailed,
+                timeoutCts.IsCancellationRequested
+                    ? $"The source did not deliver a complete response within {searchTimeout}."
+                    : e.Message);
         }
     }
 

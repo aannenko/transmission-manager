@@ -42,12 +42,13 @@ internal sealed class TorrentWebPageClientTests
 
     private static readonly Dictionary<TestRequest, TestResponse> _noExpectedRequests = [];
 
-    private static TorrentWebPageClient CreateClient(HttpClient httpClient) =>
+    private static TorrentWebPageClient CreateClient(HttpClient httpClient, TimeSpan? magnetSearchTimeout = null) =>
         new(
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
                 DefaultMagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]+",
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
+                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
             }),
             httpClient);
 
@@ -242,6 +243,7 @@ internal sealed class TorrentWebPageClientTests
             {
                 DefaultMagnetRegexPattern = _catastrophicPattern,
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(10),
+                MagnetSearchTimeout = TimeSpan.FromSeconds(30),
             }),
             httpClient);
 
@@ -265,5 +267,130 @@ internal sealed class TorrentWebPageClientTests
             .ConfigureAwait(false);
 
         Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSource));
+    }
+
+    /// <remarks>
+    /// Nothing else bounds this. The resilience pipeline's timeouts elapse once the response
+    /// headers arrive, and it sets <c>HttpClient.Timeout</c> to <see cref="Timeout.InfiniteTimeSpan"/>,
+    /// so a source that stalls its body used to block the caller forever.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenSourceStallsResponseBody_ReturnsRetrievalFailed()
+    {
+        var magnetSearchTimeout = TimeSpan.FromMilliseconds(200);
+
+        using var handler = new StallingBodyHttpMessageHandler();
+        using var httpClient = new HttpClient(handler);
+
+        // Should the budget ever stop covering the body read, this search never completes. Bounding
+        // the wait turns that regression into a failure instead of a test run that hangs.
+        var outcome = await CreateClient(httpClient, magnetSearchTimeout)
+            .FindMagnetUriAsync(_webPageUri)
+            .WaitAsync(TimeSpan.FromSeconds(10))
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
+            Assert.That(outcome.Error, Does.Contain(magnetSearchTimeout.ToString()));
+        }
+    }
+
+    /// <remarks>
+    /// The search budget must not swallow the caller's cancellation - the budget here is long
+    /// enough that only the caller's token can end the wait.
+    /// </remarks>
+    [Test]
+    public void FindMagnetUriAsync_WhenCallerCancels_Throws()
+    {
+        using var handler = new StallingBodyHttpMessageHandler();
+        using var httpClient = new HttpClient(handler);
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+        Assert.That(
+            async () => await CreateClient(httpClient, TimeSpan.FromMinutes(1))
+                .FindMagnetUriAsync(_webPageUri, cancellationToken: cancellationTokenSource.Token)
+                .ConfigureAwait(false),
+            Throws.InstanceOf<OperationCanceledException>());
+    }
+
+    /// <remarks>
+    /// An aborted read does not have to surface as an <see cref="OperationCanceledException"/>. The
+    /// caller still asked to stop, so the retrieval-failure clauses must not claim it as an outcome.
+    /// </remarks>
+    [Test]
+    public void FindMagnetUriAsync_WhenCallerCancelsAndAbortSurfacesAsIoException_Throws()
+    {
+        using var handler = new StallingBodyHttpMessageHandler(abortAsIoException: true);
+        using var httpClient = new HttpClient(handler);
+        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+        Assert.That(
+            async () => await CreateClient(httpClient, TimeSpan.FromMinutes(1))
+                .FindMagnetUriAsync(_webPageUri, cancellationToken: cancellationTokenSource.Token)
+                .ConfigureAwait(false),
+            Throws.InstanceOf<OperationCanceledException>());
+    }
+
+    /// <remarks>
+    /// Answers with response headers immediately and then never delivers the body, which is the
+    /// shape <see cref="FakeHttpMessageHandler"/> cannot express - it always completes its content.
+    /// </remarks>
+    private sealed class StallingBodyHttpMessageHandler(bool abortAsIoException = false) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StreamContent(new StallingStream(abortAsIoException)),
+            });
+        }
+
+        private sealed class StallingStream(bool abortAsIoException) : Stream
+        {
+            public override bool CanRead => true;
+
+            public override bool CanSeek => false;
+
+            public override bool CanWrite => false;
+
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override async ValueTask<int> ReadAsync(
+                Memory<byte> buffer,
+                CancellationToken cancellationToken = default)
+            {
+                try
+                {
+                    await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (abortAsIoException)
+                {
+                    throw new IOException("Unable to read data from the transport connection.");
+                }
+
+                return 0;
+            }
+
+            public override void Flush()
+            {
+            }
+
+            public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+        }
     }
 }
