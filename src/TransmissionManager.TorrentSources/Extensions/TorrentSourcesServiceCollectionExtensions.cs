@@ -1,11 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using System.Net;
 using TransmissionManager.TorrentSources.JsonPointer;
-using TransmissionManager.TorrentSources.Options;
-using TransmissionManager.TorrentSources.Options.Validation;
-using TransmissionManager.TorrentSources.Services;
+using TransmissionManager.TorrentSources.WebPage;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -20,12 +18,6 @@ public static class TorrentSourcesServiceCollectionExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         var torrentSourcesSection = configuration.GetRequiredSection(_torrentSourcesConfigKey);
-
-        _ = services
-            .AddSingleton<IValidateOptions<TorrentSourcesOptions>, ValidateTorrentSourcesOptions>()
-            .AddOptions<TorrentSourcesOptions>()
-            .Bind(torrentSourcesSection)
-            .ValidateOnStart();
 
         _ = services
             .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,7 @@ using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 using TransmissionManager.TorrentSources.JsonPointer;
-using TransmissionManager.TorrentSources.Services;
+using TransmissionManager.TorrentSources.WebPage;
 using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.IntegrationTests.Helpers;

@@ -36,15 +36,15 @@ internal sealed class DevDatabaseSeederTests
         using var scope = Assert.EnterMultipleScope();
 
         Assert.That(torrents, Has.Length.EqualTo(DevDatabaseSeeder.TorrentCount));
-        
+
         Assert.That(
             torrents.Select(static t => t.HashString).Distinct().Count(),
             Is.EqualTo(DevDatabaseSeeder.TorrentCount));
-        
+
         Assert.That(
             torrents.Select(static t => t.Name).Distinct().Count(),
             Is.EqualTo(DevDatabaseSeeder.TorrentCount));
-        
+
         Assert.That(
             torrents.Select(static t => t.WebPageUri).Distinct().Count(),
             Is.EqualTo(DevDatabaseSeeder.TorrentCount));

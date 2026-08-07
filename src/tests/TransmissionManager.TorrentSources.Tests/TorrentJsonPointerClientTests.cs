@@ -4,7 +4,6 @@ using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
 using TransmissionManager.TorrentSources.Dto;
 using TransmissionManager.TorrentSources.JsonPointer;
-using TransmissionManager.TorrentSources.Options;
 
 namespace TransmissionManager.TorrentSources.Tests;
 
@@ -316,12 +315,9 @@ internal sealed class TorrentJsonPointerClientTests
 
     private static TorrentJsonPointerClient CreateClient(HttpClient httpClient, TimeSpan? magnetSearchTimeout = null) =>
         new(
-            new FakeOptionsMonitor<TorrentSourcesOptions>(new()
-            {
-                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
-            }),
             new FakeOptionsMonitor<TorrentJsonPointerClientOptions>(new()
             {
+                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
                 MaxJsonTokenBytes = _maxJsonTokenBytes,
             }),
             httpClient);

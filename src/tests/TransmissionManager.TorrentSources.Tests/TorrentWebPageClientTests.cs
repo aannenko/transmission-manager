@@ -4,8 +4,7 @@ using System.Text.RegularExpressions;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
 using TransmissionManager.TorrentSources.Dto;
-using TransmissionManager.TorrentSources.Options;
-using TransmissionManager.TorrentSources.Services;
+using TransmissionManager.TorrentSources.WebPage;
 
 namespace TransmissionManager.TorrentSources.Tests;
 
@@ -44,12 +43,9 @@ internal sealed class TorrentWebPageClientTests
 
     private static TorrentWebPageClient CreateClient(HttpClient httpClient, TimeSpan? magnetSearchTimeout = null) =>
         new(
-            new FakeOptionsMonitor<TorrentSourcesOptions>(new()
-            {
-                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
-            }),
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
+                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
                 DefaultMagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]+",
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
             }),
@@ -242,12 +238,9 @@ internal sealed class TorrentWebPageClientTests
 
         using var httpClient = new System.Net.Http.HttpClient(handler);
         var client = new TorrentWebPageClient(
-            new FakeOptionsMonitor<TorrentSourcesOptions>(new()
-            {
-                MagnetSearchTimeout = TimeSpan.FromSeconds(30),
-            }),
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
+                MagnetSearchTimeout = TimeSpan.FromSeconds(30),
                 DefaultMagnetRegexPattern = _catastrophicPattern,
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(10),
             }),

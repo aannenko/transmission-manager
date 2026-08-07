@@ -8,7 +8,6 @@ using TransmissionManager.TorrentSources.Options;
 namespace TransmissionManager.TorrentSources.JsonPointer;
 
 public sealed class TorrentJsonPointerClient(
-    IOptionsMonitor<TorrentSourcesOptions> sourcesOptions,
     IOptionsMonitor<TorrentJsonPointerClientOptions> options,
     HttpClient httpClient)
 {
@@ -49,32 +48,30 @@ public sealed class TorrentJsonPointerClient(
                 "The URI must be an absolute HTTP or HTTPS address.");
         }
 
-        // Read once: the limit that accepts a segment and the limit the document is read through
-        // must be the same number, or a reload between them would apply one and then the other.
-        var maxJsonTokenBytes = options.CurrentValue.MaxJsonTokenBytes;
+        // Read once: a reload between the reads would let one setting come from the old
+        // configuration and the next from the new one.
+        var currentOptions = options.CurrentValue;
 
         if (!JsonPointerParser.TryParsePointer(
                 sourceUri.Fragment,
-                maxJsonTokenBytes,
+                currentOptions.MaxJsonTokenBytes,
                 out var segments,
                 out var pointerError))
         {
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, pointerError);
         }
 
-        var searchTimeout = sourcesOptions.CurrentValue.MagnetSearchTimeout;
-
         // The resilience pipeline's timeouts end at the response headers, so only this token can
         // stop a source that sends headers and then stalls.
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(searchTimeout);
+        timeoutCts.CancelAfter(currentOptions.MagnetSearchTimeout);
 
         try
         {
             return await FindMagnetUriInDocumentAsync(
                     sourceUri,
                     segments,
-                    maxJsonTokenBytes,
+                    currentOptions.MaxJsonTokenBytes,
                     timeoutCts.Token)
                 .ConfigureAwait(false);
         }
@@ -90,7 +87,7 @@ public sealed class TorrentJsonPointerClient(
             return MagnetSearchOutcome.Failure(
                 MagnetSearchResult.RetrievalFailed,
                 timeoutCts.IsCancellationRequested
-                    ? $"The source did not deliver a complete response within {searchTimeout}."
+                    ? $"The source did not deliver a complete response within {currentOptions.MagnetSearchTimeout}."
                     : e.Message);
         }
     }

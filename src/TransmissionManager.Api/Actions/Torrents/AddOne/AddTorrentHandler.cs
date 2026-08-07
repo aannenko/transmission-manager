@@ -8,7 +8,7 @@ using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
-using TransmissionManager.TorrentSources.Services;
+using TransmissionManager.TorrentSources.WebPage;
 using Outcome = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentOutcome;
 using Result = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentResult;
 

@@ -1,5 +1,5 @@
-﻿using System.Text;
-using TransmissionManager.TorrentSources.Utils;
+using System.Text;
+using TransmissionManager.TorrentSources.WebPage;
 
 namespace TransmissionManager.TorrentSources.Tests;
 

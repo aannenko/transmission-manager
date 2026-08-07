@@ -1,6 +1,6 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
-namespace TransmissionManager.TorrentSources.Constants;
+namespace TransmissionManager.TorrentSources.WebPage;
 
 internal static partial class TorrentRegex
 {

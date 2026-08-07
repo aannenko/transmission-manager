@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 
-namespace TransmissionManager.TorrentSources.Options.Validation;
+namespace TransmissionManager.TorrentSources.WebPage;
 
 [OptionsValidator]
 public sealed partial class ValidateTorrentWebPageClientOptions

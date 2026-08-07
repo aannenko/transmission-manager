@@ -5,8 +5,8 @@ using System.Diagnostics.CodeAnalysis;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
-using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
+using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Actions.Torrents.GetPage;
 

@@ -6,7 +6,12 @@ namespace TransmissionManager.TorrentSources.Options;
 /// <summary>
 /// Settings shared by every kind of torrent source.
 /// </summary>
-public sealed class TorrentSourcesOptions
+/// <remarks>
+/// Inherited rather than bound on its own, so each source's options carry these alongside their
+/// own. They all bind the same configuration section, so a setting declared here is one key, read
+/// once and set once, no matter how many sources read it.
+/// </remarks>
+public abstract class TorrentSourcesOptions
 {
     /// <summary>
     /// The resilience pipeline's timeouts end once the response headers arrive; this one bounds the

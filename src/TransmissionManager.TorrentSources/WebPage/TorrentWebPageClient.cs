@@ -1,18 +1,15 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using Polly;
 using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
-using TransmissionManager.TorrentSources.Constants;
 using TransmissionManager.TorrentSources.Dto;
 using TransmissionManager.TorrentSources.Options;
-using TransmissionManager.TorrentSources.Utils;
 
-namespace TransmissionManager.TorrentSources.Services;
+namespace TransmissionManager.TorrentSources.WebPage;
 
 public sealed class TorrentWebPageClient(
-    IOptionsMonitor<TorrentSourcesOptions> sourcesOptions,
     IOptionsMonitor<TorrentWebPageClientOptions> options,
     HttpClient httpClient)
 {
@@ -54,7 +51,7 @@ public sealed class TorrentWebPageClient(
         if (!TryGetMagnetRegex(regexPattern, out var regex, out var regexError))
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, regexError);
 
-        var searchTimeout = sourcesOptions.CurrentValue.MagnetSearchTimeout;
+        var searchTimeout = options.CurrentValue.MagnetSearchTimeout;
 
         // The resilience pipeline stops at the response headers, so only this token can cancel the
         // body read; without it a source that sends headers and then stalls blocks forever.

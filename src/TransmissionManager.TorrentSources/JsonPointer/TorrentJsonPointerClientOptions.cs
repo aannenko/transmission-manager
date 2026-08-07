@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using TransmissionManager.TorrentSources.Options;
 
 namespace TransmissionManager.TorrentSources.JsonPointer;
 
-public sealed class TorrentJsonPointerClientOptions
+public sealed class TorrentJsonPointerClientOptions : TorrentSourcesOptions
 {
     /// <summary>
     /// The buffer a JSON document is read through, and so the largest single token it may hold - a

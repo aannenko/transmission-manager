@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using TransmissionManager.TorrentSources.Options;
 
 namespace TransmissionManager.TorrentSources.Tests;
 
@@ -26,6 +27,11 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
     /// <remarks>
     /// A missing key binds to <see cref="TimeSpan.Zero"/>, which satisfies <c>[Required]</c> - only
     /// the range check rejects it, and only if validation actually runs at startup.
+    /// <para>
+    /// Asserted on the message rather than the exception type: every source's options inherit this
+    /// setting, so each one reports it and the host aggregates the failures. How many sources exist
+    /// is not what this test is about.
+    /// </para>
     /// </remarks>
     [TestCase(null)]
     [TestCase("00:00:00.5")]
@@ -43,7 +49,7 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
 
         Assert.That(
             () => provider.GetRequiredService<IStartupValidator>().Validate(),
-            Throws.TypeOf<OptionsValidationException>());
+            Throws.Exception.With.Message.Contains(nameof(TorrentSourcesOptions.MagnetSearchTimeout)));
     }
 
     /// <remarks>

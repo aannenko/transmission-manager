@@ -1,12 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using TransmissionManager.TorrentSources.Constants;
-using TransmissionManager.TorrentSources.Utils;
+using TransmissionManager.TorrentSources.Options;
 
-namespace TransmissionManager.TorrentSources.Options;
+namespace TransmissionManager.TorrentSources.WebPage;
 
-public sealed class TorrentWebPageClientOptions
+public sealed class TorrentWebPageClientOptions : TorrentSourcesOptions
 {
     private readonly Lazy<Regex> _lazyDefaultMagnetRegex;
 

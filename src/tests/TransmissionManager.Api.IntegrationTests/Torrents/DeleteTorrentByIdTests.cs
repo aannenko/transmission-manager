@@ -186,7 +186,7 @@ internal sealed class DeleteTorrentByIdTests
         Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
 
         var currentVersion = ((JsonElement)problemDetails.Extensions["currentVersion"]!).GetInt64();
-        
+
         Assert.That(currentVersion, Is.EqualTo(1));
 
         // Row should still exist after a conflict
@@ -211,12 +211,12 @@ internal sealed class DeleteTorrentByIdTests
         Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
 
         var currentVersion = ((JsonElement)problemDetails.Extensions["currentVersion"]!).GetInt64();
-        
+
         Assert.That(currentVersion, Is.EqualTo(1));
 
         // Row should still exist after a conflict.
         var get = await _client.GetAsync($"{EndpointAddresses.Torrents}/3").ConfigureAwait(false);
-        
+
         Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
