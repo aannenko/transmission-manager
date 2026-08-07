@@ -8,6 +8,7 @@ using Microsoft.Extensions.Http;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
+using TransmissionManager.TorrentSources.JsonPointer;
 using TransmissionManager.TorrentSources.Services;
 using TransmissionManager.Transmission.Services;
 
@@ -54,6 +55,12 @@ internal sealed class TestWebApplicationFactory<TProgram>(
             // AddHttpClient<IFoo, Foo>() names it "IFoo"; a client registered behind an interface
             // must therefore pin its name via AddHttpClient<IFoo, Foo>("Foo") to stay hooked here.
             _ = services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
+            {
+                options.HttpMessageHandlerBuilderActions.Add(builder =>
+                    builder.PrimaryHandler = new FakeHttpMessageHandler(_torrentPageRequestResponseMap));
+            });
+
+            _ = services.PostConfigure(nameof(TorrentJsonPointerClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
                     builder.PrimaryHandler = new FakeHttpMessageHandler(_torrentPageRequestResponseMap));

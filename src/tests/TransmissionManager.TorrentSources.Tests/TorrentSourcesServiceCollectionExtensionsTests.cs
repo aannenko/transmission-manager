@@ -17,6 +17,7 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
             ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
             ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
             ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+            ["TorrentSources:MaxJsonTokenBytes"] = "4096",
         });
 
         Assert.That(() => provider.GetRequiredService<IStartupValidator>().Validate(), Throws.Nothing);
@@ -37,6 +38,33 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
             ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
             ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
             ["TorrentSources:MagnetSearchTimeout"] = magnetSearchTimeout,
+            ["TorrentSources:MaxJsonTokenBytes"] = "4096",
+        });
+
+        Assert.That(
+            () => provider.GetRequiredService<IStartupValidator>().Validate(),
+            Throws.TypeOf<OptionsValidationException>());
+    }
+
+    /// <remarks>
+    /// A missing key binds to zero, which the range check rejects, so the limit cannot be left
+    /// unset and silently default to something that would not hold an info hash.
+    /// </remarks>
+    [TestCase(null, TestName =
+        "AddTorrentSourcesServices_WhenMaxJsonTokenBytesIsUnusable_ValidationOnStartThrows(absent)")]
+    [TestCase("1023", TestName =
+        "AddTorrentSourcesServices_WhenMaxJsonTokenBytesIsUnusable_ValidationOnStartThrows(below the minimum)")]
+    [TestCase("65537", TestName =
+        "AddTorrentSourcesServices_WhenMaxJsonTokenBytesIsUnusable_ValidationOnStartThrows(above the maximum)")]
+    public void AddTorrentSourcesServices_WhenMaxJsonTokenBytesIsUnusable_ValidationOnStartThrows(
+        string? maxJsonTokenBytes)
+    {
+        using var provider = CreateProvider(new()
+        {
+            ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
+            ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
+            ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+            ["TorrentSources:MaxJsonTokenBytes"] = maxJsonTokenBytes,
         });
 
         Assert.That(

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
+using System.Net;
+using TransmissionManager.TorrentSources.JsonPointer;
 using TransmissionManager.TorrentSources.Options;
 using TransmissionManager.TorrentSources.Options.Validation;
 using TransmissionManager.TorrentSources.Services;
@@ -17,14 +19,36 @@ public static class TorrentSourcesServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        var torrentSourcesSection = configuration.GetRequiredSection(_torrentSourcesConfigKey);
+
+        _ = services
+            .AddSingleton<IValidateOptions<TorrentSourcesOptions>, ValidateTorrentSourcesOptions>()
+            .AddOptions<TorrentSourcesOptions>()
+            .Bind(torrentSourcesSection)
+            .ValidateOnStart();
+
         _ = services
             .AddSingleton<IValidateOptions<TorrentWebPageClientOptions>, ValidateTorrentWebPageClientOptions>()
             .AddOptions<TorrentWebPageClientOptions>()
-            .Bind(configuration.GetRequiredSection(_torrentSourcesConfigKey))
+            .Bind(torrentSourcesSection)
+            .ValidateOnStart();
+
+        _ = services
+            .AddSingleton<IValidateOptions<TorrentJsonPointerClientOptions>, ValidateTorrentJsonPointerClientOptions>()
+            .AddOptions<TorrentJsonPointerClientOptions>()
+            .Bind(torrentSourcesSection)
             .ValidateOnStart();
 
         _ = services
             .AddHttpClient<TorrentWebPageClient>()
+            .ConfigurePrimaryHttpMessageHandler(
+                static () => new SocketsHttpHandler { AutomaticDecompression = DecompressionMethods.All })
+            .AddStandardResilienceHandler(ConfigureResilience);
+
+        _ = services
+            .AddHttpClient<TorrentJsonPointerClient>()
+            .ConfigurePrimaryHttpMessageHandler(
+                static () => new SocketsHttpHandler { AutomaticDecompression = DecompressionMethods.All })
             .AddStandardResilienceHandler(ConfigureResilience);
 
         return services;

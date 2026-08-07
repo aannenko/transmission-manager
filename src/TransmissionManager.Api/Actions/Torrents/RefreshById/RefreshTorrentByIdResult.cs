@@ -50,8 +50,8 @@ internal enum RefreshTorrentByIdResult
     /// The torrent's stored source address or magnet regex cannot be used.
     /// </summary>
     /// <remarks>
-    /// Distinct from <see cref="DependencyFailed"/>: the source is not at fault and the refresh
-    /// will keep failing, on schedule, until the torrent is corrected.
+    /// Distinct from <see cref="DependencyFailed"/>: not transient, so the scheduled
+    /// refresh will keep failing until the stored configuration is corrected.
     /// </remarks>
     InvalidConfiguration,
 

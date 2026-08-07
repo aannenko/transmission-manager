@@ -11,7 +11,10 @@ using TransmissionManager.TorrentSources.Utils;
 
 namespace TransmissionManager.TorrentSources.Services;
 
-public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOptions> options, HttpClient httpClient)
+public sealed class TorrentWebPageClient(
+    IOptionsMonitor<TorrentSourcesOptions> sourcesOptions,
+    IOptionsMonitor<TorrentWebPageClientOptions> options,
+    HttpClient httpClient)
 {
     private const int _bufferSize = 2048;
     private const int _defaultPadding = _bufferSize / 16;
@@ -30,7 +33,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
     /// Cancellation requested through <paramref name="cancellationToken"/> still propagates.
     /// </returns>
     /// <remarks>
-    /// The search is bounded by <see cref="TorrentWebPageClientOptions.MagnetSearchTimeout"/>, which
+    /// The search is bounded by <see cref="TorrentSourcesOptions.MagnetSearchTimeout"/>, which
     /// covers reading the response body as well as obtaining it.
     /// </remarks>
     public async Task<MagnetSearchOutcome> FindMagnetUriAsync(
@@ -51,7 +54,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
         if (!TryGetMagnetRegex(regexPattern, out var regex, out var regexError))
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, regexError);
 
-        var searchTimeout = options.CurrentValue.MagnetSearchTimeout;
+        var searchTimeout = sourcesOptions.CurrentValue.MagnetSearchTimeout;
 
         // The resilience pipeline stops at the response headers, so only this token can cancel the
         // body read; without it a source that sends headers and then stalls blocks forever.
@@ -133,7 +136,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                     continue;
                 }
 
-                // magnet found too deep in the buffer - shift the magnet to the start of the buffer + padding
+                // magnet found too deep in the buffer - read once more to shift the magnet to the padding position
                 if (indexOfMagnet >= _defaultPadding * 4)
                 {
                     _ = await reader.ReadNextAsync(bytes.Length - indexOfMagnet + _defaultPadding, cancellationToken)
@@ -148,7 +151,7 @@ public sealed class TorrentWebPageClient(IOptionsMonitor<TorrentWebPageClientOpt
                 if (magnetUri is not null)
                     return magnetUri;
 
-                // magnet not found, but there may be more to read - continue
+                // magnet did not match the regex, set padding to shift it out of the buffer and continue
                 padding = bytes.Length - indexOfMagnet - Magnet.Length;
             }
 

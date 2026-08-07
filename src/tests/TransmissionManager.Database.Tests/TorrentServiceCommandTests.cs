@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
-using TransmissionManager.Database.Services;
 using TransmissionManager.Database.Tests.Helpers;
 
 namespace TransmissionManager.Database.Tests;
@@ -146,7 +145,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         }
 
         var actual = await context.Torrents.AsNoTracking().FirstOrDefaultAsync(static t => t.Id == 1).ConfigureAwait(false);
-        
+
         TorrentAssertions.AssertEqual(actual, 1, dto);
         Assert.That(actual!.Version, Is.EqualTo(2));
     }
@@ -263,7 +262,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         var actual = await context.Torrents.AsNoTracking()
             .FirstOrDefaultAsync(static t => t.Id == 2)
             .ConfigureAwait(false);
-        
+
         Assert.That(actual, Is.Null);
     }
 
@@ -512,7 +511,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
-            Assert.That(before, Is.EqualTo(0));
+            Assert.That(before, Is.Zero);
             Assert.That(after, Is.EqualTo(1));
         }
     }
@@ -536,8 +535,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.EqualTo(TorrentMutationResult.VersionConflict));
-            Assert.That(before, Is.EqualTo(0));
-            Assert.That(after, Is.EqualTo(0));
+            Assert.That(before, Is.Zero);
+            Assert.That(after, Is.Zero);
         }
     }
 }

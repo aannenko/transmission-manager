@@ -44,11 +44,14 @@ internal sealed class TorrentWebPageClientTests
 
     private static TorrentWebPageClient CreateClient(HttpClient httpClient, TimeSpan? magnetSearchTimeout = null) =>
         new(
+            new FakeOptionsMonitor<TorrentSourcesOptions>(new()
+            {
+                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
+            }),
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
                 DefaultMagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]+",
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
-                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
             }),
             httpClient);
 
@@ -239,11 +242,14 @@ internal sealed class TorrentWebPageClientTests
 
         using var httpClient = new System.Net.Http.HttpClient(handler);
         var client = new TorrentWebPageClient(
+            new FakeOptionsMonitor<TorrentSourcesOptions>(new()
+            {
+                MagnetSearchTimeout = TimeSpan.FromSeconds(30),
+            }),
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
                 DefaultMagnetRegexPattern = _catastrophicPattern,
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(10),
-                MagnetSearchTimeout = TimeSpan.FromSeconds(30),
             }),
             httpClient);
 
@@ -330,67 +336,5 @@ internal sealed class TorrentWebPageClientTests
                 .FindMagnetUriAsync(_webPageUri, cancellationToken: cancellationTokenSource.Token)
                 .ConfigureAwait(false),
             Throws.InstanceOf<OperationCanceledException>());
-    }
-
-    /// <remarks>
-    /// Answers with response headers immediately and then never delivers the body, which is the
-    /// shape <see cref="FakeHttpMessageHandler"/> cannot express - it always completes its content.
-    /// </remarks>
-    private sealed class StallingBodyHttpMessageHandler(bool abortAsIoException = false) : HttpMessageHandler
-    {
-        protected override Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-        {
-            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StreamContent(new StallingStream(abortAsIoException)),
-            });
-        }
-
-        private sealed class StallingStream(bool abortAsIoException) : Stream
-        {
-            public override bool CanRead => true;
-
-            public override bool CanSeek => false;
-
-            public override bool CanWrite => false;
-
-            public override long Length => throw new NotSupportedException();
-
-            public override long Position
-            {
-                get => throw new NotSupportedException();
-                set => throw new NotSupportedException();
-            }
-
-            public override async ValueTask<int> ReadAsync(
-                Memory<byte> buffer,
-                CancellationToken cancellationToken = default)
-            {
-                try
-                {
-                    await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
-                }
-                catch (OperationCanceledException) when (abortAsIoException)
-                {
-                    throw new IOException("Unable to read data from the transport connection.");
-                }
-
-                return 0;
-            }
-
-            public override void Flush()
-            {
-            }
-
-            public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-
-            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-
-            public override void SetLength(long value) => throw new NotSupportedException();
-
-            public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-        }
     }
 }
