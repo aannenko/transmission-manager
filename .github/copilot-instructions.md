@@ -59,6 +59,8 @@ Each library exposes `Add{Feature}Services(IServiceCollection)` under `Extension
 
 **Gotcha — never send an outbound `User-Agent` naming this application.** At least one major tracker's WAF answers `HTTP 520` to any UA containing "transmission" (case-insensitive); verified across 9 variants, while sending no header, `curl/8.0` and a browser token all succeed. The app sends **no** `User-Agent` (the `HttpClient` default) and must keep doing so unless a source is measured to require one.
 
+**Gotcha — `ArrayPool<T>.Shared` rents long and dirty.** `Rent(n)` rounds up to the next power-of-two bucket, so `Rent(5000)` returns 8192 — track the usable window as the size you asked for, never `buffer.Length`, or a configured limit silently drifts upward. Rented arrays are also **not** cleared, and `Return` does not clear them either, so reading past the bytes you actually filled reads whatever the previous tenant left: comparing a fixed-length prefix without first checking you read that many bytes is how one bad response poisons a bucket and faults every later one.
+
 ### JSON serialization
 
 All JSON serialization goes through **source-generated `JsonSerializerContext`** classes for trimming/AOT compatibility. New serialized types must be registered in the matching context: `DtoJsonSerializerContext` (Api.Common, shared DTOs), `ApiJsonSerializerContext` (Api, internal), `TransmissionJsonSerializerContext` (Transmission RPC).
@@ -106,6 +108,8 @@ Static classes that are *not* extension classes (e.g. constants holders like `Pa
 **NUnit 4**, parallelism `[Parallelizable(ParallelScope.Self)]`. Shared utilities in `TransmissionManager.BaseTests` (`FakeHttpMessageHandler`, `FakeOptionsMonitor<T>`). Integration tests use `WebApplicationFactory<Program>` with fake HTTP handlers; `TestWebApplicationFactory` composes on top of production DI via `ConfigureDbContext<AppDbContext>` (overriding only the SQLite connection). CA1707 is suppressed in test projects.
 
 **Test method names are three-part: `WhatMethod_OnWhatCondition_DoesWhat`** (e.g. `GetCountAsync_WhenCalledWithFilter_ReturnsMatchingCount`, `AddTorrentAsync_WhenWebPageUriExists_ReturnsConflictResponse`). The condition segment is mandatory even when terse; keep it in the middle.
+
+**A `[TestCase]` name must carry the method name.** NUnit *replaces* the generated name with `TestName` rather than appending to it, so a bare description like `"empty"` loses the method entirely — and repeats across classes. Omit `TestName` whenever the generated `Method(args)` renders legibly; write one only when an argument does not (control characters, an empty string, a very long literal), and then spell out the whole thing: `TestName = "TryParseAsArrayIndex_WhenTokenIsNotAnIndex_Fails(digit then NUL)"`.
 
 **Mirrored API ↔ DB enums.** When an API enum has a DB counterpart (e.g. `GetTorrentPageOrder` ↔ `TorrentOrder`, `GetTorrentPageDirection` ↔ `PaginationDirection`), the API gets the specific name (`Get{Action}{Concept}`) and the DB gets a reusable generic name. Cross-project value/name parity is asserted by mapping tests in `TransmissionManager.Api.Tests` (`GetTorrentPageOrderMappingTests` / `GetTorrentPageDirectionMappingTests`). The API↔DB cast (`(DbEnum)apiEnum`) is then a one-liner.
 
