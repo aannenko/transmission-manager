@@ -33,7 +33,7 @@ public enum TorrentMutationResult
 
     /// <summary>
     /// A unique index rejected the write: another row already holds the same
-    /// <c>HashString</c> or <c>WebPageUri</c>.
+    /// <c>HashString</c> or <c>SourceUri</c>.
     /// </summary>
     /// <remarks>
     /// Not retryable, unlike <see cref="VersionConflict"/>: the caller must change the conflicting

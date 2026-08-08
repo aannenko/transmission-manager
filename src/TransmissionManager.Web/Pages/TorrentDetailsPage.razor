@@ -24,7 +24,7 @@
     <div>
         <span>Torrent webpage:</span>
         <div class="form-input">
-            <a href="@WebPageUri" target="_blank">@WebPageUri</a>
+            <a href="@SourceUri" target="_blank">@SourceUri</a>
         </div>
     </div>
 
@@ -107,7 +107,7 @@
 
     private string Name => _currentTorrent?.Name ?? string.Empty;
 
-    private string WebPageUri => _currentTorrent?.WebPageUri.OriginalString ?? string.Empty;
+    private string SourceUri => _currentTorrent?.SourceUri.OriginalString ?? string.Empty;
 
     private string HashString => _currentTorrent?.HashString ?? string.Empty;
 

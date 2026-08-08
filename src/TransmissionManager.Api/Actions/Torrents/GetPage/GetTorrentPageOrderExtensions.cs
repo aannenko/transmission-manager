@@ -10,7 +10,7 @@ internal static class GetTorrentPageOrderExtensions
             GetTorrentPageOrder.IdDesc or
             GetTorrentPageOrder.RefreshDateDesc or
             GetTorrentPageOrder.NameDesc or
-            GetTorrentPageOrder.WebPageDesc or
+            GetTorrentPageOrder.UriDesc or
             GetTorrentPageOrder.DownloadDirDesc;
     }
 }

@@ -46,7 +46,7 @@ internal sealed class DevDatabaseSeederTests
             Is.EqualTo(DevDatabaseSeeder.TorrentCount));
 
         Assert.That(
-            torrents.Select(static t => t.WebPageUri).Distinct().Count(),
+            torrents.Select(static t => t.SourceUri).Distinct().Count(),
             Is.EqualTo(DevDatabaseSeeder.TorrentCount));
     }
 }

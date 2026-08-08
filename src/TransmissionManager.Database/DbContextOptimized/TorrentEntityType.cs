@@ -4,6 +4,7 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
 #pragma warning disable 219, 612, 618
@@ -20,7 +21,7 @@ namespace TransmissionManager.Database.DbContextOptimized
                 "TransmissionManager.Database.Models.Torrent",
                 typeof(Torrent),
                 baseEntityType,
-                propertyCount: 9,
+                propertyCount: 10,
                 unnamedIndexCount: 6,
                 keyCount: 1);
 
@@ -75,6 +76,19 @@ namespace TransmissionManager.Database.DbContextOptimized
                 DateTime (DateTime date) => DateTime.SpecifyKind(date, DateTimeKind.Utc)));
             refreshDate.SetSentinelFromProviderValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
 
+            var sourceKind = runtimeEntityType.AddProperty(
+                "SourceKind",
+                typeof(TorrentSourceKind),
+                propertyInfo: typeof(Torrent).GetProperty("SourceKind", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Torrent).GetField("<SourceKind>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+            sourceKind.SetSentinelFromProviderValue(0);
+
+            var sourceUri = runtimeEntityType.AddProperty(
+                "SourceUri",
+                typeof(string),
+                propertyInfo: typeof(Torrent).GetProperty("SourceUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Torrent).GetField("<SourceUri>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+
             var version = runtimeEntityType.AddProperty(
                 "Version",
                 typeof(long),
@@ -82,12 +96,6 @@ namespace TransmissionManager.Database.DbContextOptimized
                 fieldInfo: typeof(Torrent).GetField("<Version>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 concurrencyToken: true,
                 sentinel: 0L);
-
-            var webPageUri = runtimeEntityType.AddProperty(
-                "WebPageUri",
-                typeof(string),
-                propertyInfo: typeof(Torrent).GetProperty("WebPageUri", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
-                fieldInfo: typeof(Torrent).GetField("<WebPageUri>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
 
             var key = runtimeEntityType.AddKey(
                 new[] { id });
@@ -110,7 +118,7 @@ namespace TransmissionManager.Database.DbContextOptimized
                 new[] { refreshDate });
 
             var index4 = runtimeEntityType.AddIndex(
-                new[] { webPageUri },
+                new[] { sourceUri },
                 unique: true);
 
             return runtimeEntityType;

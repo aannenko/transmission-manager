@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.Actions.Torrents;
@@ -12,7 +12,8 @@ internal static class TorrentExtensions
             HashString: torrent.HashString,
             RefreshDate: torrent.RefreshDate.ToLocalTime(),
             Name: torrent.Name,
-            WebPageUri: new(torrent.WebPageUri),
+            SourceUri: new(torrent.SourceUri),
+            SourceKind: (TorrentSourceKind)torrent.SourceKind,
             DownloadDir: torrent.DownloadDir,
             MagnetRegexPattern: torrent.MagnetRegexPattern,
             Cron: torrent.Cron,

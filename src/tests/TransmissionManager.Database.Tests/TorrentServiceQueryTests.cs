@@ -214,28 +214,28 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
             TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialHashStringAndDirectionIsBackward_ReturnsFilteredArrayOfTorrents"
         };
 
-        yield return new(new(default, new(InitialTorrents[1].WebPageUri), InitialTorrents[1..^1]))
+        yield return new(new(default, new(InitialTorrents[1].SourceUri), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullWebPageUri_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullSourceUri_ReturnsFilteredArrayOfTorrents"
         };
 
-        yield return new(new(default, new(InitialTorrents[1].WebPageUri.ToUpperInvariant()), InitialTorrents[1..^1]))
+        yield return new(new(default, new(InitialTorrents[1].SourceUri.ToUpperInvariant()), InitialTorrents[1..^1]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullUppercasedWebPageUri_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsFullUppercasedSourceUri_ReturnsFilteredArrayOfTorrents"
         };
 
-        yield return new(new(default, new(InitialTorrents[1].WebPageUri[..^1]), InitialTorrents))
+        yield return new(new(default, new(InitialTorrents[1].SourceUri[..^1]), InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialWebPageUri_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialSourceUri_ReturnsFilteredArrayOfTorrents"
         };
 
-        yield return new(new(new(Direction: PaginationDirection.Backward, Take: 2), new(InitialTorrents[1].WebPageUri[..^1]), InitialTorrents[1..]))
+        yield return new(new(new(Direction: PaginationDirection.Backward, Take: 2), new(InitialTorrents[1].SourceUri[..^1]), InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialWebPageUriAndDirectionIsBackward_ReturnsFilteredArrayOfTorrents"
+            TestName = "GetPageAsync_WhenPropertyStartsWithIsPartialSourceUriAndDirectionIsBackward_ReturnsFilteredArrayOfTorrents"
         };
 
         yield return new(new(default, new(InitialTorrents[1].Name), InitialTorrents[1..^1]))
@@ -346,28 +346,28 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
             TestName = "GetPageAsync_WhenOrderByIsNameDescAndDirectionIsBackward_ReturnsSortedArrayOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPage), default, InitialTorrents))
+        yield return new(new(new(TorrentOrder.Uri), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPage_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUri_ReturnsSortedArrayOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPage, Direction: PaginationDirection.Backward, Take: 2), default, InitialTorrents[1..]))
+        yield return new(new(new(TorrentOrder.Uri, Direction: PaginationDirection.Backward, Take: 2), default, InitialTorrents[1..]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageAndDirectionIsBackward_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriAndDirectionIsBackward_ReturnsSortedArrayOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPageDesc), default, [.. InitialTorrents.Reverse()]))
+        yield return new(new(new(TorrentOrder.UriDesc), default, [.. InitialTorrents.Reverse()]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageDesc_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriDesc_ReturnsSortedArrayOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPageDesc, Direction: PaginationDirection.Backward, Take: 2), default, [.. InitialTorrents.Reverse().Skip(1)]))
+        yield return new(new(new(TorrentOrder.UriDesc, Direction: PaginationDirection.Backward, Take: 2), default, [.. InitialTorrents.Reverse().Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndDirectionIsBackward_ReturnsSortedArrayOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriDescAndDirectionIsBackward_ReturnsSortedArrayOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir)]))
@@ -442,52 +442,52 @@ internal sealed class TorrentServiceQueryTests : BaseTorrentServiceTests
             TestName = "GetPageAsync_WhenOrderByIsNameDescAndAnchorValueIsExistingNameAndDirectionIsBackward_ReturnsPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPage, AnchorValue: string.Empty), default, InitialTorrents))
+        yield return new(new(new(TorrentOrder.Uri, AnchorValue: string.Empty), default, InitialTorrents))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriAndAnchorValueIsEmptyString_ReturnsPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPage, AnchorValue: string.Empty, Direction: PaginationDirection.Backward), default, []))
+        yield return new(new(new(TorrentOrder.Uri, AnchorValue: string.Empty, Direction: PaginationDirection.Backward), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsEmptyStringAndDirectionIsBackward_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriAndAnchorValueIsEmptyStringAndDirectionIsBackward_ReturnsEmptyPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPage, 1, InitialTorrents[0].WebPageUri), default, [.. InitialTorrents.OrderBy(static torrent => torrent.WebPageUri).Skip(1)]))
+        yield return new(new(new(TorrentOrder.Uri, 1, InitialTorrents[0].SourceUri), default, [.. InitialTorrents.OrderBy(static torrent => torrent.SourceUri).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsExistingWebPage_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriAndAnchorValueIsExistingSourceUri_ReturnsPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPage, 3, InitialTorrents[2].WebPageUri, Direction: PaginationDirection.Backward), default, [.. InitialTorrents.OrderBy(static torrent => torrent.WebPageUri).Take(2)]))
+        yield return new(new(new(TorrentOrder.Uri, 3, InitialTorrents[2].SourceUri, Direction: PaginationDirection.Backward), default, [.. InitialTorrents.OrderBy(static torrent => torrent.SourceUri).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageAndAnchorValueIsExistingWebPageAndDirectionIsBackward_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriAndAnchorValueIsExistingSourceUriAndDirectionIsBackward_ReturnsPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPageDesc, AnchorValue: string.Empty), default, []))
+        yield return new(new(new(TorrentOrder.UriDesc, AnchorValue: string.Empty), default, []))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsEmptyString_ReturnsEmptyPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriDescAndAnchorValueIsEmptyString_ReturnsEmptyPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPageDesc, AnchorValue: string.Empty, Direction: PaginationDirection.Backward, Take: 2), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.WebPageUri).Skip(1)]))
+        yield return new(new(new(TorrentOrder.UriDesc, AnchorValue: string.Empty, Direction: PaginationDirection.Backward, Take: 2), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.SourceUri).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsEmptyStringAndDirectionIsBackward_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriDescAndAnchorValueIsEmptyStringAndDirectionIsBackward_ReturnsPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPageDesc, 3, InitialTorrents[2].WebPageUri), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.WebPageUri).Skip(1)]))
+        yield return new(new(new(TorrentOrder.UriDesc, 3, InitialTorrents[2].SourceUri), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.SourceUri).Skip(1)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsExistingWebPage_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriDescAndAnchorValueIsExistingSourceUri_ReturnsPageOfTorrents"
         };
 
-        yield return new(new(new(TorrentOrder.WebPageDesc, 1, InitialTorrents[0].WebPageUri, Direction: PaginationDirection.Backward), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.WebPageUri).Take(2)]))
+        yield return new(new(new(TorrentOrder.UriDesc, 1, InitialTorrents[0].SourceUri, Direction: PaginationDirection.Backward), default, [.. InitialTorrents.OrderByDescending(static torrent => torrent.SourceUri).Take(2)]))
         {
             TypeArgs = [typeof(string)],
-            TestName = "GetPageAsync_WhenOrderByIsWebPageDescAndAnchorValueIsExistingWebPageAndDirectionIsBackward_ReturnsPageOfTorrents"
+            TestName = "GetPageAsync_WhenOrderByIsUriDescAndAnchorValueIsExistingSourceUriAndDirectionIsBackward_ReturnsPageOfTorrents"
         };
 
         yield return new(new(new(TorrentOrder.DownloadDir, AnchorValue: string.Empty), default, [.. InitialTorrents.OrderBy(static torrent => torrent.DownloadDir)]))

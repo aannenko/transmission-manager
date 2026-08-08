@@ -34,8 +34,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
         _ = torrentBuilder.HasIndex(static torrent => torrent.Name);
         _ = torrentBuilder.Property(static torrent => torrent.Name).UseCollation(_noCaseCollation);
 
-        _ = torrentBuilder.HasIndex(static torrent => torrent.WebPageUri).IsUnique(true);
-        _ = torrentBuilder.Property(static torrent => torrent.WebPageUri).UseCollation(_noCaseCollation);
+        _ = torrentBuilder.HasIndex(static torrent => torrent.SourceUri).IsUnique(true);
+        _ = torrentBuilder.Property(static torrent => torrent.SourceUri).UseCollation(_noCaseCollation);
 
         _ = torrentBuilder.HasIndex(static torrent => torrent.DownloadDir);
         _ = torrentBuilder.Property(static torrent => torrent.DownloadDir).UseCollation(_noCaseCollation);

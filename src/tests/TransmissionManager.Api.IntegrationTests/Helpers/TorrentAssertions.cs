@@ -27,7 +27,8 @@ internal static class TorrentAssertions
             }
 
             Assert.That(actual.Name, Is.EqualTo(expected.Name));
-            Assert.That(actual.WebPageUri.OriginalString, Is.EqualTo(expected.WebPageUri));
+            Assert.That(actual.SourceUri.OriginalString, Is.EqualTo(expected.SourceUri));
+            Assert.That(actual.SourceKind, Is.EqualTo((TorrentSourceKind)expected.SourceKind));
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));

@@ -1,4 +1,4 @@
-﻿using TransmissionManager.Database.Models;
+using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Dto;
 
@@ -13,7 +13,8 @@ internal static class TorrentAddDtoExtensions
             RefreshDate = dto.RefreshDate,
             Name = dto.Name,
             DownloadDir = dto.DownloadDir,
-            WebPageUri = dto.WebPageUri.OriginalString,
+            SourceUri = dto.SourceUri.OriginalString,
+            SourceKind = dto.SourceKind,
             MagnetRegexPattern = dto.MagnetRegexPattern,
             Cron = dto.Cron,
             Version = 1,

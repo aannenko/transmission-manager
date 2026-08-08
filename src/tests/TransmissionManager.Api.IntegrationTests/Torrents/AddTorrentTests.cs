@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
@@ -8,6 +8,7 @@ using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
+using DbSourceKind = TransmissionManager.Database.Dto.TorrentSourceKind;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
 
@@ -126,11 +127,11 @@ internal sealed class AddTorrentTests
     }
 
     [Test]
-    public async Task AddTorrentAsync_WhenWebPageUriIsNew_AddsTorrentToTransmissionAndDb()
+    public async Task AddTorrentAsync_WhenSourceUriIsNew_AddsTorrentToTransmissionAndDb()
     {
         var dto = new AddTorrentRequest
         {
-            WebPageUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            SourceUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
             DownloadDir = "/tvshows",
             Cron = "0 9,17 * * *"
         };
@@ -158,7 +159,8 @@ internal sealed class AddTorrentTests
             HashString = _addNewTorrentResponseHashString,
             RefreshDate = DateTime.UtcNow,
             Name = _addNewTorrentResponseName,
-            WebPageUri = dto.WebPageUri.OriginalString,
+            SourceUri = dto.SourceUri.OriginalString,
+            SourceKind = DbSourceKind.WebPage,
             DownloadDir = dto.DownloadDir,
             Cron = dto.Cron,
             Version = 1,
@@ -179,11 +181,11 @@ internal sealed class AddTorrentTests
     }
 
     [Test]
-    public async Task AddTorrentAsync_WhenWebPageUriExists_ReturnsConflictResponse()
+    public async Task AddTorrentAsync_WhenSourceUriExists_ReturnsConflictResponse()
     {
         var dto = new AddTorrentRequest
         {
-            WebPageUri = new(_initialTorrents[0].WebPageUri),
+            SourceUri = new(_initialTorrents[0].SourceUri),
             DownloadDir = _initialTorrents[0].DownloadDir,
             Cron = _initialTorrents[0].Cron,
         };
@@ -198,7 +200,7 @@ internal sealed class AddTorrentTests
         using (Assert.EnterMultipleScope())
         {
             var error =
-                $"Torrent '{dto.WebPageUri}' addition failed: 'A torrent with the same URI or hash already exists.'.";
+                $"Torrent '{dto.SourceUri}' addition failed: 'A torrent with the same URI or hash already exists.'.";
 
             Assert.That(problemDetails.Detail, Is.EqualTo(error));
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
@@ -211,7 +213,7 @@ internal sealed class AddTorrentTests
     {
         var dto = new AddTorrentRequest
         {
-            WebPageUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            SourceUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
             DownloadDir = "/tvshows",
             MagnetRegexPattern = "",
             Cron = " "
@@ -246,13 +248,13 @@ internal sealed class AddTorrentTests
     /// </remarks>
     [TestCase("/forum/viewtopic.php?t=1234570", UriKind.Relative)]
     [TestCase("ftp://torrenttracker.com/file", UriKind.Absolute)]
-    public async Task AddTorrentAsync_WhenWebPageUriIsNotFetchable_ReturnsValidationError(
+    public async Task AddTorrentAsync_WhenSourceUriIsNotFetchable_ReturnsValidationError(
         string address,
         UriKind uriKind)
     {
         var dto = new AddTorrentRequest
         {
-            WebPageUri = new(address, uriKind),
+            SourceUri = new(address, uriKind),
             DownloadDir = "/tvshows",
         };
 
@@ -263,9 +265,9 @@ internal sealed class AddTorrentTests
         var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Errors, Contains.Key(nameof(AddTorrentRequest.WebPageUri)));
+        Assert.That(problem.Errors, Contains.Key(nameof(AddTorrentRequest.SourceUri)));
 
-        var errors = problem.Errors[nameof(AddTorrentRequest.WebPageUri)];
+        var errors = problem.Errors[nameof(AddTorrentRequest.SourceUri)];
 
         Assert.That(errors, Is.Not.Empty);
         Assert.That(errors[0], Contains.Substring("absolute http or https address"));

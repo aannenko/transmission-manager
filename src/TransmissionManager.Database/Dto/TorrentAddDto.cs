@@ -8,14 +8,15 @@ public sealed class TorrentAddDto
         string hashString,
         DateTime refreshDate,
         string name,
-        Uri webPageUri,
+        Uri sourceUri,
+        TorrentSourceKind sourceKind,
         string downloadDir,
         [StringSyntax(StringSyntaxAttribute.Regex)] string? magnetRegexPattern = null,
         string? cron = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hashString);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
-        ArgumentNullException.ThrowIfNull(webPageUri);
+        ArgumentNullException.ThrowIfNull(sourceUri);
         ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
         if (magnetRegexPattern is not null)
@@ -27,7 +28,8 @@ public sealed class TorrentAddDto
         HashString = hashString;
         RefreshDate = refreshDate;
         Name = name;
-        WebPageUri = webPageUri;
+        SourceUri = sourceUri;
+        SourceKind = sourceKind;
         DownloadDir = downloadDir;
         MagnetRegexPattern = magnetRegexPattern;
         Cron = cron;
@@ -39,7 +41,9 @@ public sealed class TorrentAddDto
 
     public string Name { get; }
 
-    public Uri WebPageUri { get; }
+    public Uri SourceUri { get; }
+
+    public TorrentSourceKind SourceKind { get; }
 
     public string DownloadDir { get; }
 

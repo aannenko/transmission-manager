@@ -14,7 +14,8 @@ internal static class TorrentAssertions
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
             Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate));
             Assert.That(actual.Name, Is.EqualTo(expected.Name));
-            Assert.That(actual.WebPageUri, Is.EqualTo(expected.WebPageUri));
+            Assert.That(actual.SourceUri, Is.EqualTo(expected.SourceUri));
+            Assert.That(actual.SourceKind, Is.EqualTo(expected.SourceKind));
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
@@ -31,7 +32,8 @@ internal static class TorrentAssertions
             Assert.That(actual.HashString, Is.EqualTo(expected.HashString));
             Assert.That(actual.RefreshDate, Is.EqualTo(expected.RefreshDate));
             Assert.That(actual.Name, Is.EqualTo(expected.Name));
-            Assert.That(actual.WebPageUri, Is.EqualTo(expected.WebPageUri.OriginalString));
+            Assert.That(actual.SourceUri, Is.EqualTo(expected.SourceUri.OriginalString));
+            Assert.That(actual.SourceKind, Is.EqualTo(expected.SourceKind));
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));

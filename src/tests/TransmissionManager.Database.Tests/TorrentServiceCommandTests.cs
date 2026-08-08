@@ -17,7 +17,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
             refreshDate: DateTime.UtcNow,
             name: "New TV show",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows",
             magnetRegexPattern: @"magnet:\?xt=urn:[^""]+",
             cron: "0 10,18 * * *");
@@ -39,6 +40,43 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
+    public async Task AddOneAsync_WhenSourceKindIsJsonPointer_PersistsItAsStoredIntegerValue()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var dto = new TorrentAddDto(
+            hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
+            refreshDate: DateTime.UtcNow,
+            name: "New TV show",
+            sourceUri: new("https://torrentTracker.com/api/1106#/result/6880555/7"),
+            sourceKind: TorrentSourceKind.JsonPointer,
+            downloadDir: "/tvshows");
+
+        var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
+
+        const long expectedId = 4;
+
+        Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
+        Assert.That(torrent!.SourceKind, Is.EqualTo(TorrentSourceKind.JsonPointer));
+
+        // Read back through a fresh context so the value comes from SQLite, not the change tracker.
+        using var readContext = CreateContext();
+        var reloaded = await readContext.Torrents.AsNoTracking()
+            .FirstOrDefaultAsync(static t => t.Id == expectedId)
+            .ConfigureAwait(false);
+
+        TorrentAssertions.AssertEqual(reloaded, expectedId, dto);
+
+        var storedValue = await readContext.Database
+            .SqlQuery<long>($"select SourceKind as Value from Torrents where Id = {expectedId}")
+            .SingleAsync()
+            .ConfigureAwait(false);
+
+        Assert.That(storedValue, Is.EqualTo(1), "SourceKind must persist as its numeric value.");
+    }
+
+    [Test]
     public async Task AddOneAsync_WhenHashStringConflictsWithExistingTorrent_ReturnsExists()
     {
         using var context = CreateContext();
@@ -48,7 +86,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
             refreshDate: DateTime.UtcNow,
             name: "New TV show 2",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows");
 
         var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
@@ -61,7 +100,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     [Test]
-    public async Task AddOneAsync_WhenWebPageUriConflictsWithExistingTorrent_ReturnsExists()
+    public async Task AddOneAsync_WhenSourceUriConflictsWithExistingTorrent_ReturnsExists()
     {
         using var context = CreateContext();
         var service = CreateService(context);
@@ -70,7 +109,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "96a76b68b91ccf8929c5476e35ce42ff39101d2a",
             refreshDate: DateTime.UtcNow,
             name: "New TV show 3",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows");
 
         var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
@@ -92,7 +132,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
             refreshDate: DateTime.UtcNow,
             name: "Conflicting hash",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows");
 
         var (conflictResult, _) = await service.AddOneAsync(conflicting).ConfigureAwait(false);
@@ -101,7 +142,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
             refreshDate: DateTime.UtcNow,
             name: "New TV show",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234572"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234572"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows");
 
         var (validResult, torrent) = await service.AddOneAsync(valid).ConfigureAwait(false);
@@ -360,7 +402,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
             refreshDate: DateTime.UtcNow,
             name: "New TV show",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows");
 
         _ = await service.AddOneAsync(dto).ConfigureAwait(false);
@@ -386,7 +429,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa",
             refreshDate: DateTime.UtcNow,
             name: "Conflicting hash",
-            webPageUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows");
 
         Assert.That(

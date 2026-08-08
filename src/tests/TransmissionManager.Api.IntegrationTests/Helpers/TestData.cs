@@ -1,6 +1,7 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using TransmissionManager.BaseTests.HttpClient;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Api.IntegrationTests.Helpers;
@@ -38,7 +39,8 @@ internal static class TestData
                     Id = default,
                     HashString = FirstTorrentHashString,
                     Name = FirstTorrentName,
-                    WebPageUri = FirstTorrentWebPageAddress,
+                    SourceUri = FirstTorrentWebPageAddress,
+                    SourceKind = TorrentSourceKind.WebPage,
                     DownloadDir = FirstTorrentDownloadDir,
                     Cron = FirstTorrentCron,
                     RefreshDate = FirstTorrentRefreshDate,
@@ -49,7 +51,8 @@ internal static class TestData
                     Id = default,
                     HashString = SecondTorrentHashString,
                     Name = SecondTorrentName,
-                    WebPageUri = SecondTorrentWebPageAddress,
+                    SourceUri = SecondTorrentWebPageAddress,
+                    SourceKind = TorrentSourceKind.WebPage,
                     DownloadDir = SecondTorrentDownloadDir,
                     MagnetRegexPattern = SecondTorrentMagnetRegexPattern,
                     RefreshDate = SecondTorrentRefreshDate,
@@ -60,7 +63,8 @@ internal static class TestData
                     Id = default,
                     HashString = ThirdTorrentHashString,
                     Name = ThirdTorrentName,
-                    WebPageUri = ThirdTorrentWebPageAddress,
+                    SourceUri = ThirdTorrentWebPageAddress,
+                    SourceKind = TorrentSourceKind.WebPage,
                     DownloadDir = ThirdTorrentDownloadDir,
                     MagnetRegexPattern = ThirdTorrentMagnetRegexPattern,
                     Cron = ThirdTorrentCron,

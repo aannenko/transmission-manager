@@ -64,14 +64,14 @@ internal static class QueryableTorrentExtensions
                 query.Where(torrent =>
                     torrent.Name.CompareTo(name) < 0 ||
                     (torrent.Name.CompareTo(name) == 0 && torrent.Id < anchorId)),
-            (TorrentOrder.WebPage, string webPage) =>
+            (TorrentOrder.Uri, string webPage) =>
                 query.Where(torrent =>
-                    torrent.WebPageUri.CompareTo(webPage) > 0 ||
-                    (torrent.WebPageUri.CompareTo(webPage) == 0 && torrent.Id > anchorId)),
-            (TorrentOrder.WebPageDesc, string webPage) =>
+                    torrent.SourceUri.CompareTo(webPage) > 0 ||
+                    (torrent.SourceUri.CompareTo(webPage) == 0 && torrent.Id > anchorId)),
+            (TorrentOrder.UriDesc, string webPage) =>
                 query.Where(torrent =>
-                    torrent.WebPageUri.CompareTo(webPage) < 0 ||
-                    (torrent.WebPageUri.CompareTo(webPage) == 0 && torrent.Id < anchorId)),
+                    torrent.SourceUri.CompareTo(webPage) < 0 ||
+                    (torrent.SourceUri.CompareTo(webPage) == 0 && torrent.Id < anchorId)),
             (TorrentOrder.DownloadDir, string downloadDir) =>
                 query.Where(torrent =>
                     torrent.DownloadDir.CompareTo(downloadDir) > 0 ||
@@ -101,8 +101,8 @@ internal static class QueryableTorrentExtensions
             TorrentOrder.RefreshDateDesc => query.OrderByDescending(static torrent => torrent.RefreshDate),
             TorrentOrder.Name => query.OrderBy(static torrent => torrent.Name),
             TorrentOrder.NameDesc => query.OrderByDescending(static torrent => torrent.Name),
-            TorrentOrder.WebPage => query.OrderBy(static torrent => torrent.WebPageUri),
-            TorrentOrder.WebPageDesc => query.OrderByDescending(static torrent => torrent.WebPageUri),
+            TorrentOrder.Uri => query.OrderBy(static torrent => torrent.SourceUri),
+            TorrentOrder.UriDesc => query.OrderByDescending(static torrent => torrent.SourceUri),
             TorrentOrder.DownloadDir => query.OrderBy(static torrent => torrent.DownloadDir),
             TorrentOrder.DownloadDirDesc => query.OrderByDescending(static torrent => torrent.DownloadDir),
             _ => throw new ArgumentOutOfRangeException(nameof(order)),

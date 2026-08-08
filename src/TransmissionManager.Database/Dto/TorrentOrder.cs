@@ -8,8 +8,8 @@ public enum TorrentOrder
     RefreshDateDesc,
     Name,
     NameDesc,
-    WebPage,
-    WebPageDesc,
+    Uri,
+    UriDesc,
     DownloadDir,
     DownloadDirDesc,
 }

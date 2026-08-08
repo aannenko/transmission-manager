@@ -37,7 +37,7 @@ namespace TransmissionManager.Database.Services;
 /// </para>
 /// <para>
 /// <b>Future-maintainer warning:</b> any method that changes the set of rows or a filterable
-/// field (<c>HashString</c> / <c>Name</c> / <c>WebPageUri</c> / <c>DownloadDir</c> / <c>Cron</c>)
+/// field (<c>HashString</c> / <c>Name</c> / <c>SourceUri</c> / <c>DownloadDir</c> / <c>Cron</c>)
 /// must call <see cref="TorrentCountCache.Invalidate"/> on its success path, otherwise
 /// <see cref="GetCountAsync"/> may keep serving a stale cached count.
 /// </para>
@@ -214,7 +214,7 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
             query = query.Where(torrent =>
                 torrent.HashString.StartsWith(filter.PropertyStartsWith) ||
                 torrent.Name.StartsWith(filter.PropertyStartsWith) ||
-                torrent.WebPageUri.StartsWith(filter.PropertyStartsWith) ||
+                torrent.SourceUri.StartsWith(filter.PropertyStartsWith) ||
                 torrent.DownloadDir.StartsWith(filter.PropertyStartsWith));
         }
 

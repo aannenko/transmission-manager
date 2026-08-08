@@ -13,7 +13,8 @@ internal sealed class TorrentAddDtoExtensionsTests
             hashString: "ABCDEF0123456789ABCDEF0123456789ABCDEF01",
             refreshDate: DateTime.UtcNow,
             name: "Test name",
-            webPageUri: new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            sourceUri: new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows",
             magnetRegexPattern: @"magnet:\?xt=[^""]+",
             cron: "0 9,17 * * *");

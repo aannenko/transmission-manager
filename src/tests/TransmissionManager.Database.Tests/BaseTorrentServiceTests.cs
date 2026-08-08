@@ -1,5 +1,6 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
@@ -62,7 +63,8 @@ internal abstract class BaseTorrentServiceTests
                 HashString = "0bda511316a069e86dd8ee8a3610475d2013a7fa",
                 RefreshDate = new(2024, 12, 3, 10, 20, 30, 400, DateTimeKind.Utc),
                 Name = "TV show name",
-                WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
+                SourceUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234567"),
+                SourceKind = TorrentSourceKind.WebPage,
                 DownloadDir = "/tvshows",
                 Cron = "0 9,17 * * *",
                 Version = 1,
@@ -73,7 +75,8 @@ internal abstract class BaseTorrentServiceTests
                 HashString = "738c60cbd44f0e9457ba2afdad9e9231d76243fe",
                 RefreshDate = new(2023, 11, 2, 11, 22, 33, 444, DateTimeKind.Utc),
                 Name = "Movie name",
-                WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234568"),
+                SourceUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234568"),
+                SourceKind = TorrentSourceKind.WebPage,
                 DownloadDir = "/movies",
                 MagnetRegexPattern = @"magnet:\?xt=urn:[^""]+",
                 Version = 1,
@@ -84,7 +87,8 @@ internal abstract class BaseTorrentServiceTests
                 HashString = "5713cc1aeb2ec4a371c2412dc04e0a60d710862e",
                 RefreshDate = new(2022, 10, 1, 12, 34, 56, 777, DateTimeKind.Utc),
                 Name = "Music video name",
-                WebPageUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234569"),
+                SourceUri = new("https://torrentTracker.com/forum/viewtopic.php?t=1234569"),
+                SourceKind = TorrentSourceKind.WebPage,
                 DownloadDir = "/videos",
                 Cron = "0 10,18 * * *",
                 MagnetRegexPattern = @"magnet:\?xt[^""]+",

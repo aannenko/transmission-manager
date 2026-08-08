@@ -8,7 +8,7 @@ public sealed class AddTorrentRequest
 {
     [Required]
     [HttpUri]
-    public required Uri WebPageUri { get; init; }
+    public required Uri SourceUri { get; init; }
 
     [Required]
     public required string DownloadDir { get; init; }

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
@@ -6,6 +6,7 @@ using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.Database.Models;
+using DbSourceKind = TransmissionManager.Database.Dto.TorrentSourceKind;
 using Parameters = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageParameters;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
@@ -136,7 +137,7 @@ internal sealed class GetTorrentPageTests
     }
 
     [Test]
-    public async Task GetTorrentPageAsync_WhenPropertyStartsWithPointsToExistingWebPageUri_ReturnsMatchingTorrent()
+    public async Task GetTorrentPageAsync_WhenPropertyStartsWithPointsToExistingSourceUri_ReturnsMatchingTorrent()
     {
         var parameters = new Parameters(
             Take: 1,
@@ -491,7 +492,8 @@ internal sealed class GetTorrentPageTests
                 Id = default,
                 HashString = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
                 Name = "TV Show A",
-                WebPageUri = "https://example.com/forum/viewtopic.php?t=1",
+                SourceUri = "https://example.com/forum/viewtopic.php?t=1",
+                SourceKind = DbSourceKind.WebPage,
                 DownloadDir = "/tvshows",
                 RefreshDate = refreshDate,
                 Version = 1,
@@ -501,7 +503,8 @@ internal sealed class GetTorrentPageTests
                 Id = default,
                 HashString = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
                 Name = duplicateName,
-                WebPageUri = "https://example.com/forum/viewtopic.php?t=2",
+                SourceUri = "https://example.com/forum/viewtopic.php?t=2",
+                SourceKind = DbSourceKind.WebPage,
                 DownloadDir = "/tvshows",
                 RefreshDate = refreshDate,
                 Version = 1,
@@ -511,7 +514,8 @@ internal sealed class GetTorrentPageTests
                 Id = default,
                 HashString = "cccccccccccccccccccccccccccccccccccccccc",
                 Name = duplicateName,
-                WebPageUri = "https://example.com/forum/viewtopic.php?t=3",
+                SourceUri = "https://example.com/forum/viewtopic.php?t=3",
+                SourceKind = DbSourceKind.WebPage,
                 DownloadDir = "/tvshows",
                 RefreshDate = refreshDate,
                 Version = 1,

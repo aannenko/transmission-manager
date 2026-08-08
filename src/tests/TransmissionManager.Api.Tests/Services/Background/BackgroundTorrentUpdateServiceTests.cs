@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,6 +7,7 @@ using System.Net;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.BaseTests.Options;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 using TransmissionManager.Transmission.Options;
@@ -268,7 +269,8 @@ internal sealed class BackgroundTorrentUpdateServiceTests
             Id = default,
             HashString = _hash,
             Name = name,
-            WebPageUri = "https://torrents.example.com/forum/viewtopic.php?t=1",
+            SourceUri = "https://torrents.example.com/forum/viewtopic.php?t=1",
+            SourceKind = TorrentSourceKind.WebPage,
             DownloadDir = "/tvshows",
             RefreshDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             Version = 1,

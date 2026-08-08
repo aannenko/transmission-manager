@@ -61,6 +61,10 @@ using (var scope = app.Services.CreateScope())
 
     var dbContext = provider.GetRequiredService<AppDbContext>();
 
+    // Creates the schema only when the database has no tables - there are no migrations, and
+    // against an existing file this no-ops, so a Torrent property added since deployment will
+    // not appear until the database is migrated by hand.
+    // When schema changes, rebuild tables - do not edit the schema manually.
     var dbCreated = await dbContext
         .Database.EnsureCreatedAsync(lifetime.ApplicationStopping)
         .ConfigureAwait(false);

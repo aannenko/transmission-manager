@@ -35,7 +35,7 @@ internal sealed class RefreshTorrentByIdHandler(
             return OnNotFoundInTransmission(id, transmissionGetError);
 
         var (searchResult, magnetUri, getMagnetError) = await torrentWebPageClient
-            .FindMagnetUriAsync(new(torrent.WebPageUri), torrent.MagnetRegexPattern, cancellationToken)
+            .FindMagnetUriAsync(new(torrent.SourceUri), torrent.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)

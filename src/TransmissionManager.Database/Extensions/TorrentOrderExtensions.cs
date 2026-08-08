@@ -8,7 +8,7 @@ internal static class TorrentOrderExtensions
             TorrentOrder.IdDesc or
             TorrentOrder.RefreshDateDesc or
             TorrentOrder.NameDesc or
-            TorrentOrder.WebPageDesc or
+            TorrentOrder.UriDesc or
             TorrentOrder.DownloadDirDesc;
     }
 
@@ -22,8 +22,8 @@ internal static class TorrentOrderExtensions
             TorrentOrder.RefreshDateDesc => TorrentOrder.RefreshDate,
             TorrentOrder.Name => TorrentOrder.NameDesc,
             TorrentOrder.NameDesc => TorrentOrder.Name,
-            TorrentOrder.WebPage => TorrentOrder.WebPageDesc,
-            TorrentOrder.WebPageDesc => TorrentOrder.WebPage,
+            TorrentOrder.Uri => TorrentOrder.UriDesc,
+            TorrentOrder.UriDesc => TorrentOrder.Uri,
             TorrentOrder.DownloadDir => TorrentOrder.DownloadDirDesc,
             TorrentOrder.DownloadDirDesc => TorrentOrder.DownloadDir,
             _ => throw new ArgumentOutOfRangeException(nameof(orderBy))
@@ -37,7 +37,7 @@ internal static class TorrentOrderExtensions
             TorrentOrder.Id or TorrentOrder.IdDesc => anchorValue is null,
             TorrentOrder.RefreshDate or TorrentOrder.RefreshDateDesc => anchorValue is null or DateTime,
             TorrentOrder.Name or TorrentOrder.NameDesc => anchorValue is null or string,
-            TorrentOrder.WebPage or TorrentOrder.WebPageDesc => anchorValue is null or string,
+            TorrentOrder.Uri or TorrentOrder.UriDesc => anchorValue is null or string,
             TorrentOrder.DownloadDir or TorrentOrder.DownloadDirDesc => anchorValue is null or string,
             _ => throw new ArgumentOutOfRangeException(nameof(orderBy))
         };

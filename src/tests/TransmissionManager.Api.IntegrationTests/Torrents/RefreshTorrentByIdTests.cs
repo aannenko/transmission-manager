@@ -6,6 +6,7 @@ using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Models;
+using DbSourceKind = TransmissionManager.Database.Dto.TorrentSourceKind;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
 
@@ -30,7 +31,8 @@ internal sealed class RefreshTorrentByIdTests
             Id = default,
             HashString = CleanupWarningTorrentHashString,
             Name = CleanupWarningTorrentName,
-            WebPageUri = CleanupWarningTorrentWebPageAddress,
+            SourceUri = CleanupWarningTorrentWebPageAddress,
+            SourceKind = DbSourceKind.WebPage,
             DownloadDir = CleanupWarningTorrentDownloadDir,
             RefreshDate = _cleanupWarningTorrentRefreshDate,
             Version = 1,
@@ -355,7 +357,8 @@ internal sealed class RefreshTorrentByIdTests
             Id = source.Id,
             HashString = source.HashString,
             Name = source.Name,
-            WebPageUri = source.WebPageUri,
+            SourceUri = source.SourceUri,
+            SourceKind = source.SourceKind,
             DownloadDir = source.DownloadDir,
             MagnetRegexPattern = source.MagnetRegexPattern,
             Cron = source.Cron,
@@ -388,7 +391,8 @@ internal sealed class RefreshTorrentByIdTests
             Id = source.Id,
             HashString = CleanupWarningTorrentUpdatedHashString,
             Name = CleanupWarningTorrentUpdatedName,
-            WebPageUri = source.WebPageUri,
+            SourceUri = source.SourceUri,
+            SourceKind = source.SourceKind,
             DownloadDir = source.DownloadDir,
             MagnetRegexPattern = source.MagnetRegexPattern,
             Cron = source.Cron,

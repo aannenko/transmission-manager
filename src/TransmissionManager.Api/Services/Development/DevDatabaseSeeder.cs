@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Database.Models;
+﻿using TransmissionManager.Database.Dto;
+using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Api.Services.Development;
@@ -55,7 +56,8 @@ internal static class DevDatabaseSeeder
                 HashString = GenerateHashString(i),
                 RefreshDate = baseDate.AddHours(i * 7.3),
                 Name = $"{word1} {word2} {word3}",
-                WebPageUri = $"https://torrents.example.com/view/{i + 1}",
+                SourceUri = $"https://torrents.example.com/view/{i + 1}",
+                SourceKind = TorrentSourceKind.WebPage,
                 DownloadDir = _downloadDirs[i % _downloadDirs.Length],
                 MagnetRegexPattern = i % 5 == 0 ? @"magnet:\?xt=urn:btih:[0-9a-fA-F]{40}" : null,
                 Cron = i % 3 != 0 ? _cronExpressions[i % _cronExpressions.Length] : null,

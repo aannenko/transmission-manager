@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using TransmissionManager.Database.Dto;
 
 namespace TransmissionManager.Database.Models;
 
@@ -13,8 +14,10 @@ public sealed class Torrent
     public required string Name { get; set; }
 
 #pragma warning disable CA1056 // URI-like properties should not be strings - filtering is easier with strings
-    public required string WebPageUri { get; set; }
+    public required string SourceUri { get; set; }
 #pragma warning restore CA1056 // URI-like properties should not be strings
+
+    public required TorrentSourceKind SourceKind { get; set; }
 
     public required string DownloadDir { get; set; }
 

@@ -8,8 +8,8 @@ public enum GetTorrentPageOrder
     RefreshDateDesc,
     Name,
     NameDesc,
-    WebPage,
-    WebPageDesc,
+    Uri,
+    UriDesc,
     DownloadDir,
     DownloadDirDesc,
 }

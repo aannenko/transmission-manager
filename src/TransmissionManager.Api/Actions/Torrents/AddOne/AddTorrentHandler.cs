@@ -27,14 +27,14 @@ internal sealed class AddTorrentHandler(
     public async Task<Outcome> AddTorrentAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
         var (searchResult, magnetUri, getMagnetError) = await torrentWebPageClient
-            .FindMagnetUriAsync(request.WebPageUri, request.MagnetRegexPattern, cancellationToken)
+            .FindMagnetUriAsync(request.SourceUri, request.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)
         {
             return searchResult.IsInvalidInput()
-                ? OnInvalidRequest(request.WebPageUri, getMagnetError)
-                : OnDependencyFailed(request.WebPageUri, null, getMagnetError);
+                ? OnInvalidRequest(request.SourceUri, getMagnetError)
+                : OnDependencyFailed(request.SourceUri, null, getMagnetError);
         }
 
         var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService
@@ -42,14 +42,14 @@ internal sealed class AddTorrentHandler(
             .ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return OnDependencyFailed(request.WebPageUri, null, transmissionError);
+            return OnDependencyFailed(request.SourceUri, null, transmissionError);
 
         var (addResult, torrent) = await torrentService
             .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
             .ConfigureAwait(false);
 
         if (addResult is TorrentMutationResult.NotUnique)
-            return OnExists(request.WebPageUri, transmissionResult);
+            return OnExists(request.SourceUri, transmissionResult);
 
         return OnAdded(torrent!, transmissionResult, request.Cron);
     }

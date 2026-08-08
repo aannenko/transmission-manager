@@ -113,7 +113,7 @@ Here are some examples (replace `<docker_host>` with the hostname or IP address 
 (iwr http://<docker_host>:9092/api/v1/torrents?take=10 | ConvertFrom-Json).torrents
 
 # Register a new torrent in Transmission Manager API, send it to Transmission for download and check for torrent updates every day at 11:00 and 17:00
-iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"webPageUri":"https://nnmclub.to/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
+iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://nnmclub.to/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
 # Can't wait for Transmission Manager API to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
 iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json
