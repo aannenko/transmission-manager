@@ -5,8 +5,6 @@ namespace TransmissionManager.TorrentSources.Dto;
 /// </summary>
 /// <remarks>
 /// Expected failures are reported through these members rather than thrown.
-/// <see cref="InvalidSource"/> and <see cref="InvalidSelector"/> fault the arguments the caller
-/// supplied; the rest fault the source.
 /// </remarks>
 public enum MagnetSearchResult
 {

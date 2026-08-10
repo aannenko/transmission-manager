@@ -51,6 +51,8 @@ internal sealed class TorrentRefreshTaskTests
     [TestCase(RefreshTorrentByIdResult.NotFoundInTransmission)]
     [TestCase(RefreshTorrentByIdResult.Removed)]
     [TestCase(RefreshTorrentByIdResult.VersionConflict)]
+    [TestCase(RefreshTorrentByIdResult.Exists)]
+    [TestCase(RefreshTorrentByIdResult.InvalidConfiguration)]
     [TestCase(RefreshTorrentByIdResult.DependencyFailed)]
     public async Task Invoke_WhenRefreshDoesNotSucceed_LogsScheduledRefreshFailed(RefreshTorrentByIdResult result)
     {

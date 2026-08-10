@@ -47,16 +47,19 @@ internal enum RefreshTorrentByIdResult
     Exists,
 
     /// <summary>
-    /// The torrent's stored source address or magnet regex cannot be used.
+    /// The torrent's stored source address or magnet regex yielded no magnet.
     /// </summary>
     /// <remarks>
-    /// Distinct from <see cref="DependencyFailed"/>: not transient, so the scheduled
-    /// refresh will keep failing until the stored configuration is corrected.
+    /// Distinct from <see cref="DependencyFailed"/>: the source was never reached,
+    /// or it answered and simply held no magnet at the selector, so the scheduled refresh
+    /// keeps failing until the stored configuration is corrected - or, in the one case this
+    /// misjudges, until the source starts serving the magnet again. See
+    /// <c>MagnetSearchResultExtensions.IsUnprocessableSource</c>.
     /// </remarks>
     InvalidConfiguration,
 
     /// <summary>
-    /// The torrent web page or Transmission could not be reached, or yielded nothing usable.
+    /// The torrent web page or Transmission could not be reached.
     /// </summary>
     /// <remarks>
     /// Transient as far as this application can tell, so the scheduled refresh will try again.

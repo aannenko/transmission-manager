@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
@@ -20,6 +21,13 @@ internal sealed class RefreshTorrentByIdTests
     private const string CleanupWarningTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234570";
     private const string CleanupWarningTorrentDownloadDir = "/tvshows";
 
+    private const string NoMagnetTorrentHashString = "7c9e6679742d4f3e9a1b0c5d8e2f4a6b3d5c7e91";
+    private const string NoMagnetTorrentName = "TV Show 5";
+    private const string NoMagnetTorrentDownloadDir = "/tvshows";
+
+    private static readonly DateTime _noMagnetTorrentRefreshDate =
+        new(2021, 8, 3, 12, 34, 56, 789, DateTimeKind.Utc);
+
     private static readonly DateTime _cleanupWarningTorrentRefreshDate =
         new(2021, 9, 4, 13, 45, 57, 888, DateTimeKind.Utc);
 
@@ -35,6 +43,17 @@ internal sealed class RefreshTorrentByIdTests
             SourceKind = DbSourceKind.WebPage,
             DownloadDir = CleanupWarningTorrentDownloadDir,
             RefreshDate = _cleanupWarningTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = NoMagnetTorrentHashString,
+            Name = NoMagnetTorrentName,
+            SourceUri = TestData.WebPages.NoMagnetPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = NoMagnetTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
             Version = 1,
         },
     ];
@@ -281,6 +300,35 @@ internal sealed class RefreshTorrentByIdTests
         TestData.Transmission.DefaultResponseHeaders,
         TestData.Transmission.GetOneTorrentNotFoundResponseBody);
 
+    // Get No-Magnet Torrent
+
+    private static readonly string _getNoMagnetTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        NoMagnetTorrentHashString);
+
+    private static readonly TestRequest _getNoMagnetTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getNoMagnetTorrentRequestBody);
+
+    private static readonly TestRequest _getNoMagnetTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getNoMagnetTorrentRequestBody);
+
+    private static readonly TestResponse _getNoMagnetTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            NoMagnetTorrentDownloadDir,
+            NoMagnetTorrentHashString,
+            NoMagnetTorrentName));
+
     // Request-Response map
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
@@ -298,6 +346,8 @@ internal sealed class RefreshTorrentByIdTests
         [_removeCleanupWarningTorrentValidHeaderRequest] = _removeCleanupWarningTorrentValidHeaderResponse,
         [_getRemovedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getRemovedTorrentValidHeaderRequest] = _getRemovedTorrentValidHeaderResponse,
+        [_getNoMagnetTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getNoMagnetTorrentValidHeaderRequest] = _getNoMagnetTorrentValidHeaderResponse,
     };
 
     #endregion
@@ -409,5 +459,23 @@ internal sealed class RefreshTorrentByIdTests
         var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/3", null).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.UnprocessableEntity));
+    }
+
+    /// <remarks>
+    /// The stored source is fetched successfully and simply holds no magnet, so the dependency did
+    /// its job and only the extraction failed - the stored configuration is what must change, hence
+    /// 422 rather than 424. This is the cron-driven path, so it is the one that fails unattended.
+    /// </remarks>
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenStoredSourceHoldsNoMagnet_Returns422UnprocessableEntity()
+    {
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/5", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.UnprocessableEntity));
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Detail, Contains.Substring("No magnet link was found"));
     }
 }

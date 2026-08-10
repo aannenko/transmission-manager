@@ -40,7 +40,7 @@ internal sealed class RefreshTorrentByIdHandler(
 
         if (magnetUri is null)
         {
-            return searchResult.IsInvalidInput()
+            return searchResult.IsUnprocessableSource()
                 ? OnInvalidConfiguration(id, getMagnetError)
                 : OnDependencyFailed(id, null, getMagnetError);
         }

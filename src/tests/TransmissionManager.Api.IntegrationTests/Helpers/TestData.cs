@@ -104,6 +104,22 @@ internal static class TestData
         public const string FourthPageMagnetNew =
             "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=TV+Show+4";
 
+        /// <summary>
+        /// A page fetched successfully that holds no magnet link, as an anti-bot challenge served
+        /// with a success status or a re-laid-out topic page would be.
+        /// </summary>
+        public const string NoMagnetPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234571";
+
+        public const string NoMagnetPageHtml = """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><title>Just a moment...</title></head>
+            <body>
+                <h1>Checking your browser before accessing the forum.</h1>
+            </body>
+            </html>
+            """;
+
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
 
         public static readonly IReadOnlyDictionary<TestRequest, TestResponse> RequestResponseMap =
@@ -120,6 +136,9 @@ internal static class TestData
 
                 [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
                     new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FourthPageMagnetNew)),
+
+                [new(HttpMethod.Get, new(NoMagnetPageAddress))] =
+                    new(HttpStatusCode.OK, Content: NoMagnetPageHtml),
             };
     }
 

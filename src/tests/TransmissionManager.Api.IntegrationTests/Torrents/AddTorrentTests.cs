@@ -273,6 +273,28 @@ internal sealed class AddTorrentTests
         Assert.That(errors[0], Contains.Substring("absolute http or https address"));
     }
 
+    /// <remarks>
+    /// Anti-bot challenges served with a success status land here too.
+    /// </remarks>
+    [Test]
+    public async Task AddTorrentAsync_WhenSourcePageHoldsNoMagnet_ReturnsBadRequest()
+    {
+        var dto = new AddTorrentRequest
+        {
+            SourceUri = new(TestData.WebPages.NoMagnetPageAddress),
+            DownloadDir = "/tvshows",
+        };
+
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Detail, Contains.Substring("No magnet link was found"));
+    }
+
     private async Task<long> GetTorrentCountAsync()
     {
         var response = await _client

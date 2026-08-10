@@ -32,7 +32,7 @@ internal sealed class AddTorrentHandler(
 
         if (magnetUri is null)
         {
-            return searchResult.IsInvalidInput()
+            return searchResult.IsUnprocessableSource()
                 ? OnInvalidRequest(request.SourceUri, getMagnetError)
                 : OnDependencyFailed(request.SourceUri, null, getMagnetError);
         }

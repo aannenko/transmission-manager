@@ -17,17 +17,18 @@ internal enum AddTorrentResult
     Exists,
 
     /// <summary>
-    /// The request named a source address or magnet regex that cannot be used.
+    /// The request's source address or magnet regex yielded no magnet.
     /// </summary>
     /// <remarks>
-    /// Distinct from <see cref="DependencyFailed"/>: nothing is wrong with the torrent web page,
-    /// so retrying is pointless until the request changes. Reachable despite request validation,
-    /// because a magnet regex can be shaped correctly yet fail to compile.
+    /// Distinct from <see cref="DependencyFailed"/>: the source was never reached,
+    /// or it answered and simply held no magnet at the selector, so retrying unchanged
+    /// changes nothing. Reachable despite request validation, because a magnet regex can be shaped
+    /// correctly yet fail to compile.
     /// </remarks>
     InvalidRequest,
 
     /// <summary>
-    /// The torrent web page or Transmission could not be reached, or yielded nothing usable.
+    /// The torrent web page or Transmission could not be reached.
     /// </summary>
     /// <remarks>
     /// Nothing was added anywhere; the request itself is fine and may be retried as-is.
