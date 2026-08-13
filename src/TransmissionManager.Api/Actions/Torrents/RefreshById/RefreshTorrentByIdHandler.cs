@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
@@ -6,13 +6,12 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
-using TransmissionManager.TorrentSources.WebPage;
 using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 
 namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 
 internal sealed class RefreshTorrentByIdHandler(
-    TorrentWebPageClient torrentWebPageClient,
+    IServiceProvider serviceProvider,
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
     BackgroundTorrentUpdateService backgroundUpdateService)
@@ -34,8 +33,12 @@ internal sealed class RefreshTorrentByIdHandler(
         if (transmissionGetError is not null)
             return OnNotFoundInTransmission(id, transmissionGetError);
 
-        var (searchResult, magnetUri, getMagnetError) = await torrentWebPageClient
-            .FindMagnetUriAsync(new(torrent.SourceUri), torrent.MagnetRegexPattern, cancellationToken)
+        var (searchResult, magnetUri, getMagnetError) = await serviceProvider
+            .FindMagnetUriAsync(
+                new(torrent.SourceUri),
+                torrent.SourceKind,
+                torrent.MagnetRegexPattern,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)

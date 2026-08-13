@@ -1,4 +1,4 @@
-[![Build, Test, and Publish API Docker Image](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml)
+﻿[![Build, Test, and Publish API Docker Image](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml)
 [![Build, Test, and Publish Web Docker Image](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-web.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-web.yml)
 [![CodeQL](https://github.com/aannenko/transmission-manager/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/codeql-analysis.yml)
 
@@ -22,3 +22,6 @@ See how to set it up and use it in the dedicated [README.md](src/TransmissionMan
 
 ### You manually download new episodes of a TV show once a week from the same torrent tracker web page.
 Let Transmission Manager do this for you: add the address of this web page along with a cron schedule for when to check for new episodes, and specify a download location. Optionally, add a regex pattern to help Transmission Manager correctly find magnet links on that web page.
+
+### Your torrent tracker has an API, or its web pages cannot be read reliably.
+Point Transmission Manager at the tracker's JSON endpoint instead of its web page: add the endpoint address with a JSON Pointer appended after a `#`, telling Transmission Manager where the torrent's info hash sits in the response (see the API [README.md](src/TransmissionManager.Api/README.md)). It will build the magnet link from that hash and refresh it on a provided schedule.

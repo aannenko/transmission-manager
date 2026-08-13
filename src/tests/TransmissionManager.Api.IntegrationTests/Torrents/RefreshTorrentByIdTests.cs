@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
@@ -360,7 +360,7 @@ internal sealed class RefreshTorrentByIdTests
     {
         _factory = new TestWebApplicationFactory<Program>(
             _initialTorrents,
-            TestData.WebPages.RequestResponseMap,
+            TestData.SourceRequestResponseMap,
             _transmissionRequestResponseMap);
 
         _client = _factory.CreateClient();

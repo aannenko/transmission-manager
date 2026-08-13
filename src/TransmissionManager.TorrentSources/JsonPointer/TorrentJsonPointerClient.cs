@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Polly;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
@@ -10,6 +10,7 @@ namespace TransmissionManager.TorrentSources.JsonPointer;
 public sealed class TorrentJsonPointerClient(
     IOptionsMonitor<TorrentJsonPointerClientOptions> options,
     HttpClient httpClient)
+    : ITorrentSourceClient
 {
     private const int _infoHashLength = 40;
 

@@ -39,6 +39,8 @@ Endpoints live under `Actions/{Feature}/{ActionName}/` and combine an `{Action}E
 
 **When to extract a Handler.** Extract when the endpoint coordinates multiple services *or* models a non-trivial Outcome union (Success / NotFound / Conflict / external-system failure / etc.). Simple pass-through endpoints keep logic inline with a private static `BuildResponse`/`ToXxxResponse` helper — `GetTorrentPageEndpoint` is the deliberate inline example.
 
+**There is no OpenAPI/Swagger**, so `src/TransmissionManager.Api/README.md` and the `.http` file beside each action *are* the API's contract documentation — a change to a request/response DTO has no other way to reach a user and must update them in the same commit. Verify any address a doc example fetches: a plausible-looking JSON Pointer index was wrong against the live API (measured).
+
 ### Keyset pagination (GetPage endpoint)
 
 `GET /api/v1/torrents` uses **keyset (cursor) pagination**. The cursor is `anchorId` (`long?`) + `anchorValue` (`string?`, formatted per sort field; `null` when ordering by `Id` alone).

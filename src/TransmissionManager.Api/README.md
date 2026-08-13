@@ -1,6 +1,6 @@
-# Transmission Manager API
+﻿# Transmission Manager API
 This application lets you manage your torrents in [Transmission](https://transmissionbt.com/) in a unique way:
-1. Add torrents by their web page address.
+1. Add torrents by the address of a tracker web page, or of a JSON API endpoint that exposes the torrent's info hash.
 2. Schedule periodic magnet link refreshes (e.g., when a new TV show episode is released) using [cron](https://crontab.guru) syntax. Updated magnets are sent to Transmission automatically, replacing existing torrents while preserving the downloaded files.
 
 ## Important setup notes
@@ -105,6 +105,26 @@ docker run -d \
   ghcr.io/aannenko/transmission-manager-api:latest
 ```
 
+## Torrent sources
+Every torrent has a `sourceUri` that Transmission Manager re-reads on each refresh, and a `sourceKind` that decides how it is read. `sourceKind` is optional when adding a torrent and defaults to `WebPage`.
+
+| `sourceKind` | `sourceUri` points to | How the magnet link is obtained |
+| --- | --- | --- |
+| `WebPage` (default) | An HTML page, e.g. a tracker's topic page | The page is scanned for a magnet link with a regular expression - either `magnetRegexPattern` for this torrent, or the global one from the [configuration](./appsettings.json). |
+| `JsonPointer` | A JSON document, e.g. a tracker's API endpoint, with an [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) JSON Pointer in the URI **fragment** | The pointer selects a 40-character info hash inside the document, and the magnet link is built from it. `magnetRegexPattern` is not used. |
+
+`JsonPointer` is useful when a tracker offers an API, or when its web pages are not reliably readable - for example when they are served behind an anti-bot challenge.
+
+In the `sourceUri` below, `https://api.example.com/v1/topics/f/1106` is fetched and `/result/6880555/7` selects the info hash within the response - here the item at index `7` of the array under the key `6880555`, itself under `result`:
+
+```
+https://api.example.com/v1/topics/f/1106#/result/6880555/7
+```
+
+The pointer depends entirely on the shape of your API's response, so fetch the endpoint once and look at where the 40-character info hash actually sits before adding the torrent. The hash may be upper- or lower-case; Transmission Manager normalises it.
+
+Because the pointer lives in the fragment, one endpoint can serve many torrents, each with its own pointer.
+
 ## Send requests
 Now that you have set up Transmission Manager API, try sending HTTP requests to it from PowerShell 7.</br>
 Here are some examples (replace `<docker_host>` with the hostname or IP address of your docker host):
@@ -113,7 +133,11 @@ Here are some examples (replace `<docker_host>` with the hostname or IP address 
 (iwr http://<docker_host>:9092/api/v1/torrents?take=10 | ConvertFrom-Json).torrents
 
 # Register a new torrent in Transmission Manager API, send it to Transmission for download and check for torrent updates every day at 11:00 and 17:00
-iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://nnmclub.to/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
+iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://exampletracker.com/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
+
+# Register a new torrent whose magnet link comes from a JSON API instead of a web page
+# (the part after "#" is a JSON Pointer telling Transmission Manager where the info hash sits in the response)
+iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://api.example.com/v1/topics/f/1106#/result/6880555/7","sourceKind":"JsonPointer","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
 # Can't wait for Transmission Manager API to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
 iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json

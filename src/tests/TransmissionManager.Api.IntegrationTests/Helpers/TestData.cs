@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Text;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Database.Dto;
@@ -74,6 +74,9 @@ internal static class TestData
             ];
     }
 
+    /// <summary>
+    /// Fixtures for a <see cref="TorrentSourceKind.WebPage"/> source.
+    /// </summary>
     internal static class WebPages
     {
         public const string WebPageHtml = """
@@ -121,25 +124,47 @@ internal static class TestData
             """;
 
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
+    }
 
-        public static readonly IReadOnlyDictionary<TestRequest, TestResponse> RequestResponseMap =
-            new Dictionary<TestRequest, TestResponse>
+    /// <summary>
+    /// Fixtures for a <see cref="TorrentSourceKind.JsonPointer"/> source.
+    /// </summary>
+    internal static class JsonApi
+    {
+        /// <remarks>
+        /// One such document may contain one or more info hashes,
+        /// pointers below allow to differentiate between them.
+        /// </remarks>
+        public const string Address = "https://torrentTracker.com/v1/static/pvc/f/1106";
+
+        public const string FirstTopicId = "6880555";
+
+        public const string FirstPointer = $"#/result/{FirstTopicId}/2";
+
+        public const string FirstHashString = "5f2d1a9c7b3e4068d1c2a5b8e9f0d3c4a6b7e8f9";
+
+        public const string SecondTopicId = "6880554";
+
+        public const string SecondPointer = $"#/result/{SecondTopicId}/2";
+
+        public const string SecondHashString = "1c3e5a7b9d0f2468ace02468bdf13579eca86420";
+
+        public const string Document = $$"""
             {
-                [new(HttpMethod.Get, new(Database.FirstTorrentWebPageAddress))] =
-                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FirstPageMagnetExisting)),
+              "update_time": 1785441955,
+              "result": {
+                "{{SecondTopicId}}": [0, 12, "{{SecondHashString}}"],
+                "{{FirstTopicId}}": [0, 50, "{{FirstHashString}}"]
+              }
+            }
+            """;
 
-                [new(HttpMethod.Get, new(Database.SecondTorrentWebPageAddress))] =
-                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, SecondPageMagnetUpdated)),
+        /// <remarks>
+        /// Magnet link synthesized from a prefix and the info hash.
+        /// </remarks>
+        public const string FirstMagnet = $"magnet:?xt=urn:btih:{FirstHashString}";
 
-                [new(HttpMethod.Get, new(Database.ThirdTorrentWebPageAddress))] =
-                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, ThirdPageMagnetNotInTansmission)),
-
-                [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
-                    new(HttpStatusCode.OK, Content: string.Format(null, WebPageHtmlFormat, FourthPageMagnetNew)),
-
-                [new(HttpMethod.Get, new(NoMagnetPageAddress))] =
-                    new(HttpStatusCode.OK, Content: NoMagnetPageHtml),
-            };
+        public const string SecondMagnet = $"magnet:?xt=urn:btih:{SecondHashString}";
     }
 
     internal static class Transmission
@@ -225,4 +250,34 @@ internal static class TestData
                 ["Date"] = "Sun, 13 Oct 2024 09:25:11 GMT"
             };
     }
+
+    /// <remarks>
+    /// Contains responses for both source kinds because <see cref="TestWebApplicationFactory{TProgram}"/>
+    /// installs one handler map behind both source clients.
+    /// </remarks>
+    public static readonly IReadOnlyDictionary<TestRequest, TestResponse> SourceRequestResponseMap =
+        new Dictionary<TestRequest, TestResponse>
+        {
+            [new(HttpMethod.Get, new(Database.FirstTorrentWebPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.FirstPageMagnetExisting)),
+
+            [new(HttpMethod.Get, new(Database.SecondTorrentWebPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.SecondPageMagnetUpdated)),
+
+            [new(HttpMethod.Get, new(Database.ThirdTorrentWebPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.ThirdPageMagnetNotInTansmission)),
+
+            [new(HttpMethod.Get, new("https://torrentTracker.com/forum/viewtopic.php?t=1234570"))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.FourthPageMagnetNew)),
+
+            [new(HttpMethod.Get, new(WebPages.NoMagnetPageAddress))] =
+                new(HttpStatusCode.OK, Content: WebPages.NoMagnetPageHtml),
+
+            [new(HttpMethod.Get, new(JsonApi.Address))] =
+                new(HttpStatusCode.OK, Content: JsonApi.Document),
+        };
 }

@@ -17,9 +17,7 @@ internal static class AddTorrentRequestExtensions
             refreshDate: date,
             name: transmissionTorrent.Name,
             sourceUri: dto.SourceUri,
-            // The request carries no source kind yet, and only the web page client is wired up.
-            // Remove this comment once the request carries a source kind and the web page client is no longer the only one.
-            sourceKind: DbSourceKind.WebPage,
+            sourceKind: (DbSourceKind)dto.SourceKind,
             downloadDir: dto.DownloadDir,
             magnetRegexPattern: dto.MagnetRegexPattern,
             cron: dto.Cron);

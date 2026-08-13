@@ -6,7 +6,7 @@ GET {{TransmissionManager_Web_HostAddress}}/
 ###
 
 # Get a page of 5 torrents ordered by Name, which have cron specified
-# and name, download dir, web page uri or hash string start with "Mi"
+# and name, download dir, source uri or hash string start with "Mi"
 GET {{TransmissionManager_Web_HostAddress}}/?orderBy=Name&take=5&propertyStartsWith=Mi&cronExists=True
 
 ###
@@ -16,14 +16,31 @@ GET {{TransmissionManager_Web_HostAddress}}/1
 
 ###
 
-# Add a torrent by web page uri
+# Add a torrent by the address of its web page
+# Do not provide sourceKind to default to WebPage
 # Do not provide cron if you don't want the torrent to be automatically updated
 # Do not provide magnetRegexPattern to use a global one
 POST {{TransmissionManager_Web_HostAddress}}/
 Content-Type: application/json
 
 {
-    "webPageUri": "https://nnmclub.to/forum/viewtopic.php?t=206418",
+    "sourceUri": "https://nnmclub.to/forum/viewtopic.php?t=206418",
+    "downloadDir": "/videos",
+    "cron": "0 11,17 * * *"
+}
+
+###
+
+# Add a torrent by the address of a JSON API that exposes its info hash
+# The fragment (everything after "#") is an RFC 6901 JSON Pointer selecting the hash in the response
+# The indices depend on the API's response shape - fetch it once to see where the hash sits
+# magnetRegexPattern is not used by this source kind - the magnet link is built from the hash
+POST {{TransmissionManager_Web_HostAddress}}/
+Content-Type: application/json
+
+{
+    "sourceUri": "https://api.rutracker.cc/v1/static/pvc/f/1106#/result/6880555/7",
+    "sourceKind": "JsonPointer",
     "downloadDir": "/videos",
     "cron": "0 11,17 * * *"
 }

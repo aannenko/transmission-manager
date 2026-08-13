@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using TransmissionManager.TorrentSources.Options;
@@ -76,6 +76,36 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
         Assert.That(
             () => provider.GetRequiredService<IStartupValidator>().Validate(),
             Throws.TypeOf<OptionsValidationException>());
+    }
+
+    /// <remarks>
+    /// Discovery by interface rather than a hardcoded list, so a client added later fails this until
+    /// it is registered.
+    /// </remarks>
+    [Test]
+    public void AddTorrentSourcesServices_WhenOptionsAreValid_RegistersEverySourceClient()
+    {
+        var clientTypes = typeof(ITorrentSourceClient).Assembly
+            .GetTypes()
+            .Where(static type =>
+                type is { IsClass: true, IsAbstract: false } && type.IsAssignableTo(typeof(ITorrentSourceClient)))
+            .ToArray();
+
+        Assert.That(clientTypes, Is.Not.Empty, $"No {nameof(ITorrentSourceClient)} implementations were discovered.");
+
+        using var provider = CreateProvider(new()
+        {
+            ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
+            ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
+            ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+            ["TorrentSources:MaxJsonTokenBytes"] = "4096",
+        });
+
+        using (Assert.EnterMultipleScope())
+        {
+            foreach (var clientType in clientTypes)
+                Assert.That(provider.GetService(clientType), Is.Not.Null, $"{clientType.Name} is not registered.");
+        }
     }
 
     private static ServiceProvider CreateProvider(Dictionary<string, string?> settings) =>

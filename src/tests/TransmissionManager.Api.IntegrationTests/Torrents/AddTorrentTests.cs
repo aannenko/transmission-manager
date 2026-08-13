@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
@@ -113,7 +114,7 @@ internal sealed class AddTorrentTests
     {
         _factory = new TestWebApplicationFactory<Program>(
             _initialTorrents,
-            TestData.WebPages.RequestResponseMap,
+            TestData.SourceRequestResponseMap,
             _transmissionRequestResponseMap);
 
         _client = _factory.CreateClient();
@@ -271,6 +272,29 @@ internal sealed class AddTorrentTests
 
         Assert.That(errors, Is.Not.Empty);
         Assert.That(errors[0], Contains.Substring("absolute http or https address"));
+    }
+
+    /// <remarks>
+    /// The status code alone cannot tell validation from deserialisation: a <c>sourceKind</c> string
+    /// that is not a member is rejected by the converter and also surfaces as 400. Asserting the
+    /// property key is what proves <c>[EnumDataType]</c> is the thing doing the work.
+    /// </remarks>
+    [TestCase(999)]
+    [TestCase(-5)]
+    public async Task AddTorrentAsync_WhenSourceKindIsNotADefinedMember_ReturnsValidationError(int sourceKind)
+    {
+        var body =
+            $$"""{"sourceUri":"https://torrenttracker.com/x","sourceKind":{{sourceKind}},"downloadDir":"/tvshows"}""";
+
+        using var content = new StringContent(body, new MediaTypeHeaderValue("application/json"));
+        var response = await _client.PostAsync(EndpointAddresses.Torrents, content).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Errors, Contains.Key(nameof(AddTorrentRequest.SourceKind)));
     }
 
     /// <remarks>

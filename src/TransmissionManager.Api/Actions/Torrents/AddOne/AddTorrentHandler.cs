@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
@@ -8,14 +8,14 @@ using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Services;
-using TransmissionManager.TorrentSources.WebPage;
+using DbSourceKind = TransmissionManager.Database.Dto.TorrentSourceKind;
 using Outcome = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentOutcome;
 using Result = TransmissionManager.Api.Actions.Torrents.AddOne.AddTorrentResult;
 
 namespace TransmissionManager.Api.Actions.Torrents.AddOne;
 
 internal sealed class AddTorrentHandler(
-    TorrentWebPageClient torrentWebPageClient,
+    IServiceProvider serviceProvider,
     TransmissionClientWrapper transmissionService,
     TorrentService torrentService,
     TorrentSchedulerService schedulerService,
@@ -26,8 +26,10 @@ internal sealed class AddTorrentHandler(
 
     public async Task<Outcome> AddTorrentAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
-        var (searchResult, magnetUri, getMagnetError) = await torrentWebPageClient
-            .FindMagnetUriAsync(request.SourceUri, request.MagnetRegexPattern, cancellationToken)
+        var sourceKind = (DbSourceKind)request.SourceKind;
+
+        var (searchResult, magnetUri, getMagnetError) = await serviceProvider
+            .FindMagnetUriAsync(request.SourceUri, sourceKind, request.MagnetRegexPattern, cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)

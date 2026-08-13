@@ -10,6 +10,9 @@ public sealed class AddTorrentRequest
     [HttpUri]
     public required Uri SourceUri { get; init; }
 
+    [EnumDataType(typeof(TorrentSourceKind))]
+    public TorrentSourceKind SourceKind { get; init; }
+
     [Required]
     public required string DownloadDir { get; init; }
 
