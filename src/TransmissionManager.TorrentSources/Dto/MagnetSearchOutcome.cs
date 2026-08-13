@@ -1,4 +1,4 @@
-namespace TransmissionManager.TorrentSources.Dto;
+﻿namespace TransmissionManager.TorrentSources.Dto;
 
 /// <summary>
 /// The outcome of a search for a magnet link and, when the search succeeded, the magnet link itself.

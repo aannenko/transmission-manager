@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Tests.Helpers;
 

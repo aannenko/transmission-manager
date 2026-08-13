@@ -1,4 +1,4 @@
-using TransmissionManager.Database.Services;
+﻿using TransmissionManager.Database.Services;
 
 namespace TransmissionManager.Database.Tests;
 

@@ -1,4 +1,4 @@
-using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 
 namespace TransmissionManager.Api.Tests.Torrents;

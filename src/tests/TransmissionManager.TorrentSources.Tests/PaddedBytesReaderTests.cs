@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using TransmissionManager.TorrentSources.WebPage;
 
 namespace TransmissionManager.TorrentSources.Tests;

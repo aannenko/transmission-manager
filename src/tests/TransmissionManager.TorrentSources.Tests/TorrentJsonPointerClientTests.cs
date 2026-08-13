@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;

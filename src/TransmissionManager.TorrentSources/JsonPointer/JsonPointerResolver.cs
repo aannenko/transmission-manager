@@ -1,4 +1,4 @@
-using System.Buffers;
+﻿using System.Buffers;
 using System.Text.Json;
 using Outcome = (TransmissionManager.TorrentSources.JsonPointer.JsonPointerResolution Resolution, string? Value,
     System.Text.Json.JsonValueKind ValueKind);

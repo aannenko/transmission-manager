@@ -1,4 +1,4 @@
-namespace TransmissionManager.Database.Dto;
+﻿namespace TransmissionManager.Database.Dto;
 
 /// <summary>
 /// How a torrent's magnet link is extracted from its source.

@@ -1,4 +1,4 @@
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Api.Common.Serialization;

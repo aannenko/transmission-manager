@@ -1,4 +1,4 @@
-namespace TransmissionManager.Database.Dto;
+﻿namespace TransmissionManager.Database.Dto;
 
 public enum PaginationDirection
 {

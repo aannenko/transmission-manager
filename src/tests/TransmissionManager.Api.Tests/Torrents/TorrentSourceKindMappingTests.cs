@@ -1,4 +1,4 @@
-using TransmissionManager.Api.Actions.Torrents;
+﻿using TransmissionManager.Api.Actions.Torrents;
 using TransmissionManager.Database.Models;
 using ApiSourceKind = TransmissionManager.Api.Common.Dto.Torrents.TorrentSourceKind;
 using DbSourceKind = TransmissionManager.Database.Dto.TorrentSourceKind;

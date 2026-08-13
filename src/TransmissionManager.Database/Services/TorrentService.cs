@@ -1,4 +1,4 @@
-using Microsoft.Data.Sqlite;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Extensions;

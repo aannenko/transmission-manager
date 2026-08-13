@@ -1,4 +1,4 @@
-namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
+﻿namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 
 internal interface IRefreshTorrentByIdHandler
 {

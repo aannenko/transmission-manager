@@ -1,4 +1,4 @@
-namespace TransmissionManager.Web.Dto;
+﻿namespace TransmissionManager.Web.Dto;
 
 #pragma warning disable CA1515 // Consider making public types internal - exposed via public Blazor component parameters
 

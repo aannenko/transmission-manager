@@ -1,4 +1,4 @@
-﻿# Copilot Instructions for Transmission Manager
+# Copilot Instructions for Transmission Manager
 
 > **Keep this file current.** When you discover or establish a new convention, invariant, gotcha, or non-obvious design choice during a task — or notice that existing content here is stale or contradicted by the codebase — proactively suggest an update to this file (and apply it if approved). Conversely, do **not** add content that is verifiable in seconds via `grep`/`view` or already obvious from the framework conventions (e.g., "use `dotnet build`"). The goal is signal-dense agent context, not exhaustive documentation.
 >

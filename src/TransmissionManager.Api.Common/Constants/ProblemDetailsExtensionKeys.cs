@@ -1,4 +1,4 @@
-namespace TransmissionManager.Api.Common.Constants;
+﻿namespace TransmissionManager.Api.Common.Constants;
 
 public static class ProblemDetailsExtensionKeys
 {

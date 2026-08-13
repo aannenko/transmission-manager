@@ -1,6 +1,17 @@
 # Remove the line below if you want to inherit .editorconfig settings from higher directories
 root = true
 
+[*]
+charset = utf-8
+
+# Visual Studio creates these with a UTF-8 BOM and ignores editorconfig's charset when
+# doing so (verified), and `dotnet ef dbcontext optimize` always emits one too. The policy
+# follows the tooling rather than fighting it; everything else stays BOM-free.
+# Only *.cs is actually enforced (`dotnet format` ignores the rest); the other rules are
+# a statement of intent.
+[*.{cs,razor,csproj,props,user}]
+charset = utf-8-bom
+
 # C# files
 [*.cs]
 

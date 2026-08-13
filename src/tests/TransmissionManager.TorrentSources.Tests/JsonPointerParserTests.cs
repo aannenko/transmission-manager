@@ -1,4 +1,4 @@
-using TransmissionManager.TorrentSources.JsonPointer;
+﻿using TransmissionManager.TorrentSources.JsonPointer;
 
 namespace TransmissionManager.TorrentSources.Tests;
 

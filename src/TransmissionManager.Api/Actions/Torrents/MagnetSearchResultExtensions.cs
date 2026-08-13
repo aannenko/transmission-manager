@@ -1,4 +1,4 @@
-using TransmissionManager.TorrentSources.Dto;
+﻿using TransmissionManager.TorrentSources.Dto;
 
 namespace TransmissionManager.Api.Actions.Torrents;
 

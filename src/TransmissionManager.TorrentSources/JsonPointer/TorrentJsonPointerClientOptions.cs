@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using TransmissionManager.TorrentSources.Options;
 
 namespace TransmissionManager.TorrentSources.JsonPointer;

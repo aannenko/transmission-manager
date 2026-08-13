@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
 using TransmissionManager.Transmission.Options;

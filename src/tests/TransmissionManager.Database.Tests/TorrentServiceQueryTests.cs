@@ -1,4 +1,4 @@
-using TransmissionManager.Database.Dto;
+﻿using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
 using TransmissionManager.Database.Tests.Helpers;
 

@@ -1,4 +1,4 @@
-﻿[![Build, Test, and Publish API Docker Image](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml)
+[![Build, Test, and Publish API Docker Image](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-api.yml)
 [![Build, Test, and Publish Web Docker Image](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-web.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/docker-publish-web.yml)
 [![CodeQL](https://github.com/aannenko/transmission-manager/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/aannenko/transmission-manager/actions/workflows/codeql-analysis.yml)
 

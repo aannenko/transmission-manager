@@ -1,4 +1,4 @@
-using TransmissionManager.Database.Models;
+﻿using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Dto;
 

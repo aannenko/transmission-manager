@@ -1,4 +1,4 @@
-using TransmissionManager.Api.Actions.Torrents.GetPage;
+﻿using TransmissionManager.Api.Actions.Torrents.GetPage;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Dto;
 

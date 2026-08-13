@@ -1,4 +1,4 @@
-using TransmissionManager.Api.Common.Attributes;
+﻿using TransmissionManager.Api.Common.Attributes;
 
 namespace TransmissionManager.Api.Common.Tests;
 

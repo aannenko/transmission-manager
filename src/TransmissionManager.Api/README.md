@@ -1,4 +1,4 @@
-﻿# Transmission Manager API
+# Transmission Manager API
 This application lets you manage your torrents in [Transmission](https://transmissionbt.com/) in a unique way:
 1. Add torrents by the address of a tracker web page, or of a JSON API endpoint that exposes the torrent's info hash.
 2. Schedule periodic magnet link refreshes (e.g., when a new TV show episode is released) using [cron](https://crontab.guru) syntax. Updated magnets are sent to Transmission automatically, replacing existing torrents while preserving the downloaded files.
