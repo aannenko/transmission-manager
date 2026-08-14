@@ -1,21 +1,22 @@
 ﻿using System.Net;
+using System.Net.Sockets;
 
 namespace TransmissionManager.BaseTests.HttpClient;
 
 /// <summary>
 /// Answers with response headers immediately and then never delivers the body.
 /// </summary>
-/// <param name="abortAsIoException">
-/// Whether an aborted read fails with an <see cref="IOException"/> instead of an
-/// <see cref="OperationCanceledException"/>, as it can in practice.
-/// </param>
 /// <remarks>
 /// The shape <see cref="FakeHttpMessageHandler"/> cannot express, since it always completes its
 /// content. Nothing but a caller-supplied deadline ends a request answered this way: a resilience
 /// pipeline's timeouts elapse once the headers arrive, and it leaves
 /// <c>HttpClient.Timeout</c> infinite.
+/// <para>
+/// An aborted read is reported the way <c>SocketsHttpHandler</c> reports it: a
+/// <see cref="TaskCanceledException"/> carrying the transport failure as its inner exception.
+/// </para>
 /// </remarks>
-public sealed class StallingBodyHttpMessageHandler(bool abortAsIoException = false) : HttpMessageHandler
+public sealed class StallingBodyHttpMessageHandler : HttpMessageHandler
 {
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -23,11 +24,11 @@ public sealed class StallingBodyHttpMessageHandler(bool abortAsIoException = fal
     {
         return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StreamContent(new StallingStream(abortAsIoException)),
+            Content = new StreamContent(new StallingStream()),
         });
     }
 
-    private sealed class StallingStream(bool abortAsIoException) : Stream
+    private sealed class StallingStream : Stream
     {
         public override bool CanRead => true;
 
@@ -51,9 +52,14 @@ public sealed class StallingBodyHttpMessageHandler(bool abortAsIoException = fal
             {
                 await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (abortAsIoException)
+            catch (OperationCanceledException)
             {
-                throw new IOException("Unable to read data from the transport connection.");
+                throw new TaskCanceledException(
+                    "The read was aborted.",
+                    new IOException(
+                        "Unable to read data from the transport connection.",
+                        new SocketException((int)SocketError.OperationAborted)),
+                    cancellationToken);
             }
 
             return 0;

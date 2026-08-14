@@ -41,11 +41,11 @@ internal sealed class TorrentWebPageClientTests
 
     private static readonly Dictionary<TestRequest, TestResponse> _noExpectedRequests = [];
 
-    private static TorrentWebPageClient CreateClient(HttpClient httpClient, TimeSpan? magnetSearchTimeout = null) =>
+    private static TorrentWebPageClient CreateClient(HttpClient httpClient, TimeSpan? responseReadTimeout = null) =>
         new(
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
-                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
+                ResponseReadTimeout = responseReadTimeout ?? TimeSpan.FromSeconds(30),
                 DefaultMagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]+",
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
             }),
@@ -179,6 +179,7 @@ internal sealed class TorrentWebPageClientTests
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
             Assert.That(outcome.Error, Is.Not.Empty);
+            Assert.That(outcome.Error, Does.Not.Contain("did not deliver")); // not a timed out body read
         }
     }
 
@@ -220,7 +221,7 @@ internal sealed class TorrentWebPageClientTests
             new(HttpMethod.Get, _webPageUri),
             new(HttpStatusCode.OK, Content: _catastrophicPage));
 
-        using var httpClient = new System.Net.Http.HttpClient(handler);
+        using var httpClient = new HttpClient(handler);
 
         var outcome = await CreateClient(httpClient)
             .FindMagnetUriAsync(_webPageUri, _catastrophicPattern)
@@ -236,11 +237,11 @@ internal sealed class TorrentWebPageClientTests
             new(HttpMethod.Get, _webPageUri),
             new(HttpStatusCode.OK, Content: _catastrophicPage));
 
-        using var httpClient = new System.Net.Http.HttpClient(handler);
+        using var httpClient = new HttpClient(handler);
         var client = new TorrentWebPageClient(
             new FakeOptionsMonitor<TorrentWebPageClientOptions>(new()
             {
-                MagnetSearchTimeout = TimeSpan.FromSeconds(30),
+                ResponseReadTimeout = TimeSpan.FromSeconds(30),
                 DefaultMagnetRegexPattern = _catastrophicPattern,
                 RegexMatchTimeout = TimeSpan.FromMilliseconds(10),
             }),
@@ -269,6 +270,30 @@ internal sealed class TorrentWebPageClientTests
     }
 
     /// <remarks>
+    /// Ensures the budget is additive to the resilience pipeline rather than inclusive of it: the
+    /// headers here take longer than the whole read budget, so arming it before the request - as
+    /// this client once did - fails the search that this one completes.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenResponseHeadersAreSlowerThanTheReadBudget_StillReturnsFound()
+    {
+        var responseReadTimeout = TimeSpan.FromMilliseconds(200);
+
+        using var handler = new DelayedHeadersHttpMessageHandler(TimeSpan.FromSeconds(1), _pageWithMagnet);
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient, responseReadTimeout)
+            .FindMagnetUriAsync(_webPageUri)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri?.OriginalString, Is.EqualTo(_magnetUri));
+        }
+    }
+
+    /// <remarks>
     /// Nothing else bounds this. The resilience pipeline's timeouts elapse once the response
     /// headers arrive, and it sets <c>HttpClient.Timeout</c> to <see cref="Timeout.InfiniteTimeSpan"/>,
     /// so a source that stalls its body used to block the caller forever.
@@ -276,14 +301,14 @@ internal sealed class TorrentWebPageClientTests
     [Test]
     public async Task FindMagnetUriAsync_WhenSourceStallsResponseBody_ReturnsRetrievalFailed()
     {
-        var magnetSearchTimeout = TimeSpan.FromMilliseconds(200);
+        var responseReadTimeout = TimeSpan.FromMilliseconds(200);
 
         using var handler = new StallingBodyHttpMessageHandler();
         using var httpClient = new HttpClient(handler);
 
         // Should the budget ever stop covering the body read, this search never completes. Bounding
         // the wait turns that regression into a failure instead of a test run that hangs.
-        var outcome = await CreateClient(httpClient, magnetSearchTimeout)
+        var outcome = await CreateClient(httpClient, responseReadTimeout)
             .FindMagnetUriAsync(_webPageUri)
             .WaitAsync(TimeSpan.FromSeconds(10))
             .ConfigureAwait(false);
@@ -291,43 +316,50 @@ internal sealed class TorrentWebPageClientTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
-            Assert.That(outcome.Error, Does.Contain(magnetSearchTimeout.ToString()));
+            Assert.That(outcome.Error, Does.Contain(responseReadTimeout.ToString()));
         }
     }
 
     /// <remarks>
-    /// The search budget must not swallow the caller's cancellation - the budget here is long
-    /// enough that only the caller's token can end the wait.
+    /// The read budget must not swallow the caller's cancellation - the budget here is long enough
+    /// that only the caller's token can end the wait. That token stands for the caller giving up
+    /// (an aborted HTTP request, a host shutting down), and the timer is only a way to trip it
+    /// mid-read; bounding the wait fails a regression that ignores it instead of waiting the budget out.
     /// </remarks>
     [Test]
     public void FindMagnetUriAsync_WhenCallerCancels_Throws()
     {
         using var handler = new StallingBodyHttpMessageHandler();
         using var httpClient = new HttpClient(handler);
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        using var callerCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
 
         Assert.That(
             async () => await CreateClient(httpClient, TimeSpan.FromMinutes(1))
-                .FindMagnetUriAsync(_webPageUri, cancellationToken: cancellationTokenSource.Token)
+                .FindMagnetUriAsync(_webPageUri, cancellationToken: callerCts.Token)
+                .WaitAsync(TimeSpan.FromSeconds(10))
                 .ConfigureAwait(false),
             Throws.InstanceOf<OperationCanceledException>());
     }
 
     /// <remarks>
-    /// An aborted read does not have to surface as an <see cref="OperationCanceledException"/>. The
-    /// caller still asked to stop, so the retrieval-failure clauses must not claim it as an outcome.
+    /// A dropped connection is not an expired budget, and the budget here is far too long to have
+    /// expired. Reporting one as the other would send the user chasing a timeout that never happened.
     /// </remarks>
     [Test]
-    public void FindMagnetUriAsync_WhenCallerCancelsAndAbortSurfacesAsIoException_Throws()
+    public async Task FindMagnetUriAsync_WhenBodyReadFails_ReturnsRetrievalFailedWithTransportMessage()
     {
-        using var handler = new StallingBodyHttpMessageHandler(abortAsIoException: true);
+        using var handler = new FailingBodyHttpMessageHandler();
         using var httpClient = new HttpClient(handler);
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
 
-        Assert.That(
-            async () => await CreateClient(httpClient, TimeSpan.FromMinutes(1))
-                .FindMagnetUriAsync(_webPageUri, cancellationToken: cancellationTokenSource.Token)
-                .ConfigureAwait(false),
-            Throws.InstanceOf<OperationCanceledException>());
+        var outcome = await CreateClient(httpClient, TimeSpan.FromMinutes(1))
+            .FindMagnetUriAsync(_webPageUri)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
+            Assert.That(outcome.Error, Does.Contain(FailingBodyHttpMessageHandler.ErrorMessage));
+            Assert.That(outcome.Error, Does.Not.Contain("did not deliver")); // not a timed out body read
+        }
     }
 }

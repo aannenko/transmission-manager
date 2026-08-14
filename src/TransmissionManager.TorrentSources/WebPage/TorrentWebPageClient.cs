@@ -31,8 +31,9 @@ public sealed class TorrentWebPageClient(
     /// Cancellation requested through <paramref name="cancellationToken"/> still propagates.
     /// </returns>
     /// <remarks>
-    /// The search is bounded by <see cref="TorrentSourcesOptions.MagnetSearchTimeout"/>, which
-    /// covers reading the response body as well as obtaining it.
+    /// In addition to <paramref name="cancellationToken"/>, getting a response with headers is
+    /// bounded by the resilience pipeline, and reading the response body - by
+    /// <see cref="TorrentSourcesOptions.ResponseReadTimeout"/>.
     /// </remarks>
     public async Task<MagnetSearchOutcome> FindMagnetUriAsync(
         Uri torrentWebPageUri,
@@ -49,63 +50,67 @@ public sealed class TorrentWebPageClient(
                 "The URI must be an absolute HTTP or HTTPS address.");
         }
 
-        if (!TryGetMagnetRegex(regexPattern, out var regex, out var regexError))
+        var currentOptions = options.CurrentValue;
+
+        if (!TryGetMagnetRegex(currentOptions, regexPattern, out var regex, out var regexError))
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, regexError);
-
-        var searchTimeout = options.CurrentValue.MagnetSearchTimeout;
-
-        // The resilience pipeline stops at the response headers, so only this token can cancel the
-        // body read; without it a source that sends headers and then stalls blocks forever.
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(searchTimeout);
 
         try
         {
-            return await FindMagnetUriOnWebPageAsync(torrentWebPageUri, regex, timeoutCts.Token)
+            // ResponseHeadersRead makes sure await returns after getting the response headers.
+            using var response = await httpClient
+                .GetAsync(torrentWebPageUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return MagnetSearchOutcome.Failure(
+                    MagnetSearchResult.RetrievalFailed,
+                    $"The server responded with {(int)response.StatusCode} {response.StatusCode}");
+            }
+
+            return await FindMagnetUriInResponseAsync(
+                    response,
+                    regex,
+                    currentOptions.ResponseReadTimeout,
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
         catch (RegexMatchTimeoutException e) when (regexPattern is not null)
         {
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, e.Message);
         }
-        catch (Exception e) when (e is
-            OperationCanceledException or // the budget expired, or the caller cancelled
-            HttpRequestException or
-            IOException or // a connection dropped mid-body surfaces here, not as HttpRequestException
-            ExecutionRejectedException) // Polly: attempt/total timeout, open circuit, rate limiter
+        catch (Exception e) when (e // OperationCanceledException is not caught and should propagate
+            is HttpRequestException
+            or IOException // a connection dropped mid-body arrives as HttpIOException, not HttpRequestException
+            or ExecutionRejectedException) // Polly: attempt/total timeout, open circuit, rate limiter
         {
-            // An abort need not surface as an OperationCanceledException, so the caller's token decides.
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return MagnetSearchOutcome.Failure(
-                MagnetSearchResult.RetrievalFailed,
-                timeoutCts.IsCancellationRequested
-                    ? $"The source did not deliver a complete response within {searchTimeout}."
-                    : e.Message);
+            return MagnetSearchOutcome.Failure(MagnetSearchResult.RetrievalFailed, e.Message);
         }
     }
 
-    private async Task<MagnetSearchOutcome> FindMagnetUriOnWebPageAsync(
-        Uri torrentWebPageUri,
+    private static async Task<MagnetSearchOutcome> FindMagnetUriInResponseAsync(
+        HttpResponseMessage response,
         Regex regex,
+        TimeSpan bodyReadTimeout,
         CancellationToken cancellationToken)
     {
-        // ResponseHeadersRead keeps the body streamed rather than buffered; the response must
-        // therefore outlive the scan, so it is disposed after the stream it owns.
-        using var response = await httpClient
-            .GetAsync(torrentWebPageUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-            .ConfigureAwait(false);
+        using var readTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        readTimeoutCts.CancelAfter(bodyReadTimeout);
 
-        if (!response.IsSuccessStatusCode)
+        Uri? magnetUri;
+        try
+        {
+            using var stream = await response.Content.ReadAsStreamAsync(readTimeoutCts.Token).ConfigureAwait(false);
+
+            magnetUri = await FindMagnetUriInStreamAsync(stream, regex, readTimeoutCts.Token).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return MagnetSearchOutcome.Failure(
                 MagnetSearchResult.RetrievalFailed,
-                $"The server responded with {(int)response.StatusCode} {response.StatusCode}");
+                $"The source did not deliver a complete response within {bodyReadTimeout}.");
         }
-
-        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-        var magnetUri = await FindMagnetUriInStreamAsync(stream, regex, cancellationToken).ConfigureAwait(false);
 
         return magnetUri is null
             ? MagnetSearchOutcome.Failure(MagnetSearchResult.NotFound, "No magnet link was found on the page")
@@ -181,14 +186,15 @@ public sealed class TorrentWebPageClient(
         return null;
     }
 
-    private bool TryGetMagnetRegex(
+    private static bool TryGetMagnetRegex(
+        TorrentWebPageClientOptions currentOptions,
         string? regexPattern,
         [NotNullWhen(true)] out Regex? magnetRegex,
         [NotNullWhen(false)] out string? error)
     {
         if (regexPattern is null)
         {
-            magnetRegex = options.CurrentValue.DefaultMagnetRegex;
+            magnetRegex = currentOptions.DefaultMagnetRegex;
             error = null;
             return true;
         }
@@ -202,7 +208,7 @@ public sealed class TorrentWebPageClient(
 
         try
         {
-            magnetRegex = RegexUtils.CreateRegex(regexPattern, options.CurrentValue.RegexMatchTimeout);
+            magnetRegex = RegexUtils.CreateRegex(regexPattern, currentOptions.RegexMatchTimeout);
             error = null;
             return true;
         }

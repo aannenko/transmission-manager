@@ -46,7 +46,7 @@ internal sealed class TorrentSourceDispatchRegistrationTests
             {
                 ["TorrentSources:DefaultMagnetRegexPattern"] = @"magnet:\?xt=urn:btih:[^""]+",
                 ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
-                ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+                ["TorrentSources:ResponseReadTimeout"] = "00:00:30",
                 ["TorrentSources:MaxJsonTokenBytes"] = "4096",
             })
             .Build();

@@ -214,6 +214,31 @@ internal sealed class TorrentJsonPointerClientTests
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
             Assert.That(outcome.MagnetUri, Is.Null);
             Assert.That(outcome.Error, Is.Not.Empty);
+            Assert.That(outcome.Error, Does.Not.Contain("did not deliver")); // not a timed out body read
+        }
+    }
+
+    /// <remarks>
+    /// Ensures the budget is additive to the resilience pipeline rather than inclusive of it: the
+    /// headers here take longer than the whole read budget, so arming it before the request - as
+    /// this client once did - fails the search that this one completes.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenResponseHeadersAreSlowerThanTheReadBudget_StillReturnsFound()
+    {
+        var responseReadTimeout = TimeSpan.FromMilliseconds(200);
+
+        using var handler = new DelayedHeadersHttpMessageHandler(TimeSpan.FromSeconds(1), _document);
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient, responseReadTimeout)
+            .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"))
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_lowerCaseHash}")));
         }
     }
 
@@ -224,14 +249,14 @@ internal sealed class TorrentJsonPointerClientTests
     [Test]
     public async Task FindMagnetUriAsync_WhenSourceStallsResponseBody_ReturnsRetrievalFailed()
     {
-        var magnetSearchTimeout = TimeSpan.FromMilliseconds(200);
+        var responseReadTimeout = TimeSpan.FromMilliseconds(200);
 
         using var handler = new StallingBodyHttpMessageHandler();
         using var httpClient = new HttpClient(handler);
 
         // Should the budget ever stop covering the body read, this search never completes. Bounding
         // the wait turns that regression into a failure instead of a test run that hangs.
-        var outcome = await CreateClient(httpClient, magnetSearchTimeout)
+        var outcome = await CreateClient(httpClient, responseReadTimeout)
             .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"))
             .WaitAsync(TimeSpan.FromSeconds(10))
             .ConfigureAwait(false);
@@ -239,28 +264,51 @@ internal sealed class TorrentJsonPointerClientTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
-            Assert.That(outcome.Error, Does.Contain(magnetSearchTimeout.ToString()));
+            Assert.That(outcome.Error, Does.Contain(responseReadTimeout.ToString()));
         }
     }
 
     /// <remarks>
-    /// The budget here is long enough that only the caller's token can end the wait. The second
-    /// case covers an abort that does not surface as an <see cref="OperationCanceledException"/>,
-    /// which the retrieval-failure clause would otherwise claim as an outcome.
+    /// The read budget must not swallow the caller's cancellation - the budget here is long enough
+    /// that only the caller's token can end the wait. That token stands for the caller giving up
+    /// (an aborted HTTP request, a host shutting down), and the timer is only a way to trip it
+    /// mid-read; bounding the wait fails a regression that ignores it instead of waiting the budget out.
     /// </remarks>
-    [TestCase(false)]
-    [TestCase(true)]
-    public void FindMagnetUriAsync_WhenCallerCancels_Throws(bool abortAsIoException)
+    [Test]
+    public void FindMagnetUriAsync_WhenCallerCancels_Throws()
     {
-        using var handler = new StallingBodyHttpMessageHandler(abortAsIoException);
+        using var handler = new StallingBodyHttpMessageHandler();
         using var httpClient = new HttpClient(handler);
-        using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+        using var callerCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
 
         Assert.That(
             async () => await CreateClient(httpClient, TimeSpan.FromMinutes(1))
-                .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"), cancellationTokenSource.Token)
+                .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"), callerCts.Token)
+                .WaitAsync(TimeSpan.FromSeconds(10))
                 .ConfigureAwait(false),
             Throws.InstanceOf<OperationCanceledException>());
+    }
+
+    /// <remarks>
+    /// A dropped connection is not an expired budget, and the budget here is far too long to have
+    /// expired. Reporting one as the other would send the user chasing a timeout that never happened.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenBodyReadFails_ReturnsRetrievalFailedWithTransportMessage()
+    {
+        using var handler = new FailingBodyHttpMessageHandler();
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient, TimeSpan.FromMinutes(1))
+            .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"))
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
+            Assert.That(outcome.Error, Does.Contain(FailingBodyHttpMessageHandler.ErrorMessage));
+            Assert.That(outcome.Error, Does.Not.Contain("did not deliver")); // not a timed out body read
+        }
     }
 
     /// <remarks>
@@ -313,11 +361,11 @@ internal sealed class TorrentJsonPointerClientTests
             .ConfigureAwait(false);
     }
 
-    private static TorrentJsonPointerClient CreateClient(HttpClient httpClient, TimeSpan? magnetSearchTimeout = null) =>
+    private static TorrentJsonPointerClient CreateClient(HttpClient httpClient, TimeSpan? responseReadTimeout = null) =>
         new(
             new FakeOptionsMonitor<TorrentJsonPointerClientOptions>(new()
             {
-                MagnetSearchTimeout = magnetSearchTimeout ?? TimeSpan.FromSeconds(30),
+                ResponseReadTimeout = responseReadTimeout ?? TimeSpan.FromSeconds(30),
                 MaxJsonTokenBytes = _maxJsonTokenBytes,
             }),
             httpClient);

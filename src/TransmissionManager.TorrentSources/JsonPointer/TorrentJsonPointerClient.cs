@@ -31,9 +31,9 @@ public sealed class TorrentJsonPointerClient(
     /// Cancellation requested through <paramref name="cancellationToken"/> still propagates.
     /// </returns>
     /// <remarks>
-    /// The document is never held in full, so its size is bounded only by
-    /// <see cref="TorrentSourcesOptions.MagnetSearchTimeout"/>, which covers reading the response
-    /// body as well as obtaining it.
+    /// In addition to <paramref name="cancellationToken"/>, getting a response with headers is
+    /// bounded by the resilience pipeline, and reading the response body - by
+    /// <see cref="TorrentSourcesOptions.ResponseReadTimeout"/>.
     /// </remarks>
     public async Task<MagnetSearchOutcome> FindMagnetUriAsync(
         Uri sourceUri,
@@ -49,8 +49,6 @@ public sealed class TorrentJsonPointerClient(
                 "The URI must be an absolute HTTP or HTTPS address.");
         }
 
-        // Read once: a reload between the reads would let one setting come from the old
-        // configuration and the next from the new one.
         var currentOptions = options.CurrentValue;
 
         if (!JsonPointerParser.TryParsePointer(
@@ -62,60 +60,65 @@ public sealed class TorrentJsonPointerClient(
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, pointerError);
         }
 
-        // The resilience pipeline's timeouts end at the response headers, so only this token can
-        // stop a source that sends headers and then stalls.
-        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        timeoutCts.CancelAfter(currentOptions.MagnetSearchTimeout);
-
         try
         {
-            return await FindMagnetUriInDocumentAsync(
-                    sourceUri,
+            // ResponseHeadersRead makes sure await returns after getting the response headers.
+            using var response = await httpClient
+                .GetAsync(sourceUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                .ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return MagnetSearchOutcome.Failure(
+                    MagnetSearchResult.RetrievalFailed,
+                    $"The server responded with {(int)response.StatusCode} {response.StatusCode}");
+            }
+
+            return await FindMagnetUriInResponseAsync(
+                    response,
                     segments,
                     currentOptions.MaxJsonTokenBytes,
-                    timeoutCts.Token)
+                    currentOptions.ResponseReadTimeout,
+                    cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch (Exception e) when (e is
-            OperationCanceledException or // the budget expired, or the caller cancelled
-            HttpRequestException or
-            IOException or // a connection dropped mid-body surfaces here, not as HttpRequestException
-            ExecutionRejectedException or // Polly: attempt/total timeout, open circuit, rate limiter
-            JsonException) // the response is not the JSON document the source promised
+        catch (Exception e) when (e // OperationCanceledException is not caught and should propagate
+            is HttpRequestException
+            or IOException // a connection dropped mid-body arrives as HttpIOException, not HttpRequestException
+            or ExecutionRejectedException // Polly: attempt/total timeout, open circuit, rate limiter
+            or JsonException) // the response is not the JSON document the source promised
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            return MagnetSearchOutcome.Failure(
-                MagnetSearchResult.RetrievalFailed,
-                timeoutCts.IsCancellationRequested
-                    ? $"The source did not deliver a complete response within {currentOptions.MagnetSearchTimeout}."
-                    : e.Message);
+            return MagnetSearchOutcome.Failure(MagnetSearchResult.RetrievalFailed, e.Message);
         }
     }
 
-    private async Task<MagnetSearchOutcome> FindMagnetUriInDocumentAsync(
-        Uri sourceUri,
+    private static async Task<MagnetSearchOutcome> FindMagnetUriInResponseAsync(
+        HttpResponseMessage response,
         string[] pointerSegments,
         int maxJsonTokenBytes,
+        TimeSpan bodyReadTimeout,
         CancellationToken cancellationToken)
     {
-        // ResponseHeadersRead leaves the body unbuffered, so the response must outlive the stream.
-        using var response = await httpClient
-            .GetAsync(sourceUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
-            .ConfigureAwait(false);
+        using var readTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        readTimeoutCts.CancelAfter(bodyReadTimeout);
 
-        if (!response.IsSuccessStatusCode)
+        (JsonPointerResolution, string?, JsonValueKind) result;
+        try
+        {
+            using var stream = await response.Content.ReadAsStreamAsync(readTimeoutCts.Token).ConfigureAwait(false);
+
+            result = await JsonPointerResolver
+                .ResolveAsync(stream, pointerSegments, maxJsonTokenBytes, readTimeoutCts.Token)
+                .ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             return MagnetSearchOutcome.Failure(
                 MagnetSearchResult.RetrievalFailed,
-                $"The server responded with {(int)response.StatusCode} {response.StatusCode}");
+                $"The source did not deliver a complete response within {bodyReadTimeout}.");
         }
 
-        using var stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-
-        var (resolution, value, valueKind) = await JsonPointerResolver
-            .ResolveAsync(stream, pointerSegments, maxJsonTokenBytes, cancellationToken)
-            .ConfigureAwait(false);
+        var (resolution, value, valueKind) = result;
 
         if (resolution is JsonPointerResolution.NotFound)
         {

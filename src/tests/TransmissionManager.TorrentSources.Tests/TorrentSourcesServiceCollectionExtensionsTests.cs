@@ -17,7 +17,7 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
         {
             ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
             ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
-            ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+            ["TorrentSources:ResponseReadTimeout"] = "00:00:30",
             ["TorrentSources:MaxJsonTokenBytes"] = "4096",
         });
 
@@ -36,20 +36,20 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
     [TestCase(null)]
     [TestCase("00:00:00.5")]
     [TestCase("00:20:00")]
-    public void AddTorrentSourcesServices_WhenMagnetSearchTimeoutIsUnusable_ValidationOnStartThrows(
-        string? magnetSearchTimeout)
+    public void AddTorrentSourcesServices_WhenResponseReadTimeoutIsUnusable_ValidationOnStartThrows(
+        string? responseReadTimeout)
     {
         using var provider = CreateProvider(new()
         {
             ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
             ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
-            ["TorrentSources:MagnetSearchTimeout"] = magnetSearchTimeout,
+            ["TorrentSources:ResponseReadTimeout"] = responseReadTimeout,
             ["TorrentSources:MaxJsonTokenBytes"] = "4096",
         });
 
         Assert.That(
             () => provider.GetRequiredService<IStartupValidator>().Validate(),
-            Throws.Exception.With.Message.Contains(nameof(TorrentSourcesOptions.MagnetSearchTimeout)));
+            Throws.Exception.With.Message.Contains(nameof(TorrentSourcesOptions.ResponseReadTimeout)));
     }
 
     /// <remarks>
@@ -69,7 +69,7 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
         {
             ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
             ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
-            ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+            ["TorrentSources:ResponseReadTimeout"] = "00:00:30",
             ["TorrentSources:MaxJsonTokenBytes"] = maxJsonTokenBytes,
         });
 
@@ -97,7 +97,7 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
         {
             ["TorrentSources:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
             ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
-            ["TorrentSources:MagnetSearchTimeout"] = "00:00:30",
+            ["TorrentSources:ResponseReadTimeout"] = "00:00:30",
             ["TorrentSources:MaxJsonTokenBytes"] = "4096",
         });
 

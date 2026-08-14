@@ -138,13 +138,13 @@ internal sealed class ServiceProviderTorrentSourceExtensionsTests
         {
             DefaultMagnetRegexPattern = @"magnet:\?xt=urn:btih:[^""]+",
             RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
-            MagnetSearchTimeout = TimeSpan.FromSeconds(30),
+            ResponseReadTimeout = TimeSpan.FromSeconds(30),
         });
 
     private static FakeOptionsMonitor<TorrentJsonPointerClientOptions> JsonPointerOptions() =>
         new(new()
         {
             MaxJsonTokenBytes = 4096,
-            MagnetSearchTimeout = TimeSpan.FromSeconds(30),
+            ResponseReadTimeout = TimeSpan.FromSeconds(30),
         });
 }
