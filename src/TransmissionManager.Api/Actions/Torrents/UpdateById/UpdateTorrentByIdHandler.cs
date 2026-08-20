@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Text;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
@@ -14,9 +15,13 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
     public async Task<UpdateTorrentByIdOutcome> TryUpdateTorrentByIdAsync(
         long id,
         long version,
-        TorrentUpdateDto dto,
+        UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken)
     {
+        ArgumentNullException.ThrowIfNull(request);
+
+        var dto = request.ToTorrentUpdateDto();
+
         var (result, currentVersion) = await torrentService
             .UpdateOneAsync(id, version, dto, cancellationToken)
             .ConfigureAwait(false);
@@ -25,8 +30,10 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         {
             TorrentMutationResult.Success => OnUpdated(id, dto.Cron),
             TorrentMutationResult.NotFound => OnNotFound(id),
-            TorrentMutationResult.VersionConflict => OnConflict(id, currentVersion!.Value),
-            TorrentMutationResult.NotUnique => OnExists(id),
+            TorrentMutationResult.VersionConflict =>
+                OnConflict(id, EndpointMessages.TorrentModifiedConflict, currentVersion),
+            TorrentMutationResult.NotUnique => // unreachable - we don't change anything unique in a torrent
+                OnConflict(id, EndpointMessages.TorrentAlreadyExists, currentVersion),
             _ => throw new InvalidOperationException($"Unexpected {nameof(TorrentMutationResult)}: {result}")
         };
     }
@@ -46,11 +53,8 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
     private static UpdateTorrentByIdOutcome OnNotFound(long id) =>
         new(UpdateTorrentByIdResult.NotFound, null, GetError(id, EndpointMessages.NoSuchTorrent));
 
-    private static UpdateTorrentByIdOutcome OnConflict(long id, long version) =>
-        new(UpdateTorrentByIdResult.VersionConflict, version, GetError(id, EndpointMessages.TorrentModifiedConflict));
-
-    private static UpdateTorrentByIdOutcome OnExists(long id) =>
-        new(UpdateTorrentByIdResult.Exists, null, GetError(id, EndpointMessages.TorrentAlreadyExists));
+    private static UpdateTorrentByIdOutcome OnConflict(long id, string? message, long? currentVersion) =>
+        new(UpdateTorrentByIdResult.Conflict, currentVersion, GetError(id, message));
 
     private static string GetError(long id, string? message) =>
         string.Format(CultureInfo.InvariantCulture, _error, id, message);

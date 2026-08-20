@@ -8,6 +8,7 @@ public sealed class TorrentUpdateDto
         string? name = null,
         string? downloadDir = null,
         string? magnetRegexPattern = null,
+        string? jsonValueFormat = null,
         string? cron = null)
     {
         if (hashString is not null)
@@ -19,8 +20,8 @@ public sealed class TorrentUpdateDto
         if (downloadDir is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
-        if (hashString is null && refreshDate is null && name is null
-            && downloadDir is null && magnetRegexPattern is null && cron is null)
+        if (hashString is null && refreshDate is null && name is null && downloadDir is null
+            && magnetRegexPattern is null && jsonValueFormat is null && cron is null)
         {
             throw new ArgumentException("At least one field must be provided.");
         }
@@ -30,6 +31,7 @@ public sealed class TorrentUpdateDto
         Name = name;
         DownloadDir = downloadDir;
         MagnetRegexPattern = magnetRegexPattern;
+        JsonValueFormat = jsonValueFormat;
         Cron = cron;
     }
 
@@ -47,6 +49,9 @@ public sealed class TorrentUpdateDto
 
     // null is ignored, string.Empty sets the value in the DB to null
     public string? MagnetRegexPattern { get; }
+
+    // null is ignored, string.Empty sets the value in the DB to null
+    public string? JsonValueFormat { get; }
 
     // null is ignored, string.Empty sets the value in the DB to null
     public string? Cron { get; }

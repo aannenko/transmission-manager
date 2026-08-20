@@ -21,7 +21,7 @@ namespace TransmissionManager.Database.DbContextOptimized
                 "TransmissionManager.Database.Models.Torrent",
                 typeof(Torrent),
                 baseEntityType,
-                propertyCount: 10,
+                propertyCount: 11,
                 unnamedIndexCount: 6,
                 keyCount: 1);
 
@@ -52,6 +52,13 @@ namespace TransmissionManager.Database.DbContextOptimized
                 typeof(string),
                 propertyInfo: typeof(Torrent).GetProperty("HashString", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
                 fieldInfo: typeof(Torrent).GetField("<HashString>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly));
+
+            var jsonValueFormat = runtimeEntityType.AddProperty(
+                "JsonValueFormat",
+                typeof(string),
+                propertyInfo: typeof(Torrent).GetProperty("JsonValueFormat", BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                fieldInfo: typeof(Torrent).GetField("<JsonValueFormat>k__BackingField", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                nullable: true);
 
             var magnetRegexPattern = runtimeEntityType.AddProperty(
                 "MagnetRegexPattern",

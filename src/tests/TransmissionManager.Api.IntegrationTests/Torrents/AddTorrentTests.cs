@@ -209,14 +209,39 @@ internal sealed class AddTorrentTests
         }
     }
 
+    /// <remarks>
+    /// Separate from the cron case on purpose: property-level validation short-circuits, so
+    /// <c>IValidatableObject.Validate</c> - where the kind-conditional pattern rule lives - never
+    /// runs while any attribute is also failing. Merging the two would silently stop testing this.
+    /// </remarks>
     [Test]
-    public async Task AddTorrentAsync_WhenMagnetRegexPatternAndCronAreInvalid_ReturnsValidationErrors()
+    public async Task AddTorrentAsync_WhenMagnetRegexPatternDoesNotMatchSourceKind_ReturnsValidationError()
     {
         var dto = new AddTorrentRequest
         {
             SourceUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
             DownloadDir = "/tvshows",
-            MagnetRegexPattern = "",
+            MagnetRegexPattern = "(?<value>[a-fA-F0-9]{40})", // valid for a JSON source, not a web page
+        };
+
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problemDetails, Is.Not.Null);
+        Assert.That(problemDetails.Extensions.TryGetValue("errors", out var errorObject));
+        Assert.That(errorObject?.ToString(), Contains.Substring(nameof(AddTorrentRequest.MagnetRegexPattern)));
+    }
+
+    [Test]
+    public async Task AddTorrentAsync_WhenCronIsInvalid_ReturnsValidationError()
+    {
+        var dto = new AddTorrentRequest
+        {
+            SourceUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            DownloadDir = "/tvshows",
             Cron = " "
         };
 
@@ -229,15 +254,9 @@ internal sealed class AddTorrentTests
         Assert.That(problemDetails, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            const string title = "One or more validation errors occurred.";
-
-            Assert.That(problemDetails.Title, Is.EqualTo(title));
+            Assert.That(problemDetails.Title, Is.EqualTo("One or more validation errors occurred."));
             Assert.That(problemDetails.Extensions.TryGetValue("errors", out var errorObject));
-
-            var errorString = errorObject?.ToString();
-
-            Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.MagnetRegexPattern)));
-            Assert.That(errorString, Contains.Substring(nameof(AddTorrentRequest.Cron)));
+            Assert.That(errorObject?.ToString(), Contains.Substring(nameof(AddTorrentRequest.Cron)));
         }
     }
 

@@ -14,7 +14,6 @@ internal sealed class TorrentJsonPointerClientTests
     private const string _pointer = "#/result/6880555/2";
     private const int _maxJsonTokenBytes = 4096;
     private const string _upperCaseHash = "36B04E5B0123456789ABCDEF0123456789AB46FF";
-    private const string _lowerCaseHash = "36b04e5b0123456789abcdef0123456789ab46ff";
 
     private const string _document = $$"""
         {
@@ -33,14 +32,15 @@ internal sealed class TorrentJsonPointerClientTests
     private static readonly Dictionary<TestRequest, TestResponse> _noExpectedRequests = [];
 
     [Test]
-    public async Task FindMagnetUriAsync_WhenPointerAddressesAnInfoHash_ReturnsLowerCasedMagnet()
+    public async Task FindMagnetUriAsync_WhenPointerAddressesAnInfoHash_ReturnsMagnetBuiltFromIt()
     {
         var outcome = await FindAsync(_pointer, _document).ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
-            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_lowerCaseHash}")));
+            // The case the source used is kept, as the web page source keeps a page's.
+            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_upperCaseHash}")));
             Assert.That(outcome.Error, Is.Null);
         }
     }
@@ -94,13 +94,15 @@ internal sealed class TorrentJsonPointerClientTests
     }
 
     [Test]
-    public async Task FindMagnetUriAsync_WhenPointerAddressesAStringThatIsNotAHash_ReturnsInvalidSelector()
+    public async Task FindMagnetUriAsync_WhenPointerAddressesAStringTheValuePatternRejects_ReturnsNotFound()
     {
         var outcome = await FindAsync("#/result/6880557/2", _document).ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            // The source answered and the pointer resolved; only the value was not what was sought,
+            // which is the same outcome the web page source reports for a page holding no magnet.
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.NotFound));
             Assert.That(outcome.Error, Is.Not.Empty);
         }
     }
@@ -196,7 +198,7 @@ internal sealed class TorrentJsonPointerClientTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
-            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_lowerCaseHash}")));
+            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_upperCaseHash}")));
         }
     }
 
@@ -238,7 +240,7 @@ internal sealed class TorrentJsonPointerClientTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
-            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_lowerCaseHash}")));
+            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_upperCaseHash}")));
         }
     }
 
@@ -283,7 +285,7 @@ internal sealed class TorrentJsonPointerClientTests
 
         Assert.That(
             async () => await CreateClient(httpClient, TimeSpan.FromMinutes(1))
-                .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"), callerCts.Token)
+                .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"), cancellationToken: callerCts.Token)
                 .WaitAsync(TimeSpan.FromSeconds(10))
                 .ConfigureAwait(false),
             Throws.InstanceOf<OperationCanceledException>());
@@ -348,6 +350,174 @@ internal sealed class TorrentJsonPointerClientTests
         }
     }
 
+    // A source whose JSON already holds whole magnet links: a pattern that captures the magnet, and
+    // a format that asks for nothing but what it captured.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenValueIsAWholeMagnet_ReturnsItUnchanged()
+    {
+        const string magnet = $"magnet:?xt=urn:btih:{_upperCaseHash}&dn=TV+Show&tr=http%3A%2F%2Ft.co%2Fa";
+
+        var outcome = await FindWithOverridesAsync(
+                DocumentHolding(magnet),
+                @"magnet:\?.+",
+                "{0}")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri!.OriginalString, Is.EqualTo(magnet));
+        }
+    }
+
+    // Empty is not a third state meaning "no extraction": the store writes an empty setting as
+    // absent, so both have to land on the configured default or a search would disagree with the
+    // one after it.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenSettingsAreEmpty_UsesTheConfiguredDefaults()
+    {
+        var outcome = await FindWithOverridesAsync(_document, "", "").ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_upperCaseHash}")));
+        }
+    }
+
+    [Test]
+    public async Task FindMagnetUriAsync_WhenValueEmbedsAMagnet_ExtractsItWithAPassThroughFormat()
+    {
+        const string magnet = $"magnet:?xt=urn:btih:{_upperCaseHash}";
+
+        var outcome = await FindWithOverridesAsync(
+                DocumentHolding($"Download here: {magnet} (seeders: 12)"),
+                @"magnet:\?[^\s]+",
+                "{0}")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri!.OriginalString, Is.EqualTo(magnet));
+        }
+    }
+
+    // The whole match is the value, so a pattern that has to look at surrounding text keeps that
+    // text out of the match with a zero-width lookbehind rather than with a capturing group.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenValueIsAPrefixedHash_ExtractsItWithALookbehind()
+    {
+        var outcome = await FindWithOverridesAsync(
+                DocumentHolding($"btih:{_upperCaseHash}"),
+                @"(?<=btih:)[a-fA-F0-9]{40}",
+                "magnet:?xt=urn:btih:{0}&dn=name")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(
+                outcome.MagnetUri!.OriginalString,
+                Is.EqualTo($"magnet:?xt=urn:btih:{_upperCaseHash}&dn=name"));
+        }
+    }
+
+    // The other side of the same rule: without a lookbehind the prefix is part of the match, and the
+    // format has to account for it. Pins that no capture is consulted.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenPatternMatchesMoreThanTheHash_UsesTheWholeMatch()
+    {
+        var outcome = await FindWithOverridesAsync(
+                DocumentHolding($"btih:{_upperCaseHash}"),
+                @"btih:[a-fA-F0-9]{40}",
+                "magnet:?xt=urn:{0}")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri!.OriginalString, Is.EqualTo($"magnet:?xt=urn:btih:{_upperCaseHash}"));
+        }
+    }
+
+    // A v2 source: the format is the only thing that decides which URN a magnet claims.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenFormatBuildsAVersionTwoMagnet_ReturnsIt()
+    {
+        const string v2Hash = "caf1e1c30e81cb361b8f0d7a5c9e2f4a6b3d5c7e91a2b3c4d5e6f708192a3b4c";
+
+        var outcome = await FindWithOverridesAsync(
+                DocumentHolding(v2Hash),
+                @"[a-f0-9]{64}",
+                "magnet:?xt=urn:btmh:1220{0}")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri!.OriginalString, Is.EqualTo($"magnet:?xt=urn:btmh:1220{v2Hash}"));
+        }
+    }
+
+    [TestCase(@"(?<value>[a-fA-F0-9]{40}", TestName =
+        "FindMagnetUriAsync_WhenValuePatternIsUnusable_ReturnsInvalidSelector(does not compile)")]
+    public async Task FindMagnetUriAsync_WhenValuePatternIsUnusable_ReturnsInvalidSelector(string pattern)
+    {
+        var outcome = await FindWithOverridesAsync(_document, pattern, null).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.Error, Is.Not.Empty);
+        }
+    }
+
+    [TestCase("magnet:?xt=urn:btih:", TestName =
+        "FindMagnetUriAsync_WhenFormatIsUnusable_ReturnsInvalidSelector(no placeholder)")]
+    [TestCase("magnet:?xt=urn:btih:{0}&y={bad}", TestName =
+        "FindMagnetUriAsync_WhenFormatIsUnusable_ReturnsInvalidSelector(stray brace)")]
+    public async Task FindMagnetUriAsync_WhenFormatIsUnusable_ReturnsInvalidSelector(string format)
+    {
+        var outcome = await FindWithOverridesAsync(_document, null, format).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.Error, Is.Not.Empty);
+        }
+    }
+
+    // A pattern whose quantifiers are all optional matches an empty string wherever it is applied,
+    // and the magnet that would build - one with nothing where the hash belongs - is a well-formed
+    // absolute URI, so the check on the built value does not catch it.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenThePatternMatchesNothing_ReturnsNotFound()
+    {
+        var outcome = await FindWithOverridesAsync(_document, "x*", null).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.NotFound));
+            Assert.That(outcome.Error, Is.Not.Empty);
+        }
+    }
+
+    // Nothing constrains a tracker's magnet dialect, so what the format built is only checkable once
+    // it exists.
+    [Test]
+    public async Task FindMagnetUriAsync_WhenTheBuiltValueIsNotAMagnet_ReturnsInvalidSelector()
+    {
+        var outcome = await FindWithOverridesAsync(_document, null, "https://example.com/{0}")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.Error, Does.Contain("is not a magnet link"));
+        }
+    }
+
     private static async Task<MagnetSearchOutcome> FindAsync(string pointer, string content)
     {
         using var handler = new FakeHttpMessageHandler(
@@ -361,12 +531,35 @@ internal sealed class TorrentJsonPointerClientTests
             .ConfigureAwait(false);
     }
 
+    private static async Task<MagnetSearchOutcome> FindWithOverridesAsync(
+        string document,
+        string? valueRegexPattern,
+        string? valueFormat)
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _documentUri),
+            new(HttpStatusCode.OK, Content: document));
+
+        using var httpClient = new HttpClient(handler);
+
+        return await CreateClient(httpClient)
+            .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"), valueRegexPattern, valueFormat)
+            .ConfigureAwait(false);
+    }
+
+    private static string DocumentHolding(string value) => $$"""
+        { "result": { "6880555": [0, 0, {{System.Text.Json.JsonSerializer.Serialize(value)}}] } }
+        """;
+
     private static TorrentJsonPointerClient CreateClient(HttpClient httpClient, TimeSpan? responseReadTimeout = null) =>
         new(
             new FakeOptionsMonitor<TorrentJsonPointerClientOptions>(new()
             {
                 ResponseReadTimeout = responseReadTimeout ?? TimeSpan.FromSeconds(30),
+                RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
                 MaxJsonTokenBytes = _maxJsonTokenBytes,
+                DefaultJsonValueRegexPattern = @"[a-fA-F0-9]{40}",
+                DefaultJsonValueFormat = "magnet:?xt=urn:btih:{0}",
             }),
             httpClient);
 }

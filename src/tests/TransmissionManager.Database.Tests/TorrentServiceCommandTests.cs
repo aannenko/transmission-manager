@@ -218,6 +218,39 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         }
     }
 
+    /// <remarks>
+    /// A torrent's source is immutable through this path - re-pointing is done by adding the new
+    /// address as its own torrent and deleting the old record. Asserted rather than assumed, because
+    /// nothing else stops a <c>SetProperty</c> for either column being added back.
+    /// </remarks>
+    [Test]
+    public async Task UpdateOneAsync_WhenEveryOtherFieldChanges_LeavesTheSourceUntouched()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var dto = new TorrentUpdateDto(
+            hashString: "ffffffffffffffffffffffffffffffffffffffff",
+            refreshDate: DateTime.UtcNow,
+            name: "New torrent name",
+            downloadDir: "/movies",
+            magnetRegexPattern: @"magnet:\?xt=urn:btih:[^""]+",
+            jsonValueFormat: "magnet:?xt=urn:btih:{0}",
+            cron: "0 9,17 * * *");
+
+        var (result, _) = await service.UpdateOneAsync(1, 1, dto).ConfigureAwait(false);
+
+        Assert.That(result, Is.EqualTo(TorrentMutationResult.Success));
+
+        var actual = await context.Torrents.AsNoTracking().FirstOrDefaultAsync(static t => t.Id == 1).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(actual!.SourceUri, Is.EqualTo(InitialTorrents[0].SourceUri));
+            Assert.That(actual.SourceKind, Is.EqualTo(InitialTorrents[0].SourceKind));
+        }
+    }
+
     [Test]
     public async Task TryUpdateOneAsync_WhenIdDoesNotExist_ReturnsNotFound()
     {

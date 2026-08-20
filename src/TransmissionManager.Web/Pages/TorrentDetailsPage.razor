@@ -7,6 +7,7 @@
 @using TransmissionManager.Web.Extensions
 @using TransmissionManager.Web.Services
 @inherits CommonComponentBase
+@implements IValidatableObject
 @inject TransmissionManagerClient Client
 
 <PageTitle>@Name - Transmission Manager</PageTitle>
@@ -48,7 +49,7 @@
         </div>
 
         <div>
-            <label for="magnetRegexPattern">Magnet link regex (optional):</label>
+            <label for="magnetRegexPattern">@MagnetRegexPatternLabel</label>
             <InputText id="magnetRegexPattern" class="form-input" disabled="@AreControlsDisabled" @bind-Value="MagnetRegexPattern" />
             <ValidationMessage For="@(() => MagnetRegexPattern)" />
         </div>
@@ -99,7 +100,6 @@
     [Required(ErrorMessage = "Value required.")]
     public string DownloadDir { get; private set; } = string.Empty;
 
-    [MagnetRegex]
     public string MagnetRegexPattern { get; private set; } = string.Empty;
 
     [Cron]
@@ -112,6 +112,26 @@
     private string HashString => _currentTorrent?.HashString ?? string.Empty;
 
     private DateTimeOffset? RefreshDate => _currentTorrent?.RefreshDate;
+
+    private bool IsWebPageSource => _currentTorrent?.SourceKind is not TorrentSourceKind.JsonPointer;
+
+    private string MagnetRegexPatternLabel => IsWebPageSource
+        ? "Magnet link regex (optional):"
+        : "Value regex, applied to the string the JSON Pointer addresses (optional):";
+
+    /// <remarks>
+    /// The rule depends on the torrent's kind, which no attribute on the property can see: a web page
+    /// pattern has to find a magnet link, while a JSON one matches a value inside a string and is
+    /// unconstrained. Applying the web page rule to both is what made this form unsubmittable for a
+    /// JSON torrent - and since the field is always sent, clearing it to get past the error was also
+    /// the one thing that destroyed the pattern.
+    /// </remarks>
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        var magnetRegex = new MagnetRegexAttribute();
+        if (IsWebPageSource && !string.IsNullOrEmpty(MagnetRegexPattern) && !magnetRegex.IsValid(MagnetRegexPattern))
+            yield return new ValidationResult(magnetRegex.ErrorMessage, [nameof(MagnetRegexPattern)]);
+    }
 
     private bool AreControlsDisabled => IsBusy || _currentTorrent is null;
 

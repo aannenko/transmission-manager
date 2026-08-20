@@ -38,6 +38,7 @@ internal sealed class RefreshTorrentByIdHandler(
                 new(torrent.SourceUri),
                 torrent.SourceKind,
                 torrent.MagnetRegexPattern,
+                torrent.JsonValueFormat,
                 cancellationToken)
             .ConfigureAwait(false);
 

@@ -21,7 +21,19 @@ public sealed class Torrent
 
     public required string DownloadDir { get; set; }
 
+    /// <summary>
+    /// Extracts either a full magnet or a string value used to build one from what
+    /// <see cref="SourceUri"/> yields. <c>null</c> means the default one for the source kind will
+    /// be used.
+    /// </summary>
     public string? MagnetRegexPattern { get; set; }
+
+    /// <summary>
+    /// A string with a placeholder used to build a magnet link when <see cref="SourceKind"/> is
+    /// <see cref="TorrentSourceKind.JsonPointer"/>. <c>null</c> means the configured default will
+    /// be used.
+    /// </summary>
+    public string? JsonValueFormat { get; set; }
 
     public string? Cron { get; set; }
 

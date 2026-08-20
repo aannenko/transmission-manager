@@ -4,6 +4,9 @@ namespace TransmissionManager.Database.Dto;
 
 public sealed class TorrentAddDto
 {
+    /// <exception cref="ArgumentException">
+    /// Thrown when <paramref name="sourceUri"/> is relative.
+    /// </exception>
     public TorrentAddDto(
         string hashString,
         DateTime refreshDate,
@@ -12,6 +15,7 @@ public sealed class TorrentAddDto
         TorrentSourceKind sourceKind,
         string downloadDir,
         [StringSyntax(StringSyntaxAttribute.Regex)] string? magnetRegexPattern = null,
+        string? jsonValueFormat = null,
         string? cron = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(hashString);
@@ -19,8 +23,14 @@ public sealed class TorrentAddDto
         ArgumentNullException.ThrowIfNull(sourceUri);
         ArgumentException.ThrowIfNullOrWhiteSpace(downloadDir);
 
+        if (!sourceUri.IsAbsoluteUri)
+            throw new ArgumentException("The source URI must be absolute.", nameof(sourceUri));
+
         if (magnetRegexPattern is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(magnetRegexPattern);
+
+        if (jsonValueFormat is not null)
+            ArgumentException.ThrowIfNullOrWhiteSpace(jsonValueFormat);
 
         if (cron is not null)
             ArgumentException.ThrowIfNullOrWhiteSpace(cron);
@@ -32,6 +42,7 @@ public sealed class TorrentAddDto
         SourceKind = sourceKind;
         DownloadDir = downloadDir;
         MagnetRegexPattern = magnetRegexPattern;
+        JsonValueFormat = jsonValueFormat;
         Cron = cron;
     }
 
@@ -48,6 +59,8 @@ public sealed class TorrentAddDto
     public string DownloadDir { get; }
 
     public string? MagnetRegexPattern { get; }
+
+    public string? JsonValueFormat { get; }
 
     public string? Cron { get; }
 }

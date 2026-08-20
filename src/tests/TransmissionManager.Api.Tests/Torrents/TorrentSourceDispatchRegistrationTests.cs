@@ -30,7 +30,7 @@ internal sealed class TorrentSourceDispatchRegistrationTests
         foreach (var sourceKind in Enum.GetValues<TorrentSourceKind>())
         {
             var outcome = await provider
-                .FindMagnetUriAsync(new("ftp://torrenttracker.com/x"), sourceKind, null)
+                .FindMagnetUriAsync(new("ftp://torrenttracker.com/x"), sourceKind, default)
                 .ConfigureAwait(false);
 
             Assert.That(
@@ -44,10 +44,12 @@ internal sealed class TorrentSourceDispatchRegistrationTests
         new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["TorrentSources:DefaultMagnetRegexPattern"] = @"magnet:\?xt=urn:btih:[^""]+",
-                ["TorrentSources:RegexMatchTimeout"] = "00:00:00.1",
-                ["TorrentSources:ResponseReadTimeout"] = "00:00:30",
-                ["TorrentSources:MaxJsonTokenBytes"] = "4096",
+                ["TorrentSources:WebPage:DefaultMagnetRegexPattern"] = @"magnet:\?xt=urn:btih:[^""]+",
+                ["TorrentSources:WebPage:RegexMatchTimeout"] = "00:00:00.1",
+                ["TorrentSources:WebPage:ResponseReadTimeout"] = "00:00:30",
+                ["TorrentSources:JsonPointer:RegexMatchTimeout"] = "00:00:00.1",
+                ["TorrentSources:JsonPointer:ResponseReadTimeout"] = "00:00:30",
+                ["TorrentSources:JsonPointer:MaxJsonTokenBytes"] = "4096",
             })
             .Build();
 }

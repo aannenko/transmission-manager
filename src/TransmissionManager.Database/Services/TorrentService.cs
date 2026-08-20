@@ -172,6 +172,11 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
                                 ? null
                                 : dto.MagnetRegexPattern ?? torrent.MagnetRegexPattern)
                         .SetProperty(
+                            static torrent => torrent.JsonValueFormat,
+                            torrent => dto.JsonValueFormat != null && dto.JsonValueFormat.Length == 0
+                                ? null
+                                : dto.JsonValueFormat ?? torrent.JsonValueFormat)
+                        .SetProperty(
                             static torrent => torrent.Cron,
                             torrent => dto.Cron != null && dto.Cron.Length == 0
                                 ? null

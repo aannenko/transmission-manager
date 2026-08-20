@@ -29,7 +29,12 @@ internal sealed class AddTorrentHandler(
         var sourceKind = (DbSourceKind)request.SourceKind;
 
         var (searchResult, magnetUri, getMagnetError) = await serviceProvider
-            .FindMagnetUriAsync(request.SourceUri, sourceKind, request.MagnetRegexPattern, cancellationToken)
+            .FindMagnetUriAsync(
+                request.SourceUri,
+                sourceKind,
+                request.MagnetRegexPattern,
+                request.JsonValueFormat,
+                cancellationToken)
             .ConfigureAwait(false);
 
         if (magnetUri is null)

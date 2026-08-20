@@ -16,6 +16,7 @@ internal static class TorrentAddDtoExtensions
             SourceUri = dto.SourceUri.OriginalString,
             SourceKind = dto.SourceKind,
             MagnetRegexPattern = dto.MagnetRegexPattern,
+            JsonValueFormat = dto.JsonValueFormat,
             Cron = dto.Cron,
             Version = 1,
         };

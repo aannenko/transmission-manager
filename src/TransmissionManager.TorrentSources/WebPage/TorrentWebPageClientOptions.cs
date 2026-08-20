@@ -1,27 +1,27 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
-using TransmissionManager.TorrentSources.Options;
 
 namespace TransmissionManager.TorrentSources.WebPage;
 
-public sealed class TorrentWebPageClientOptions : TorrentSourcesOptions
+/// <remarks>
+/// Paired with <see cref="ValidateTorrentWebPageClientOptions"/>, which is the only thing that
+/// checks any of this and where each setting's accepted values and their reasons are written.
+/// </remarks>
+public sealed class TorrentWebPageClientOptions
 {
     private readonly Lazy<Regex> _lazyDefaultMagnetRegex;
 
     public TorrentWebPageClientOptions()
     {
-        _lazyDefaultMagnetRegex = new(() => RegexUtils.CreateRegex(DefaultMagnetRegexPattern!, RegexMatchTimeout));
+        _lazyDefaultMagnetRegex = new(() =>
+            RegexUtils.CreateCompiledRegex(DefaultMagnetRegexPattern!, RegexMatchTimeout));
     }
 
+    public required TimeSpan ResponseReadTimeout { get; set; }
+
     [StringSyntax(StringSyntaxAttribute.Regex)]
-    [Required]
-    [RegularExpression(TorrentRegex.IsFindMagnet, MatchTimeoutInMilliseconds = 50)]
     public required string DefaultMagnetRegexPattern { get; set; }
 
-    [Required]
-    [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
-    [Range(typeof(TimeSpan), "00:00:00.01", "00:00:00.5")]
     public required TimeSpan RegexMatchTimeout { get; set; }
 
     public Regex DefaultMagnetRegex => _lazyDefaultMagnetRegex.Value;

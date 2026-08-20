@@ -54,19 +54,38 @@ internal sealed class ServiceProviderTorrentSourceExtensionsTests
     }
 
     /// <remarks>
-    /// A torrent keeps its magnet regex across a change of kind, so a JSON Pointer source can carry
-    /// one that would match the page. Supplying it must not change the outcome.
+    /// A torrent carries one pattern whatever its kind, so each client has to read it as its own
+    /// kind of pattern - here as one extracting a value from the string a pointer addressed, not as
+    /// one searching a page.
     /// </remarks>
     [Test]
-    public async Task FindMagnetUriAsync_WhenKindIsJsonPointerAndARegexIsSupplied_DoesNotPassItOn()
+    public async Task FindMagnetUriAsync_WhenKindIsJsonPointerAndARegexIsSupplied_ReadsItAsAValuePattern()
     {
-        var (result, magnetUri, _) = await FindAsync(TorrentSourceKind.JsonPointer, @"magnet:\?xt=[^""]+")
+        var (result, magnetUri, _) = await FindAsync(TorrentSourceKind.JsonPointer, @"[a-f0-9]{40}")
             .ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.EqualTo(MagnetSearchResult.Found));
             Assert.That(magnetUri, Is.EqualTo(new Uri($"magnet:?xt=urn:btih:{_hash}")));
+        }
+    }
+
+    /// <remarks>
+    /// The other half of the same rule: a pattern written for a page finds nothing in the string a
+    /// pointer addressed, rather than quietly falling back to the configured default.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenKindIsJsonPointerAndTheRegexSuitsAPage_ReturnsNotFound()
+    {
+        var (result, magnetUri, error) = await FindAsync(TorrentSourceKind.JsonPointer, @"magnet:\?xt=[^""]+")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(MagnetSearchResult.NotFound));
+            Assert.That(magnetUri, Is.Null);
+            Assert.That(error, Is.Not.Empty);
         }
     }
 
@@ -101,7 +120,10 @@ internal sealed class ServiceProviderTorrentSourceExtensionsTests
         using var provider = services.BuildServiceProvider();
 
         var (result, _, _) = await provider
-            .FindMagnetUriAsync(new($"{_sourceAddress}{_pointer}"), TorrentSourceKind.JsonPointer, null)
+            .FindMagnetUriAsync(
+                new($"{_sourceAddress}{_pointer}"),
+                TorrentSourceKind.JsonPointer,
+                default)
             .ConfigureAwait(false);
 
         Assert.That(result, Is.EqualTo(MagnetSearchResult.Found));
@@ -146,5 +168,8 @@ internal sealed class ServiceProviderTorrentSourceExtensionsTests
         {
             MaxJsonTokenBytes = 4096,
             ResponseReadTimeout = TimeSpan.FromSeconds(30),
+            RegexMatchTimeout = TimeSpan.FromMilliseconds(100),
+            DefaultJsonValueRegexPattern = @"[a-fA-F0-9]{40}",
+            DefaultJsonValueFormat = "magnet:?xt=urn:btih:{0}",
         });
 }

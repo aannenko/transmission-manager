@@ -22,14 +22,5 @@ internal enum UpdateTorrentByIdResult
     /// <remarks>
     /// Retryable: the response carries the row's current version to resubmit against.
     /// </remarks>
-    VersionConflict,
-
-    /// <summary>
-    /// Another torrent already holds the web page address the update asks for.
-    /// </summary>
-    /// <remarks>
-    /// Unlike <see cref="VersionConflict"/>, resubmitting cannot help - the conflicting value has
-    /// to change.
-    /// </remarks>
-    Exists,
+    Conflict,
 }

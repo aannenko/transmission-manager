@@ -9,5 +9,6 @@ public sealed record TorrentDto(
     TorrentSourceKind SourceKind,
     string DownloadDir,
     string? MagnetRegexPattern,
+    string? JsonValueFormat,
     string? Cron,
     long Version);

@@ -16,6 +16,7 @@ internal static class TorrentExtensions
             SourceKind: (TorrentSourceKind)torrent.SourceKind,
             DownloadDir: torrent.DownloadDir,
             MagnetRegexPattern: torrent.MagnetRegexPattern,
+            JsonValueFormat: torrent.JsonValueFormat,
             Cron: torrent.Cron,
             Version: torrent.Version);
     }

@@ -5,7 +5,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
 using TransmissionManager.TorrentSources.Dto;
-using TransmissionManager.TorrentSources.Options;
 
 namespace TransmissionManager.TorrentSources.WebPage;
 
@@ -33,7 +32,7 @@ public sealed class TorrentWebPageClient(
     /// <remarks>
     /// In addition to <paramref name="cancellationToken"/>, getting a response with headers is
     /// bounded by the resilience pipeline, and reading the response body - by
-    /// <see cref="TorrentSourcesOptions.ResponseReadTimeout"/>.
+    /// <see cref="TorrentWebPageClientOptions.ResponseReadTimeout"/>.
     /// </remarks>
     public async Task<MagnetSearchOutcome> FindMagnetUriAsync(
         Uri torrentWebPageUri,
@@ -208,7 +207,7 @@ public sealed class TorrentWebPageClient(
 
         try
         {
-            magnetRegex = RegexUtils.CreateRegex(regexPattern, currentOptions.RegexMatchTimeout);
+            magnetRegex = RegexUtils.CreateInterpretedRegex(regexPattern, currentOptions.RegexMatchTimeout);
             error = null;
             return true;
         }

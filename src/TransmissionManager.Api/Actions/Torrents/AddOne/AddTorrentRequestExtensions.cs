@@ -19,7 +19,11 @@ internal static class AddTorrentRequestExtensions
             sourceUri: dto.SourceUri,
             sourceKind: (DbSourceKind)dto.SourceKind,
             downloadDir: dto.DownloadDir,
-            magnetRegexPattern: dto.MagnetRegexPattern,
-            cron: dto.Cron);
+            magnetRegexPattern: OrNullOnEmptyString(dto.MagnetRegexPattern),
+            jsonValueFormat: OrNullOnEmptyString(dto.JsonValueFormat),
+            cron: OrNullOnEmptyString(dto.Cron));
     }
+
+    private static string? OrNullOnEmptyString(string? value) =>
+        string.IsNullOrEmpty(value) ? null : value;
 }

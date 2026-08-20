@@ -15,8 +15,12 @@ internal static class ServiceProviderTorrentSourceExtensions
     /// <param name="sourceUri">The address of the source.</param>
     /// <param name="sourceKind">Which client reads the source.</param>
     /// <param name="magnetRegexPattern">
-    /// The pattern that extracts the magnet from a web page, or <see langword="null"/> to use the
-    /// configured default. Not passed on for any other kind - see the remarks.
+    /// The torrent's regex pattern, or <see langword="null"/> to use the client's configured default.
+    /// Every client reads it, and each means by it whatever it needs to - see the remarks.
+    /// </param>
+    /// <param name="jsonValueFormat">
+    /// Builds a magnet link out of what a JSON source's pattern extracted, or <see langword="null"/>
+    /// to use the configured default. Ignored by every other kind.
     /// </param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
@@ -26,15 +30,16 @@ internal static class ServiceProviderTorrentSourceExtensions
     /// Thrown when the provided <paramref name="sourceKind"/> is not a defined member.
     /// </exception>
     /// <remarks>
-    /// A torrent keeps its <c>MagnetRegexPattern</c> across a change of kind, so a JSON Pointer
-    /// source can carry one. It is not passed on rather than being rejected, because
-    /// <see cref="TorrentJsonPointerClient"/> has no parameter to receive it.
+    /// A torrent carries one pattern whatever its kind, so what it has to look like depends on the
+    /// client that will read it - a magnet link on a page, a value inside a JSON string. A torrent's
+    /// kind is fixed when it is added, so the pattern it was written for is the one that reads it.
     /// </remarks>
     public static Task<MagnetSearchOutcome> FindMagnetUriAsync(
         this IServiceProvider provider,
         Uri sourceUri,
         TorrentSourceKind sourceKind,
-        string? magnetRegexPattern,
+        string? magnetRegexPattern = null,
+        string? jsonValueFormat = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(provider);
@@ -44,7 +49,7 @@ internal static class ServiceProviderTorrentSourceExtensions
             TorrentSourceKind.WebPage => provider.GetRequiredService<TorrentWebPageClient>()
                 .FindMagnetUriAsync(sourceUri, magnetRegexPattern, cancellationToken),
             TorrentSourceKind.JsonPointer => provider.GetRequiredService<TorrentJsonPointerClient>()
-                .FindMagnetUriAsync(sourceUri, cancellationToken),
+                .FindMagnetUriAsync(sourceUri, magnetRegexPattern, jsonValueFormat, cancellationToken),
             _ => throw new ArgumentOutOfRangeException(nameof(sourceKind), sourceKind, null),
         };
     }
