@@ -85,6 +85,7 @@ public sealed class TorrentJsonPointerClient(
                     response,
                     segments,
                     valueRegex,
+                    jsonValueRegexPattern,
                     valueFormat,
                     currentOptions.MaxJsonTokenBytes,
                     currentOptions.ResponseReadTimeout,
@@ -105,6 +106,7 @@ public sealed class TorrentJsonPointerClient(
         HttpResponseMessage response,
         string[] pointerSegments,
         Regex? valueRegex,
+        string? valueRegexPattern,
         CompositeFormat? valueFormat,
         int maxJsonTokenBytes,
         TimeSpan bodyReadTimeout,
@@ -146,7 +148,7 @@ public sealed class TorrentJsonPointerClient(
                 $"The JSON Pointer addresses {DescribeKind(valueKind)}, but it must address a string.");
         }
 
-        return BuildMagnetUri(value!, valueRegex, valueFormat);
+        return BuildMagnetUri(value!, valueRegex, valueRegexPattern, valueFormat);
     }
 
     /// <remarks>
@@ -157,7 +159,11 @@ public sealed class TorrentJsonPointerClient(
     /// the right place uses zero-width lookarounds for it rather than a capturing group.
     /// </para>
     /// </remarks>
-    private static MagnetSearchOutcome BuildMagnetUri(string value, Regex? valueRegex, CompositeFormat? valueFormat)
+    private static MagnetSearchOutcome BuildMagnetUri(
+        string value,
+        Regex? valueRegex,
+        string? valueRegexPattern,
+        CompositeFormat? valueFormat)
     {
         if (valueRegex is not null)
         {
@@ -167,9 +173,11 @@ public sealed class TorrentJsonPointerClient(
             {
                 found = valueRegex.TryGetFirstMatch(value, out matchRange);
             }
-            catch (RegexMatchTimeoutException e)
+            catch (RegexMatchTimeoutException)
             {
-                return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, e.Message);
+                return MagnetSearchOutcome.Failure(
+                    MagnetSearchResult.InvalidSelector,
+                    GetRegexTimeoutError(valueRegexPattern));
             }
 
             // A pattern whose quantifiers are all optional matches an empty string, which would go on
@@ -199,6 +207,16 @@ public sealed class TorrentJsonPointerClient(
 
         return MagnetSearchOutcome.Found(magnetUri);
     }
+
+    /// <remarks>
+    /// Names which pattern timed out rather than quoting it: the two are set in different places, so
+    /// which one it was decides whether this torrent or the whole deployment needs attention.
+    /// </remarks>
+    private static string GetRegexTimeoutError(string? valueRegexPattern) =>
+        string.IsNullOrEmpty(valueRegexPattern)
+            ? $"The configured {nameof(TorrentJsonPointerClientOptions.DefaultJsonValueRegexPattern)} " +
+                "timed out on the string at the JSON Pointer."
+            : "This torrent's magnetRegexPattern timed out on the string at the JSON Pointer.";
 
     private static bool TryGetJsonValueRegex(
         TorrentJsonPointerClientOptions currentOptions,

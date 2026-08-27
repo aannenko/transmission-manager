@@ -16,6 +16,7 @@ public sealed class TorrentWebPageClient(
     private const int _bufferSize = 2048;
     private const int _defaultPadding = _bufferSize / 16;
     private const int _maxBufferFreeSpace = _bufferSize / 8;
+    private const string _magnetScheme = "magnet";
 
     private static ReadOnlySpan<byte> Magnet => "magnet:?"u8;
 
@@ -75,9 +76,11 @@ public sealed class TorrentWebPageClient(
                     cancellationToken)
                 .ConfigureAwait(false);
         }
-        catch (RegexMatchTimeoutException e) when (regexPattern is not null)
+        catch (RegexMatchTimeoutException)
         {
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, e.Message);
+            return MagnetSearchOutcome.Failure(
+                MagnetSearchResult.InvalidSelector,
+                GetRegexTimeoutError(regexPattern));
         }
         catch (Exception e) when (e // OperationCanceledException is not caught and should propagate
             is HttpRequestException
@@ -97,12 +100,12 @@ public sealed class TorrentWebPageClient(
         using var readTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         readTimeoutCts.CancelAfter(bodyReadTimeout);
 
-        Uri? magnetUri;
+        MagnetSearchOutcome? outcome;
         try
         {
             using var stream = await response.Content.ReadAsStreamAsync(readTimeoutCts.Token).ConfigureAwait(false);
 
-            magnetUri = await FindMagnetUriInStreamAsync(stream, regex, readTimeoutCts.Token).ConfigureAwait(false);
+            outcome = await FindMagnetUriInStreamAsync(stream, regex, readTimeoutCts.Token).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -111,12 +114,12 @@ public sealed class TorrentWebPageClient(
                 $"The source did not deliver a complete response within {bodyReadTimeout}.");
         }
 
-        return magnetUri is null
-            ? MagnetSearchOutcome.Failure(MagnetSearchResult.NotFound, "No magnet link was found on the page")
-            : MagnetSearchOutcome.Found(magnetUri);
+        return outcome ?? MagnetSearchOutcome.Failure(
+            MagnetSearchResult.NotFound,
+            "No magnet link was found on the page");
     }
 
-    private static async Task<Uri?> FindMagnetUriInStreamAsync(
+    private static async Task<MagnetSearchOutcome?> FindMagnetUriInStreamAsync(
         Stream stream,
         Regex regex,
         CancellationToken cancellationToken)
@@ -149,9 +152,9 @@ public sealed class TorrentWebPageClient(
                 }
 
                 // magnet found, but may not match the regex - ensure it matches the regex and return it
-                var magnetUri = FindMagnetUriInBytes(bytes, regex);
-                if (magnetUri is not null)
-                    return magnetUri;
+                var outcome = FindMagnetUriInBytes(bytes, regex);
+                if (outcome is not null)
+                    return outcome;
 
                 // magnet did not match the regex, set padding to shift it out of the buffer and continue
                 padding = bytes.Length - indexOfMagnet - Magnet.Length;
@@ -165,25 +168,46 @@ public sealed class TorrentWebPageClient(
         }
     }
 
-    private static Uri? FindMagnetUriInBytes(ReadOnlySpan<byte> bytes, Regex regex)
+    private static MagnetSearchOutcome? FindMagnetUriInBytes(ReadOnlySpan<byte> bytes, Regex regex)
     {
         var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
         try
         {
             var chars = charBuffer.AsSpan(0, bytes.Length);
-            if (Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) &&
-                regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
+            if (!Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) ||
+                !regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
             {
-                return new(new string(chars[magnetRange]));
+                return null;
             }
+
+            // A pattern whose quantifiers are all optional matches an empty string, which is neither
+            // a magnet link nor a reason to stop looking for one.
+            var match = chars[magnetRange];
+            if (match.IsEmpty)
+                return null;
+
+            var matchText = new string(match);
+            return Uri.TryCreate(matchText, UriKind.Absolute, out var magnetUri) &&
+                magnetUri.Scheme == _magnetScheme
+                    ? MagnetSearchOutcome.Found(magnetUri)
+                    : MagnetSearchOutcome.Failure(
+                        MagnetSearchResult.InvalidSelector,
+                        $"'{matchText}' is not a magnet link. Check the magnet regex.");
         }
         finally
         {
             ArrayPool<char>.Shared.Return(charBuffer);
         }
-
-        return null;
     }
+
+    /// <remarks>
+    /// Names which pattern timed out rather than quoting it: the two are set in different places, so
+    /// which one it was decides whether this torrent or the whole deployment needs attention.
+    /// </remarks>
+    private static string GetRegexTimeoutError(string? regexPattern) =>
+        string.IsNullOrEmpty(regexPattern)
+            ? $"The configured {nameof(TorrentWebPageClientOptions.DefaultMagnetRegexPattern)} timed out on this page."
+            : "This torrent's magnetRegexPattern timed out on this page.";
 
     private static bool TryGetMagnetRegex(
         TorrentWebPageClientOptions currentOptions,
@@ -191,7 +215,7 @@ public sealed class TorrentWebPageClient(
         [NotNullWhen(true)] out Regex? magnetRegex,
         [NotNullWhen(false)] out string? error)
     {
-        if (regexPattern is null)
+        if (string.IsNullOrEmpty(regexPattern))
         {
             magnetRegex = currentOptions.DefaultMagnetRegex;
             error = null;

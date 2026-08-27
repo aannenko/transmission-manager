@@ -75,11 +75,23 @@ internal sealed class ValidateTorrentJsonPointerClientOptions : IValidateOptions
         bool isRegexMatchTimeoutValid,
         List<string> failures)
     {
-        if (string.IsNullOrEmpty(options.DefaultJsonValueRegexPattern) || !isRegexMatchTimeoutValid)
+        if (string.IsNullOrEmpty(options.DefaultJsonValueRegexPattern))
             return;
 
-        // Settles the lazily compiled regex while a failure can still be reported: it caches the
-        // exception it throws, so a pattern left to fail at the first search fails there forever.
+        // Run before the regex compilation check to limit the cost of compiling a long pattern.
+        if (options.DefaultJsonValueRegexPattern.Length > RegexUtils.MaxPatternLength)
+        {
+            failures.Add(
+                $"{nameof(options.DefaultJsonValueRegexPattern)} must be at most {RegexUtils.MaxPatternLength} " +
+                $"characters, but is {options.DefaultJsonValueRegexPattern.Length}.");
+
+            return;
+        }
+
+        if (!isRegexMatchTimeoutValid)
+            return;
+
+        // Compile the lazy regex to fail fast if it is not a valid pattern.
         try
         {
             _ = options.DefaultJsonValueRegex;

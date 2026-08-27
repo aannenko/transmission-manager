@@ -32,6 +32,26 @@ internal sealed class TorrentWebPageClientTests
         </html>
         """;
 
+    private const string _pageWithMagnetAndTorrentLink = $"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <body>
+            <a href="{_magnetUri}">Download via Magnet</a>
+            <a href="https://torrentTracker.com/download/1234567.torrent">Download the torrent file</a>
+        </body>
+        </html>
+        """;
+
+    private const string _pageWithTorrentLinkThenMagnet = $"""
+        <!DOCTYPE html>
+        <html lang="en">
+        <body>
+            <a href="https://torrentTracker.com/download/1234567.torrent">Download the torrent file</a>
+            <a href="{_magnetUri}">Download via Magnet</a>
+        </body>
+        </html>
+        """;
+
     private static readonly Uri _webPageUri = new(_webPageAddress);
 
     // Catastrophic backtracking: passes the shape check, compiles, then times out on this page.
@@ -61,6 +81,123 @@ internal sealed class TorrentWebPageClientTests
         using var httpClient = new HttpClient(handler);
 
         var outcome = await CreateClient(httpClient).FindMagnetUriAsync(_webPageUri).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.Found));
+            Assert.That(outcome.MagnetUri, Is.EqualTo(new Uri(_magnetUri)));
+            Assert.That(outcome.Error, Is.Null);
+        }
+    }
+
+    /// <remarks>
+    /// The shape check reads the pattern's own text, so one that contains <c>magnet:\?</c> and still
+    /// matches something else passes it. Building a <see cref="Uri"/> out of whatever such a pattern
+    /// matched used to throw <see cref="UriFormatException"/> and reach the caller as HTTP 500 -
+    /// pulling the bare info hash out of a magnet link is the case a user runs into, because
+    /// extracting just the hash is a natural thing to try.
+    /// </remarks>
+    [TestCase(@"(?<=magnet:\?xt=urn:btih:)[0-9A-Fa-f]{40}", _pageWithMagnet,
+        "3A81AAA70E75439D332C146ABDE899E546356BE2",
+        TestName = "FindMagnetUriAsync_WhenPatternMatchesSomethingOtherThanAMagnet_ReturnsInvalidSelector(bare info hash)")]
+    [TestCase(@"magnet:\?zzz|https://\S+?\.torrent", _pageWithMagnetAndTorrentLink,
+        "https://torrentTracker.com/download/1234567.torrent",
+        TestName = "FindMagnetUriAsync_WhenPatternMatchesSomethingOtherThanAMagnet_ReturnsInvalidSelector(http torrent link)")]
+    public async Task FindMagnetUriAsync_WhenPatternMatchesSomethingOtherThanAMagnet_ReturnsInvalidSelector(
+        string regexPattern,
+        string content,
+        string expectedInError)
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: content));
+
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, regexPattern)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.MagnetUri, Is.Null);
+            // Quoting what the pattern really matched is the whole diagnostic - without it the
+            // message cannot tell its author why a pattern they believed in produced nothing.
+            Assert.That(outcome.Error, Does.Contain(expectedInError));
+        }
+    }
+
+    /// <remarks>
+    /// The first match wins, as it does for the JSON source. The window is anchored on the literal
+    /// <c>magnet:?</c>, but the pattern runs over the whole of it, so a pattern can match text
+    /// earlier than the magnet that brought the window into view. Selecting that earlier text is the
+    /// pattern saying what it wants; a magnet further down does not make it right, and searching on
+    /// for one would turn a pattern into a suggestion.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenAnEarlierMatchIsNotAMagnetButALaterOneIs_ReturnsInvalidSelector()
+    {
+        const string pattern = @"https://[^""]+|magnet:\?xt=urn:btih:[0-9A-Fa-f]{40}";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: _pageWithTorrentLinkThenMagnet));
+
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, pattern)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.Error, Does.Contain("https://torrentTracker.com/download/1234567.torrent"));
+        }
+    }
+
+    /// <remarks>
+    /// A pattern whose quantifiers are all optional matches an empty string wherever it is first
+    /// tried. That is not a magnet link, and it is not a reason to stop reading the page either.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenPatternMatchesEmptyString_ReturnsNotFound()
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: _pageWithMagnet));
+
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, @"(?:magnet:\?)?")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.NotFound));
+            Assert.That(outcome.MagnetUri, Is.Null);
+        }
+    }
+
+    /// <remarks>
+    /// An add request carries the pattern to this client unchanged, so an empty one has to mean what
+    /// sending no pattern at all means - the JSON source has always read it that way. An update
+    /// instead clears a stored pattern to NULL, so a refresh never delivers an empty one.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenPatternIsEmpty_FallsBackToTheConfiguredDefault()
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: _pageWithMagnet));
+
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, string.Empty)
+            .ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
@@ -208,12 +345,6 @@ internal sealed class TorrentWebPageClientTests
         }
     }
 
-    /// <remarks>
-    /// A selector that times out is only the caller's fault when the caller supplied it. A
-    /// configured default that times out is this application's misconfiguration and must surface
-    /// rather than be reported as invalid input - the same rule that applies to a default which
-    /// fails to compile.
-    /// </remarks>
     [Test]
     public async Task FindMagnetUriAsync_WhenCallerRegexTimesOut_ReturnsInvalidSelector()
     {
@@ -230,8 +361,16 @@ internal sealed class TorrentWebPageClientTests
         Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
     }
 
+    /// <remarks>
+    /// A default that fails to compile is caught at startup, so the application never runs with one;
+    /// a default that merely times out cannot be found that way, because whether it does depends on
+    /// the page it runs against. Throwing it would reach an interactive caller as HTTP 500 and, on
+    /// the scheduled path, be swallowed by the scheduler - leaving a refresh that fails every cycle
+    /// with nothing in this application's own logs. Both sources report it instead and name the
+    /// pattern, which is what identifies the configured default as the culprit.
+    /// </remarks>
     [Test]
-    public void FindMagnetUriAsync_WhenConfiguredDefaultRegexTimesOut_Throws()
+    public async Task FindMagnetUriAsync_WhenConfiguredDefaultRegexTimesOut_ReturnsInvalidSelector()
     {
         using var handler = new FakeHttpMessageHandler(
             new(HttpMethod.Get, _webPageUri),
@@ -247,9 +386,13 @@ internal sealed class TorrentWebPageClientTests
             }),
             httpClient);
 
-        Assert.That(
-            async () => await client.FindMagnetUriAsync(_webPageUri).ConfigureAwait(false),
-            Throws.TypeOf<RegexMatchTimeoutException>());
+        var outcome = await client.FindMagnetUriAsync(_webPageUri).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.Error, Does.Contain(nameof(TorrentWebPageClientOptions.DefaultMagnetRegexPattern)));
+        }
     }
 
     [TestCase("/forum/viewtopic.php?t=1234567", UriKind.Relative)]

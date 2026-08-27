@@ -90,6 +90,49 @@ internal sealed class ValidateTorrentJsonPointerClientOptionsTests
     }
 
     /// <remarks>
+    /// Both ends of the limit, because only the pair of them catches an off-by-one.
+    /// </remarks>
+    [TestCase(0, true, TestName = "Validate_WhenDefaultJsonValueRegexPatternIsAtTheLengthLimit_Succeeds")]
+    [TestCase(1, false, TestName = "Validate_WhenDefaultJsonValueRegexPatternIsOverTheLengthLimit_Fails")]
+    public void Validate_WhenDefaultJsonValueRegexPatternIsAroundTheLengthLimit_SucceedsOnlyWithinIt(
+        int overshoot,
+        bool expectedToSucceed)
+    {
+        var options = CreateOptions();
+        options.DefaultJsonValueRegexPattern = new string('a', RegexUtils.MaxPatternLength + overshoot);
+
+        if (expectedToSucceed)
+        {
+            var result = _validator.Validate(null, options);
+            Assert.That(result.Succeeded, Is.True, result.FailureMessage);
+        }
+        else
+        {
+            AssertFailsNaming(options, nameof(options.DefaultJsonValueRegexPattern));
+        }
+    }
+
+    /// <remarks>
+    /// An over-long pattern is reported whether or not the match timeout is usable, because its
+    /// length is not something compiling has to be reached to find out.
+    /// </remarks>
+    [Test]
+    public void Validate_WhenPatternIsOverTheLengthLimitAndRegexMatchTimeoutIsMissing_FailsNamingBoth()
+    {
+        var options = CreateOptions();
+        options.RegexMatchTimeout = TimeSpan.Zero;
+        options.DefaultJsonValueRegexPattern = new string('a', RegexUtils.MaxPatternLength + 1);
+
+        var result = _validator.Validate(null, options);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.FailureMessage, Does.Contain(nameof(options.DefaultJsonValueRegexPattern)));
+            Assert.That(result.FailureMessage, Does.Contain(nameof(options.RegexMatchTimeout)));
+        }
+    }
+
+    /// <remarks>
     /// The reason the checks are ordered. A missing setting binds to zero, which the regular
     /// expression constructor rejects outright, replacing every reported failure with one that names
     /// no setting at all.

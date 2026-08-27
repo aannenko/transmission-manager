@@ -547,6 +547,49 @@ internal sealed class TorrentJsonPointerClientTests
             .ConfigureAwait(false);
     }
 
+    /// <remarks>
+    /// Mirrors the web page source: a value regex that times out is reported rather than thrown,
+    /// whether the torrent supplied it or configuration did. A default that fails to compile is
+    /// caught at startup, but one that merely times out cannot be - whether it does depends on the
+    /// string it runs against - so throwing it would reach an interactive caller as HTTP 500 and be
+    /// swallowed by the scheduler on the scheduled path. The message names the pattern, which is
+    /// what identifies the configured default as the culprit.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenConfiguredDefaultValueRegexTimesOut_ReturnsInvalidSelector()
+    {
+        const string catastrophicPattern = @"(x|xx)+$";
+        var document = DocumentHolding(new string('x', 2000) + "!");
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _documentUri),
+            new(HttpStatusCode.OK, Content: document));
+
+        using var httpClient = new HttpClient(handler);
+        var client = new TorrentJsonPointerClient(
+            new FakeOptionsMonitor<TorrentJsonPointerClientOptions>(new()
+            {
+                ResponseReadTimeout = TimeSpan.FromSeconds(30),
+                RegexMatchTimeout = TimeSpan.FromMilliseconds(10),
+                MaxJsonTokenBytes = _maxJsonTokenBytes,
+                DefaultJsonValueRegexPattern = catastrophicPattern,
+                DefaultJsonValueFormat = "magnet:?xt=urn:btih:{0}",
+            }),
+            httpClient);
+
+        var outcome = await client
+            .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"))
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(
+                outcome.Error,
+                Does.Contain(nameof(TorrentJsonPointerClientOptions.DefaultJsonValueRegexPattern)));
+        }
+    }
+
     private static string DocumentHolding(string value) => $$"""
         { "result": { "6880555": [0, 0, {{System.Text.Json.JsonSerializer.Serialize(value)}}] } }
         """;

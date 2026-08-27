@@ -55,6 +55,35 @@ internal sealed class ValidateTorrentWebPageClientOptionsTests
     }
 
     /// <remarks>
+    /// Both ends of the limit, because only the pair of them catches an off-by-one. The pattern is
+    /// padded rather than replaced so that length is the one thing left that can fail.
+    /// </remarks>
+    [TestCase(0, true, TestName = "Validate_WhenDefaultMagnetRegexPatternIsAtTheLengthLimit_Succeeds")]
+    [TestCase(1, false, TestName = "Validate_WhenDefaultMagnetRegexPatternIsOverTheLengthLimit_Fails")]
+    public void Validate_WhenDefaultMagnetRegexPatternIsAroundTheLengthLimit_SucceedsOnlyWithinIt(
+        int overshoot,
+        bool expectedToSucceed)
+    {
+        const string prefix = @"magnet:\?";
+
+        var options = CreateOptions();
+        options.DefaultMagnetRegexPattern =
+            prefix + new string('a', RegexUtils.MaxPatternLength - prefix.Length + overshoot);
+
+        Assert.That(options.DefaultMagnetRegexPattern, Has.Length.EqualTo(RegexUtils.MaxPatternLength + overshoot));
+
+        if (expectedToSucceed)
+        {
+            var result = _validator.Validate(null, options);
+            Assert.That(result.Succeeded, Is.True, result.FailureMessage);
+        }
+        else
+        {
+            AssertFailsNaming(options, nameof(options.DefaultMagnetRegexPattern));
+        }
+    }
+
+    /// <remarks>
     /// The reason the checks are ordered. A missing setting binds to zero, which the regular
     /// expression constructor rejects outright, replacing every reported failure with one that names
     /// no setting at all.

@@ -64,6 +64,17 @@ internal sealed class ValidateTorrentWebPageClientOptions : IValidateOptions<Tor
             return;
         }
 
+        // Run before the other two regex checks to limit the cost of checking or compiling a long pattern.
+        if (options.DefaultMagnetRegexPattern.Length > RegexUtils.MaxPatternLength)
+        {
+            failures.Add(
+                $"{nameof(options.DefaultMagnetRegexPattern)} must be at most {RegexUtils.MaxPatternLength} " +
+                $"characters, but is {options.DefaultMagnetRegexPattern.Length}.");
+
+            return;
+        }
+
+        // Make sure the regex is an expected pattern (not necessarily valid - the next check ensures that).
         if (!TorrentRegex.IsFindMagnetRegex().IsMatch(options.DefaultMagnetRegexPattern))
         {
             failures.Add(
@@ -76,8 +87,7 @@ internal sealed class ValidateTorrentWebPageClientOptions : IValidateOptions<Tor
         if (!isRegexMatchTimeoutValid)
             return;
 
-        // Settles the lazily compiled regex while a failure can still be reported: it caches the
-        // exception it throws, so a pattern left to fail at the first search fails there forever.
+        // Compile the lazy regex to fail fast if it is not a valid pattern.
         try
         {
             _ = options.DefaultMagnetRegex;

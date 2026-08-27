@@ -9,6 +9,16 @@ namespace TransmissionManager.TorrentSources;
 internal static class RegexUtils
 {
     /// <summary>
+    /// The longest pattern either source builds, in characters.
+    /// </summary>
+    /// <remarks>
+    /// Building a regular expression takes longer the longer its pattern is and cannot be cancelled,
+    /// so a configured default is held to this as much as a torrent's own pattern is. The API keeps
+    /// its own copy of the number, since it has to refuse an over-long pattern before storing one.
+    /// </remarks>
+    public const int MaxPatternLength = 512;
+
+    /// <summary>
     /// Builds a pattern that will be matched once and thrown away.
     /// </summary>
     public static Regex CreateInterpretedRegex(string pattern, TimeSpan matchTimeout) =>

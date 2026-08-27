@@ -67,6 +67,17 @@ internal sealed class SourceValidationPatternParityTests
     }
 
     /// <remarks>
+    /// The API caps a torrent's own pattern and the sources cap a configured default. Each project
+    /// holds its own copy of the number, so nothing but this stops one from being raised alone -
+    /// which would let a pattern one of them accepts be refused by the other.
+    /// </remarks>
+    [Test]
+    public void TorrentSourceRules_WhenComparedWithItsSourcesCopy_UsesTheSameMaxPatternLength()
+    {
+        Assert.That(TorrentSourceRules.MaxPatternLength, Is.EqualTo(RegexUtils.MaxPatternLength));
+    }
+
+    /// <remarks>
     /// Refusing a pattern that cannot be built is only worth anything while both sides build them
     /// the same way. <c>(a)\1</c> is what makes that a real risk: valid under the default options,
     /// a parse error under <c>ExplicitCapture</c>.
