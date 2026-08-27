@@ -338,6 +338,31 @@ internal sealed class AddTorrentTests
         Assert.That(problem.Detail, Contains.Substring("No magnet link was found"));
     }
 
+    /// <remarks>
+    /// The format is well-formed and would be accepted on a JSON source; what makes it invalid is
+    /// the kind it arrives with. Refusing it stops a setting being stored that nothing will read,
+    /// since the kind cannot be changed afterwards.
+    /// </remarks>
+    [Test]
+    public async Task AddTorrentAsync_WhenMagnetFormatIsGivenForAWebPageSource_ReturnsValidationError()
+    {
+        var dto = new AddTorrentRequest
+        {
+            SourceUri = new("https://torrenttracker.com/forum/viewtopic.php?t=1234570"),
+            DownloadDir = "/tvshows",
+            JsonValueFormat = "magnet:?xt=urn:btih:{0}"
+        };
+
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Errors, Contains.Key(nameof(AddTorrentRequest.JsonValueFormat)));
+    }
+
     private async Task<long> GetTorrentCountAsync()
     {
         var response = await _client

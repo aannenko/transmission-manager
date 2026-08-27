@@ -12,6 +12,11 @@ internal enum UpdateTorrentByIdResult
     Updated,
 
     /// <summary>
+    /// A source setting in the request is not one the stored torrent's source kind accepts.
+    /// </summary>
+    InvalidRequest,
+
+    /// <summary>
     /// No torrent with the requested id exists.
     /// </summary>
     NotFound,

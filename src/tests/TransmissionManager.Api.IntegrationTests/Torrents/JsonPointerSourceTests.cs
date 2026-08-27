@@ -185,6 +185,45 @@ internal sealed class JsonPointerSourceTests
         }
     }
 
+    /// <remarks>
+    /// The mirror of the web page rule: this pattern mentions no magnet link and would be refused on
+    /// a web page torrent, but it is what a JSON source needs, and only the stored kind tells them
+    /// apart. Both values resolve to the same magnet as the seeded ones and the version is read
+    /// rather than assumed, so this case neither depends on nor disturbs the fixture's order.
+    /// </remarks>
+    [Test]
+    public async Task UpdateTorrentByIdAsync_WhenStoredKindIsJsonPointer_AcceptsAPatternThatFindsNoMagnet()
+    {
+        var torrentAddress = $"{EndpointAddresses.Torrents}/1";
+
+        var response = await _client.GetAsync(torrentAddress).ConfigureAwait(false);
+        var stored = await response.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
+
+        Assert.That(stored, Is.Not.Null);
+
+        var dto = new UpdateTorrentByIdRequest
+        {
+            MagnetRegexPattern = "[a-f0-9]{40}",
+            JsonValueFormat = _magnetFormat
+        };
+
+        response = await _client
+            .PatchAsJsonAsync($"{torrentAddress}?version={stored.Version}", dto)
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NoContent));
+
+        response = await _client.GetAsync(torrentAddress).ConfigureAwait(false);
+        var updated = await response.Content.ReadFromJsonAsync<TorrentDto>().ConfigureAwait(false);
+
+        Assert.That(updated, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(updated.MagnetRegexPattern, Is.EqualTo(dto.MagnetRegexPattern));
+            Assert.That(updated.JsonValueFormat, Is.EqualTo(dto.JsonValueFormat));
+        }
+    }
+
     private static TestRequest Request(IReadOnlyDictionary<string, string> headers, string body) =>
         new(HttpMethod.Post, TestData.Transmission.ApiUri, headers, body);
 }

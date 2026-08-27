@@ -1,5 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using TransmissionManager.Api.Common.Attributes;
+using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Validation;
+using TransmissionManager.TorrentSources;
 using TransmissionManager.TorrentSources.JsonPointer;
 using TransmissionManager.TorrentSources.WebPage;
 
@@ -60,5 +64,35 @@ internal sealed class SourceValidationPatternParityTests
                 Assert.That(JsonValueRegex.IsJsonValueFormatRegex().IsMatch(format), Is.False, format);
             }
         }
+    }
+
+    /// <remarks>
+    /// Refusing a pattern that cannot be built is only worth anything while both sides build them
+    /// the same way. <c>(a)\1</c> is what makes that a real risk: valid under the default options,
+    /// a parse error under <c>ExplicitCapture</c>.
+    /// </remarks>
+    [TestCase(@"(a)\1", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(unnamed backreference)")]
+    [TestCase(@"(?<v>a)\k<v>", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(named backreference)")]
+    [TestCase("[a-z", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(unterminated set)")]
+    [TestCase("a{2,1}", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(reversed quantifier)")]
+    [TestCase("[a-fA-F0-9]{40}", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(hash)")]
+    public void TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(string pattern)
+    {
+        var acceptedByRules = TorrentSourceRules
+            .Validate(TorrentSourceKind.JsonPointer, pattern, null)
+            .Length is 0;
+
+        bool acceptedByClients;
+        try
+        {
+            _ = RegexUtils.CreateInterpretedRegex(pattern, TimeSpan.FromMilliseconds(100));
+            acceptedByClients = true;
+        }
+        catch (RegexParseException)
+        {
+            acceptedByClients = false;
+        }
+
+        Assert.That(acceptedByRules, Is.EqualTo(acceptedByClients), pattern);
     }
 }

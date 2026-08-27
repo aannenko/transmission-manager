@@ -3,4 +3,4 @@
 internal readonly record struct UpdateTorrentByIdOutcome(
     UpdateTorrentByIdResult Result,
     long? CurrentVersion,
-    string? Error);
+    KeyValuePair<string, string[]>[] Errors);

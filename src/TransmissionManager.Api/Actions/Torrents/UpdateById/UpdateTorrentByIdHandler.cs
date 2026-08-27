@@ -1,17 +1,15 @@
-﻿using System.Globalization;
-using System.Text;
-using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
+using TransmissionManager.Api.Common.Validation;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
+using ApiSourceKind = TransmissionManager.Api.Common.Dto.Torrents.TorrentSourceKind;
+using Endpoint = TransmissionManager.Api.Actions.Torrents.UpdateById.UpdateTorrentByIdEndpoint;
 
 namespace TransmissionManager.Api.Actions.Torrents.UpdateById;
 
 internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, TorrentSchedulerService scheduler)
 {
-    private static readonly CompositeFormat _error =
-        CompositeFormat.Parse("Torrent '{0}' update failed: '{1}'.");
-
     public async Task<UpdateTorrentByIdOutcome> TryUpdateTorrentByIdAsync(
         long id,
         long version,
@@ -19,6 +17,10 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        var outcome = await TryValidateAgainstStoredKindAsync(id, request, cancellationToken).ConfigureAwait(false);
+        if (outcome is not null)
+            return outcome.Value;
 
         var dto = request.ToTorrentUpdateDto();
 
@@ -29,13 +31,43 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
         return result switch
         {
             TorrentMutationResult.Success => OnUpdated(id, dto.Cron),
-            TorrentMutationResult.NotFound => OnNotFound(id),
+            TorrentMutationResult.NotFound => OnNotFound(),
             TorrentMutationResult.VersionConflict =>
-                OnConflict(id, EndpointMessages.TorrentModifiedConflict, currentVersion),
+                OnConflict(Endpoint.VersionParamName, EndpointMessages.TorrentModifiedConflict, currentVersion),
             TorrentMutationResult.NotUnique => // unreachable - we don't change anything unique in a torrent
-                OnConflict(id, EndpointMessages.TorrentAlreadyExists, currentVersion),
+                OnConflict(Endpoint.IdParamName, EndpointMessages.TorrentAlreadyExists, currentVersion),
             _ => throw new InvalidOperationException($"Unexpected {nameof(TorrentMutationResult)}: {result}")
         };
+    }
+
+    /// <returns>
+    /// The outcome to answer with, or <see langword="null"/> to carry on with the update.
+    /// </returns>
+    /// <remarks>
+    /// The request carries no source kind, so the stored torrent has to supply it. The read cannot
+    /// go stale: a torrent's source is fixed once added, and ids are never reused. If the row is
+    /// deleted in between, the update below answers 404 anyway.
+    /// </remarks>
+    private async Task<UpdateTorrentByIdOutcome?> TryValidateAgainstStoredKindAsync(
+        long id,
+        UpdateTorrentByIdRequest request,
+        CancellationToken cancellationToken)
+    {
+        // Absent means "leave as is" or "clear to the default", which are not refused by any source kind
+        // - and skipping the read is the point, since most updates carry neither setting.
+        if (string.IsNullOrEmpty(request.MagnetRegexPattern) && string.IsNullOrEmpty(request.JsonValueFormat))
+            return null;
+
+        var torrent = await torrentService.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
+        if (torrent is null)
+            return OnNotFound();
+
+        var errors = TorrentSourceRules.Validate(
+            (ApiSourceKind)torrent.SourceKind,
+            request.MagnetRegexPattern,
+            request.JsonValueFormat);
+
+        return errors.Length is 0 ? null : new(UpdateTorrentByIdResult.InvalidRequest, null, errors);
     }
 
     private UpdateTorrentByIdOutcome OnUpdated(long id, string? cron)
@@ -47,15 +79,12 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
                 scheduler.ScheduleTorrentRefresh(id, cron);
         }
 
-        return new(UpdateTorrentByIdResult.Updated, null, null);
+        return new(UpdateTorrentByIdResult.Updated, null, []);
     }
 
-    private static UpdateTorrentByIdOutcome OnNotFound(long id) =>
-        new(UpdateTorrentByIdResult.NotFound, null, GetError(id, EndpointMessages.NoSuchTorrent));
+    private static UpdateTorrentByIdOutcome OnNotFound() =>
+        new(UpdateTorrentByIdResult.NotFound, null, [new(Endpoint.IdParamName, [EndpointMessages.NoSuchTorrent])]);
 
-    private static UpdateTorrentByIdOutcome OnConflict(long id, string? message, long? currentVersion) =>
-        new(UpdateTorrentByIdResult.Conflict, currentVersion, GetError(id, message));
-
-    private static string GetError(long id, string? message) =>
-        string.Format(CultureInfo.InvariantCulture, _error, id, message);
+    private static UpdateTorrentByIdOutcome OnConflict(string key, string message, long? currentVersion) =>
+        new(UpdateTorrentByIdResult.Conflict, currentVersion, [new(key, [message])]);
 }

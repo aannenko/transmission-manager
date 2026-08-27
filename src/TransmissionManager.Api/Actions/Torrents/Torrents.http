@@ -1,4 +1,4 @@
-﻿@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
+@TransmissionManager_Web_HostAddress = http://localhost:9092/api/v1/torrents
 
 # Get a page of torrents
 GET {{TransmissionManager_Web_HostAddress}}/
@@ -32,17 +32,20 @@ Content-Type: application/json
 ###
 
 # Add a torrent by the address of a JSON API that exposes its info hash
-# The fragment (everything after "#") is an RFC 6901 JSON Pointer selecting the hash in the response
-# The indices depend on the API's response shape - fetch it once to see where the hash sits
-# magnetRegexPattern is not used by this source kind - the magnet link is built from the hash
+# The fragment (everything after "#") is an RFC 6901 JSON Pointer selecting a string in the response
+# The indices depend on the API's response shape - fetch it once to see where the value sits
+# magnetRegexPattern picks the info hash out of that string, jsonValueFormat builds the magnet link out of it
+# Do not provide either of the two to use the global ones
 POST {{TransmissionManager_Web_HostAddress}}/
 Content-Type: application/json
 
 {
-    "sourceUri": "https://api.rutracker.cc/v1/static/pvc/f/1106#/result/6880555/7",
+    "sourceUri": "https://api.rutracker.cc/v1/static/pvc/f/1106#/result/6871470/7",
     "sourceKind": "JsonPointer",
-    "downloadDir": "/videos",
-    "cron": "0 11,17 * * *"
+    "magnetRegexPattern": "[a-fA-F0-9]{40}",
+    "jsonValueFormat": "magnet:?xt=urn:btih:{0}",
+    "downloadDir": "/tvshows",
+    "cron": "0 9,20 * * *"
 }
 
 ###
@@ -54,6 +57,7 @@ Content-Type: application/json
 ###
 
 # Update existing torrent's cron and magnet-finding regex (requires the current torrent version)
+# Fields left out of the body are not changed
 PATCH {{TransmissionManager_Web_HostAddress}}/1?version=1
 Content-Type: application/json
 
@@ -64,23 +68,26 @@ Content-Type: application/json
 
 ###
 
-# Clear existing torrent's cron and magnet-finding regex using empty strings
-PATCH {{TransmissionManager_Web_HostAddress}}/1?version=2
+# Clear existing torrent's cron, magnet-finding regex and magnet format using empty strings
+# The regex and the format then fall back to the global ones, the torrent stops being refreshed on a schedule
+# Setting jsonValueFormat for a torrent with a WebPage sourceKind to anything but "" fails with 400
+PATCH {{TransmissionManager_Web_HostAddress}}/2?version=1
 Content-Type: application/json
 
 {
     "magnetRegexPattern": "",
+    "jsonValueFormat": "",
     "cron": ""
 }
 
 ###
 
 # Remove a torrent from Transmission Manager by id (requires the current torrent version)
-DELETE {{TransmissionManager_Web_HostAddress}}/1?version=3
+DELETE {{TransmissionManager_Web_HostAddress}}/1?version=2
 
 ###
 
 # Remove a torrent from Transmission Manager by id, also remove it from Transmission and delete the data
-DELETE {{TransmissionManager_Web_HostAddress}}/1?version=3&deleteType=LocalAndTransmissionAndData
+DELETE {{TransmissionManager_Web_HostAddress}}/2?version=2&deleteType=LocalAndTransmissionAndData
 
 ###

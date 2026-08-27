@@ -110,20 +110,39 @@ Every torrent has a `sourceUri` that Transmission Manager re-reads on each refre
 
 | `sourceKind` | `sourceUri` points to | How the magnet link is obtained |
 | --- | --- | --- |
-| `WebPage` (default) | An HTML page, e.g. a tracker's topic page | The page is scanned for a magnet link with a regular expression - either `magnetRegexPattern` for this torrent, or the global one from the [configuration](./appsettings.json). |
-| `JsonPointer` | A JSON document, e.g. a tracker's API endpoint, with an [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) JSON Pointer in the URI **fragment** | The pointer selects a 40-character info hash inside the document, and the magnet link is built from it. `magnetRegexPattern` is not used. |
+| `WebPage` (default) | An HTML page, e.g. a tracker's topic page | The page is scanned for a magnet link with a regular expression - either `magnetRegexPattern` for this torrent, or `TorrentSources:WebPage:DefaultMagnetRegexPattern` from the [configuration](./appsettings.json). The regular expression needs to contain `magnet:\?`. |
+| `JsonPointer` | A JSON document, e.g. a tracker's API endpoint, with an [RFC 6901](https://datatracker.ietf.org/doc/html/rfc6901) JSON Pointer in the URI **fragment** | The pointer selects a string, which `magnetRegexPattern` and `jsonValueFormat` turn into a magnet link - see [From a JSON value to a magnet link](#from-a-json-value-to-a-magnet-link). |
+
+Whichever kind reads it, `magnetRegexPattern` has to be a valid .NET regular expression of at most 512 characters, and is built with `RegexOptions.ExplicitCapture` - a plain `(…)` only groups, so name a group to capture or backreference it.
 
 `JsonPointer` is useful when a tracker offers an API, or when its web pages are not reliably readable - for example when they are served behind an anti-bot challenge.
 
-In the `sourceUri` below, `https://api.example.com/v1/topics/f/1106` is fetched and `/result/6880555/7` selects the info hash within the response - here the item at index `7` of the array under the key `6880555`, itself under `result`:
+In the `sourceUri` below, `https://api.example.com/v1/topics/f/1106` is fetched and `/result/6880555/7` selects a value within the response - here the item at index `7` of the array under the key `6880555`, itself under `result`:
 
 ```
 https://api.example.com/v1/topics/f/1106#/result/6880555/7
 ```
 
-The pointer depends entirely on the shape of your API's response, so fetch the endpoint once and look at where the 40-character info hash actually sits before adding the torrent. The hash may be upper- or lower-case; Transmission Manager normalises it.
+The pointer depends entirely on the shape of your API's response, so fetch the endpoint once and look at where the value you need actually sits before adding the torrent. It has to address a string; a pointer that addresses nothing, or something that is not a string, is refused with a message saying which.
 
 Because the pointer lives in the fragment, one endpoint can serve many torrents, each with its own pointer.
+
+### From a JSON value to a magnet link
+The string a pointer addresses is rarely a magnet link already - most often it is a bare info hash. Two optional, independent steps bridge the gap:
+
+1. `magnetRegexPattern` extracts the value out of the addressed string. Its **whole match** is taken, so a pattern that needs surrounding context to find the right place excludes that context with a zero-width lookaround, as in `(?<=btih:)[a-fA-F0-9]{40}`. Unlike a `WebPage` pattern, it does not have to look for a magnet link.
+2. `jsonValueFormat` builds the magnet link out of that value, which its only placeholder, `{0}`, stands for - as in `magnet:?xt=urn:btih:{0}`. No other placeholder and no other brace is allowed.
+
+Use neither, either or both; with neither, the addressed string is used as it is. Whatever comes out has to be an absolute `magnet:` URI, or the request is refused.
+
+Left out or empty, each of the two falls back to a default from the configuration - and **both shipped defaults are empty**, because no pair of them is right for every API. Wrapping an already-complete magnet link in `magnet:?xt=urn:btih:{0}` would drop its `&dn=` and its passkey-bearing `&tr=`, and would turn a [BitTorrent v2](https://www.bittorrent.org/beps/bep_0052.html) `btmh` magnet into a valid-looking `btih` one carrying a meaningless hash.
+
+So either set these fields per torrent, or - if all your JSON sources share a shape - configure the defaults for all torrents in Transmission Manager by adding these to the `docker run` command:
+
+```bash
+  -e TorrentSources__JsonPointer__DefaultJsonValueRegexPattern='[a-fA-F0-9]{40}' \
+  -e TorrentSources__JsonPointer__DefaultJsonValueFormat='magnet:?xt=urn:btih:{0}' \
+```
 
 ## Send requests
 Now that you have set up Transmission Manager API, try sending HTTP requests to it from PowerShell 7.</br>
@@ -136,14 +155,22 @@ Here are some examples (replace `<docker_host>` with the hostname or IP address 
 iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://exampletracker.com/forum/viewtopic.php?t=1712711","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
 # Register a new torrent whose magnet link comes from a JSON API instead of a web page
-# (the part after "#" is a JSON Pointer telling Transmission Manager where the info hash sits in the response)
-iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://api.example.com/v1/topics/f/1106#/result/6880555/7","sourceKind":"JsonPointer","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
+# (the part after "#" is a JSON Pointer telling Transmission Manager where the value sits in the response,
+# magnetRegexPattern picks the info hash out of that value and jsonValueFormat builds the magnet link;
+# leave both out if you have configured deployment-wide defaults for them)
+iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://api.example.com/v1/topics/f/1106#/result/6880555/7","sourceKind":"JsonPointer","magnetRegexPattern":"[a-fA-F0-9]{40}","jsonValueFormat":"magnet:?xt=urn:btih:{0}","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
 # Can't wait for Transmission Manager API to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
 iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json
 
 # Force-refresh all torrents which are still known to Transmission
 (iwr http://<docker_host>:9092/api/v1/torrents | ConvertFrom-Json).torrents | % { iwr "http://<docker_host>:9092/api/v1/torrents/$($_.id)" -Method Post -ContentType application/json }
+
+# Change torrent #3's schedule and the format its magnet link is built with, leaving its other fields alone
+# (the version query parameter is required and must match the torrent's current Version;
+# send magnetRegexPattern or jsonValueFormat as "" to clear it and fall back to the configured default,
+# or cron as "" to stop refreshing the torrent on a schedule)
+iwr http://<docker_host>:9092/api/v1/torrents/3?version=1 -Method Patch -ContentType application/json -Body '{"jsonValueFormat":"magnet:?xt=urn:btih:{0}","cron":"0 9,20 * * *"}'
 
 # Unregister torrent #5 from Transmission Manager API but do not touch it in Transmission
 # (the version query parameter is required and must match the torrent's current Version)
@@ -154,15 +181,11 @@ Alternatively, send requests using [Visual Studio Code](https://code.visualstudi
 
 Using the API, you can also request information from Transmission Manager API about itself via [AppVersion.http](Actions/AppVersion/AppVersion.http).
 
-## Optimistic concurrency control
-Each torrent has a `Version` field (returned in every torrent JSON response). `PATCH` and `DELETE` both require a `version` query parameter that must match the torrent's current `Version`.
-
-- `204 No Content` — operation succeeded; the torrent's `Version` is now `version + 1` (only on `PATCH`).
-- `400 Bad Request` — the request was malformed. For `PATCH`, this includes a body with every field set to `null`; at least one field must be provided.
-- `404 Not Found` — no torrent with the given id exists.
-- `409 Conflict` — the torrent was modified by someone else; the response's `currentVersion` extension carries the latest known `Version` so the client can refetch and retry.
-
-A successful `PATCH` advances `Version` by exactly one. The current `Version` is included in every torrent JSON response, so clients can capture it and pass it back on the next `PATCH` or `DELETE`.
+## Conflicting changes
+Each torrent has a `version` field, returned in every torrent JSON response. When a new torrent is added to Transmission Manager, it starts with `version = 1`. Each time a torrent is updated, its `version` is incremented by 1 - including the cases when the torrent is successfully refreshed, either manually or on a schedule.
+To prevent from overwriting someone's changes, `PATCH` (update) and `DELETE` require a `version` query parameter that matches the torrent's current `version`.
+In case of such conflict, the request is rejected with a `409 Conflict` response, carrying the torrent's `currentVersion` in the response extensions.
+In such cases it is recommended to refetch the torrent, check that your change still makes sense against its new data, and potentially resubmit against that version.
 
 ## Setup a Web UI (optional)
 If you prefer a web interface to manage your torrents, see the [Transmission Manager Web readme](../TransmissionManager.Web/README.md).
