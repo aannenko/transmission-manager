@@ -9,8 +9,8 @@ namespace TransmissionManager.Api.Tests.Torrents;
 /// An add has nothing to replace, so an empty optional value carries no meaning a caller could have
 /// intended beyond "absent" - unlike an update, where it clears a stored value. Both halves of that
 /// need pinning together: validation has to let the empty value through, and the mapping has to turn
-/// it into a null, because <c>TorrentAddDto</c> throws on an empty string and a request that reached
-/// it would fault rather than fail validation.
+/// it into a null, because <c>TorrentAddDto</c> throws on a blank string and a request that reached
+/// it would fault rather than fail validation - after Transmission has already taken the torrent.
 /// </remarks>
 [Parallelizable(ParallelScope.All)]
 internal sealed class AddTorrentRequestExtensionsTests
@@ -41,7 +41,9 @@ internal sealed class AddTorrentRequestExtensionsTests
 
     [TestCase(null)]
     [TestCase("")]
-    public void ToTorrentAddDto_WhenOptionalValueIsAbsentOrEmpty_MapsItToNull(string? optionalValue)
+    [TestCase(" ", TestName = "ToTorrentAddDto_WhenOptionalValueIsAbsentOrBlank_MapsItToNull(single space)")]
+    [TestCase("\t ", TestName = "ToTorrentAddDto_WhenOptionalValueIsAbsentOrBlank_MapsItToNull(tab and space)")]
+    public void ToTorrentAddDto_WhenOptionalValueIsAbsentOrBlank_MapsItToNull(string? optionalValue)
     {
         var dto = CreateRequest(optionalValue).ToTorrentAddDto(_transmissionTorrent, DateTime.UtcNow);
 
@@ -51,6 +53,28 @@ internal sealed class AddTorrentRequestExtensionsTests
             Assert.That(dto.JsonValueFormat, Is.Null);
             Assert.That(dto.Cron, Is.Null);
         }
+    }
+
+    /// <remarks>
+    /// The gap the mapping has to close. A blank pattern is a regular expression that compiles, and
+    /// only a web page source additionally requires one to look for a magnet link - so under a JSON
+    /// Pointer source nothing upstream of the mapping refuses it.
+    /// </remarks>
+    [Test]
+    public void AddTorrentRequest_WhenPatternIsBlankUnderAJsonPointerSource_PassesValidation()
+    {
+        var request = new AddTorrentRequest
+        {
+            SourceUri = new("https://torrenttracker.com/v1/topics#/result/1/2"),
+            SourceKind = TorrentSourceKind.JsonPointer,
+            DownloadDir = "/tvshows",
+            MagnetRegexPattern = " ",
+        };
+
+        var results = new List<ValidationResult>();
+        var isValid = Validator.TryValidateObject(request, new(request), results, validateAllProperties: true);
+
+        Assert.That(isValid, Is.True, string.Join("; ", results.Select(static r => r.ErrorMessage)));
     }
 
     [Test]
