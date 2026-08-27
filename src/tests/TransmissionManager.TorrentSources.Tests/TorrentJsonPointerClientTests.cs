@@ -590,6 +590,45 @@ internal sealed class TorrentJsonPointerClientTests
         }
     }
 
+    /// <remarks>
+    /// The other half of what the configured-default case pins: a pattern the torrent supplied must
+    /// not send an operator looking at deployment configuration.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenTorrentsOwnValueRegexTimesOut_ReturnsInvalidSelectorNamingIt()
+    {
+        const string catastrophicPattern = @"(x|xx)+$";
+        var document = DocumentHolding(new string('x', 2000) + "!");
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _documentUri),
+            new(HttpStatusCode.OK, Content: document));
+
+        using var httpClient = new HttpClient(handler);
+        var client = new TorrentJsonPointerClient(
+            new FakeOptionsMonitor<TorrentJsonPointerClientOptions>(new()
+            {
+                ResponseReadTimeout = TimeSpan.FromSeconds(30),
+                RegexMatchTimeout = TimeSpan.FromMilliseconds(10),
+                MaxJsonTokenBytes = _maxJsonTokenBytes,
+                DefaultJsonValueRegexPattern = "[a-fA-F0-9]{40}",
+                DefaultJsonValueFormat = "magnet:?xt=urn:btih:{0}",
+            }),
+            httpClient);
+
+        var outcome = await client
+            .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"), catastrophicPattern)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(
+                outcome.Error,
+                Does.Not.Contain(nameof(TorrentJsonPointerClientOptions.DefaultJsonValueRegexPattern)));
+        }
+    }
+
     private static string DocumentHolding(string value) => $$"""
         { "result": { "6880555": [0, 0, {{System.Text.Json.JsonSerializer.Serialize(value)}}] } }
         """;

@@ -52,9 +52,6 @@ public sealed class TorrentJsonPointerClient(
 
         var currentOptions = options.CurrentValue;
 
-        if (!TryGetJsonValueRegex(currentOptions, jsonValueRegexPattern, out var valueRegex, out var regexError))
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, regexError);
-
         if (!TryGetJsonValueFormat(currentOptions, jsonValueFormat, out var valueFormat, out var formatError))
             return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, formatError);
 
@@ -84,11 +81,9 @@ public sealed class TorrentJsonPointerClient(
             return await FindMagnetUriInResponseAsync(
                     response,
                     segments,
-                    valueRegex,
+                    currentOptions,
                     jsonValueRegexPattern,
                     valueFormat,
-                    currentOptions.MaxJsonTokenBytes,
-                    currentOptions.ResponseReadTimeout,
                     cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -105,13 +100,13 @@ public sealed class TorrentJsonPointerClient(
     private static async Task<MagnetSearchOutcome> FindMagnetUriInResponseAsync(
         HttpResponseMessage response,
         string[] pointerSegments,
-        Regex? valueRegex,
+        TorrentJsonPointerClientOptions currentOptions,
         string? valueRegexPattern,
         CompositeFormat? valueFormat,
-        int maxJsonTokenBytes,
-        TimeSpan bodyReadTimeout,
         CancellationToken cancellationToken)
     {
+        var bodyReadTimeout = currentOptions.ResponseReadTimeout;
+
         using var readTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         readTimeoutCts.CancelAfter(bodyReadTimeout);
 
@@ -121,7 +116,7 @@ public sealed class TorrentJsonPointerClient(
             using var stream = await response.Content.ReadAsStreamAsync(readTimeoutCts.Token).ConfigureAwait(false);
 
             result = await JsonPointerResolver
-                .ResolveAsync(stream, pointerSegments, maxJsonTokenBytes, readTimeoutCts.Token)
+                .ResolveAsync(stream, pointerSegments, currentOptions.MaxJsonTokenBytes, readTimeoutCts.Token)
                 .ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
@@ -148,12 +143,12 @@ public sealed class TorrentJsonPointerClient(
                 $"The JSON Pointer addresses {DescribeKind(valueKind)}, but it must address a string.");
         }
 
-        return BuildMagnetUri(value!, valueRegex, valueRegexPattern, valueFormat);
+        return BuildMagnetUri(value!, currentOptions, valueRegexPattern, valueFormat);
     }
 
     /// <remarks>
-    /// Both <paramref name="valueRegex"/> and <paramref name="valueFormat"/> are optional and independent:
-    /// with neither, the addressed string is already the magnet link.
+    /// The pattern and <paramref name="valueFormat"/> are optional and independent: with neither, the
+    /// addressed string is already the magnet link.
     /// <para>
     /// The pattern's whole match is the value, so a pattern that needs surrounding context to find
     /// the right place uses zero-width lookarounds for it rather than a capturing group.
@@ -161,17 +156,27 @@ public sealed class TorrentJsonPointerClient(
     /// </remarks>
     private static MagnetSearchOutcome BuildMagnetUri(
         string value,
-        Regex? valueRegex,
+        TorrentJsonPointerClientOptions currentOptions,
         string? valueRegexPattern,
         CompositeFormat? valueFormat)
     {
-        if (valueRegex is not null)
+        var isSupplied = !string.IsNullOrEmpty(valueRegexPattern);
+        var defaultRegex = currentOptions.DefaultJsonValueRegex;
+
+        if (isSupplied || defaultRegex is not null)
         {
             bool found;
             Range matchRange;
             try
             {
-                found = valueRegex.TryGetFirstMatch(value, out matchRange);
+                found = isSupplied
+                    ? value.AsSpan()
+                        .TryGetFirstMatch(valueRegexPattern!, currentOptions.RegexMatchTimeout, out matchRange)
+                    : defaultRegex!.TryGetFirstMatch(value, out matchRange);
+            }
+            catch (RegexParseException e)
+            {
+                return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, e.Message);
             }
             catch (RegexMatchTimeoutException)
             {
@@ -185,9 +190,10 @@ public sealed class TorrentJsonPointerClient(
             var (_, matchLength) = matchRange.GetOffsetAndLength(value.Length);
             if (!found || matchLength is 0)
             {
+                var patternText = isSupplied ? valueRegexPattern : defaultRegex!.ToString();
                 return MagnetSearchOutcome.Failure(
                     MagnetSearchResult.NotFound,
-                    $"The string at the JSON Pointer holds no match for '{valueRegex}'.");
+                    $"The string at the JSON Pointer holds no match for '{patternText}'.");
             }
 
             value = value[matchRange];
@@ -217,34 +223,6 @@ public sealed class TorrentJsonPointerClient(
             ? $"The configured {nameof(TorrentJsonPointerClientOptions.DefaultJsonValueRegexPattern)} " +
                 "timed out on the string at the JSON Pointer."
             : "This torrent's magnetRegexPattern timed out on the string at the JSON Pointer.";
-
-    private static bool TryGetJsonValueRegex(
-        TorrentJsonPointerClientOptions currentOptions,
-        string? pattern,
-        out Regex? valueRegex,
-        [NotNullWhen(false)] out string? error)
-    {
-        if (string.IsNullOrEmpty(pattern))
-        {
-            valueRegex = currentOptions.DefaultJsonValueRegex;
-            error = null;
-            return true;
-        }
-
-        try
-        {
-            valueRegex = RegexUtils.CreateInterpretedRegex(pattern, currentOptions.RegexMatchTimeout);
-        }
-        catch (RegexParseException e)
-        {
-            valueRegex = null;
-            error = e.Message;
-            return false;
-        }
-
-        error = null;
-        return true;
-    }
 
     private static bool TryGetJsonValueFormat(
         TorrentJsonPointerClientOptions currentOptions,

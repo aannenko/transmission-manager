@@ -9,6 +9,15 @@ namespace TransmissionManager.TorrentSources;
 internal static class RegexUtils
 {
     /// <summary>
+    /// The options every pattern either source matches with is built with.
+    /// </summary>
+    /// <remarks>
+    /// The options decide what parses, so the API checks a pattern with these same ones - otherwise
+    /// a pattern accepted there could still be refused when it is used.
+    /// </remarks>
+    public const RegexOptions PatternOptions = RegexOptions.ExplicitCapture;
+
+    /// <summary>
     /// The longest pattern either source builds, in characters.
     /// </summary>
     /// <remarks>
@@ -19,13 +28,7 @@ internal static class RegexUtils
     public const int MaxPatternLength = 512;
 
     /// <summary>
-    /// Builds a pattern that will be matched once and thrown away.
-    /// </summary>
-    public static Regex CreateInterpretedRegex(string pattern, TimeSpan matchTimeout) =>
-        new(pattern, RegexOptions.ExplicitCapture, matchTimeout);
-
-    /// <summary>
-    /// Builds a pattern that will be held for the lifetime of the process and matched repeatedly.
+    /// Builds a pattern that will be held for the lifetime of the Regex object and matched repeatedly.
     /// </summary>
     /// <remarks>
     /// Compiling emits code, which costs on the order of a millisecond and tens of kilobytes that
@@ -33,5 +36,5 @@ internal static class RegexUtils
     /// worth it when the same pattern goes on to serve many matches.
     /// </remarks>
     public static Regex CreateCompiledRegex(string pattern, TimeSpan matchTimeout) =>
-        new(pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture, matchTimeout);
+        new(pattern, RegexOptions.Compiled | PatternOptions, matchTimeout);
 }

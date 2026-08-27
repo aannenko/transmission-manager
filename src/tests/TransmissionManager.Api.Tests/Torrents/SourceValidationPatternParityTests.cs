@@ -81,6 +81,11 @@ internal sealed class SourceValidationPatternParityTests
     /// Refusing a pattern that cannot be built is only worth anything while both sides build them
     /// the same way. <c>(a)\1</c> is what makes that a real risk: valid under the default options,
     /// a parse error under <c>ExplicitCapture</c>.
+    /// <para>
+    /// The clients match through the static methods, so a supplied pattern is built at its first
+    /// match rather than up front - which is why this asks whether matching throws rather than
+    /// whether constructing does.
+    /// </para>
     /// </remarks>
     [TestCase(@"(a)\1", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(unnamed backreference)")]
     [TestCase(@"(?<v>a)\k<v>", TestName = "TorrentSourceRules_WhenComparedWithTheClientsRegexBuilder_AcceptsTheSamePatterns(named backreference)")]
@@ -96,7 +101,9 @@ internal sealed class SourceValidationPatternParityTests
         bool acceptedByClients;
         try
         {
-            _ = RegexUtils.CreateInterpretedRegex(pattern, TimeSpan.FromMilliseconds(100));
+            _ = "some text to match against".AsSpan()
+                .TryGetFirstMatch(pattern, TimeSpan.FromMilliseconds(100), out _);
+
             acceptedByClients = true;
         }
         catch (RegexParseException)

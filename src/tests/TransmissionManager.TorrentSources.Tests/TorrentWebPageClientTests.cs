@@ -320,18 +320,68 @@ internal sealed class TorrentWebPageClientTests
         }
     }
 
-    /// <remarks>
-    /// <c>magnet:\?xt=(</c> satisfies the shape check that both this client and the API's
-    /// <c>[MagnetRegex]</c> attribute apply, yet throws when compiled - so an uncompilable pattern
-    /// reaches the client no matter how thoroughly the request was validated.
-    /// </remarks>
-    [TestCase(@"magnet:\?xt=(")]
-    [TestCase(@"magnet:\?xt=[")]
     [TestCase("not a magnet pattern at all")]
-    public async Task FindMagnetUriAsync_WhenRegexPatternIsUnusable_ReturnsInvalidSelectorWithoutRequesting(
+    [TestCase("[0-9A-Fa-f]{40}")] // finds an info hash, but not the magnet link around it
+    [TestCase(@"magnet:[?]xt=urn:btih:[0-9A-Fa-f]{40}")] // a question mark spelled another way
+    public async Task FindMagnetUriAsync_WhenRegexPatternDoesNotLookForAMagnet_ReturnsInvalidSelectorWithoutRequesting(
         string regexPattern)
     {
         using var handler = new FakeHttpMessageHandler(_noExpectedRequests);
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, regexPattern)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            Assert.That(outcome.Error, Is.Not.Empty);
+        }
+    }
+
+    /// <remarks>
+    /// A supplied pattern is built at its first match, and a match is only attempted inside a window
+    /// the literal <c>magnet:?</c> opened - so on a page holding none, a pattern that cannot be built
+    /// is never built, and the page is reported as holding no magnet link rather than the pattern as
+    /// broken. What is said therefore depends on what the page happens to hold. Deliberate: the API
+    /// refuses an unbuildable pattern when one is added or updated, so only a row written before it
+    /// did so can reach here.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenPatternDoesNotParseAndThePageHoldsNoMagnet_ReturnsNotFound()
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: _pageWithoutMagnet));
+
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, @"magnet:\?xt=(")
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.NotFound));
+            Assert.That(outcome.Error, Does.Not.Contain("Not enough"));
+        }
+    }
+
+    /// <remarks>
+    /// Both of these satisfy the API's <c>[MagnetRegex]</c> shape check, yet throw when built - so a
+    /// pattern that does not parse reaches the client no matter how thoroughly the request was
+    /// validated. It is reported once the page has been fetched, because a supplied pattern is built
+    /// at its first match rather than up front.
+    /// </remarks>
+    [TestCase(@"magnet:\?xt=(")]
+    [TestCase(@"magnet:\?xt=[")]
+    public async Task FindMagnetUriAsync_WhenRegexPatternDoesNotParse_ReturnsInvalidSelector(string regexPattern)
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: _pageWithMagnet));
+
         using var httpClient = new HttpClient(handler);
 
         var outcome = await CreateClient(httpClient)
@@ -358,7 +408,15 @@ internal sealed class TorrentWebPageClientTests
             .FindMagnetUriAsync(_webPageUri, _catastrophicPattern)
             .ConfigureAwait(false);
 
-        Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+            // The other half of what the configured-default case pins: this one must not send an
+            // operator looking at deployment configuration for a pattern the torrent supplied.
+            Assert.That(
+                outcome.Error,
+                Does.Not.Contain(nameof(TorrentWebPageClientOptions.DefaultMagnetRegexPattern)));
+        }
     }
 
     /// <remarks>

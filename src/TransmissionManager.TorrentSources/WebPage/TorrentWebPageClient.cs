@@ -52,8 +52,13 @@ public sealed class TorrentWebPageClient(
 
         var currentOptions = options.CurrentValue;
 
-        if (!TryGetMagnetRegex(currentOptions, regexPattern, out var regex, out var regexError))
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, regexError);
+        // Ensure that the user-supplied regexPattern, if provided, has expected shape.
+        if (!string.IsNullOrEmpty(regexPattern) && !TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
+        {
+            return MagnetSearchOutcome.Failure(
+                MagnetSearchResult.InvalidSelector,
+                $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.");
+        }
 
         try
         {
@@ -71,10 +76,14 @@ public sealed class TorrentWebPageClient(
 
             return await FindMagnetUriInResponseAsync(
                     response,
-                    regex,
-                    currentOptions.ResponseReadTimeout,
+                    currentOptions,
+                    regexPattern,
                     cancellationToken)
                 .ConfigureAwait(false);
+        }
+        catch (RegexParseException e)
+        {
+            return MagnetSearchOutcome.Failure(MagnetSearchResult.InvalidSelector, e.Message);
         }
         catch (RegexMatchTimeoutException)
         {
@@ -93,10 +102,12 @@ public sealed class TorrentWebPageClient(
 
     private static async Task<MagnetSearchOutcome> FindMagnetUriInResponseAsync(
         HttpResponseMessage response,
-        Regex regex,
-        TimeSpan bodyReadTimeout,
+        TorrentWebPageClientOptions currentOptions,
+        string? regexPattern,
         CancellationToken cancellationToken)
     {
+        var bodyReadTimeout = currentOptions.ResponseReadTimeout;
+
         using var readTimeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         readTimeoutCts.CancelAfter(bodyReadTimeout);
 
@@ -105,7 +116,8 @@ public sealed class TorrentWebPageClient(
         {
             using var stream = await response.Content.ReadAsStreamAsync(readTimeoutCts.Token).ConfigureAwait(false);
 
-            outcome = await FindMagnetUriInStreamAsync(stream, regex, readTimeoutCts.Token).ConfigureAwait(false);
+            outcome = await FindMagnetUriInStreamAsync(stream, currentOptions, regexPattern, readTimeoutCts.Token)
+                .ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
@@ -121,7 +133,8 @@ public sealed class TorrentWebPageClient(
 
     private static async Task<MagnetSearchOutcome?> FindMagnetUriInStreamAsync(
         Stream stream,
-        Regex regex,
+        TorrentWebPageClientOptions currentOptions,
+        string? regexPattern,
         CancellationToken cancellationToken)
     {
         var byteBuffer = ArrayPool<byte>.Shared.Rent(_bufferSize);
@@ -152,7 +165,7 @@ public sealed class TorrentWebPageClient(
                 }
 
                 // magnet found, but may not match the regex - ensure it matches the regex and return it
-                var outcome = FindMagnetUriInBytes(bytes, regex);
+                var outcome = FindMagnetUriInBytes(bytes, currentOptions, regexPattern);
                 if (outcome is not null)
                     return outcome;
 
@@ -168,14 +181,17 @@ public sealed class TorrentWebPageClient(
         }
     }
 
-    private static MagnetSearchOutcome? FindMagnetUriInBytes(ReadOnlySpan<byte> bytes, Regex regex)
+    private static MagnetSearchOutcome? FindMagnetUriInBytes(
+        ReadOnlySpan<byte> bytes,
+        TorrentWebPageClientOptions currentOptions,
+        string? regexPattern)
     {
         var charBuffer = ArrayPool<char>.Shared.Rent(bytes.Length);
         try
         {
             var chars = charBuffer.AsSpan(0, bytes.Length);
             if (!Encoding.UTF8.TryGetChars(bytes, chars, out var charsWritten) ||
-                !regex.TryGetFirstMatch(chars[..charsWritten], out var magnetRange))
+                !TryGetFirstMatch(currentOptions, regexPattern, chars[..charsWritten], out var magnetRange))
             {
                 return null;
             }
@@ -187,6 +203,8 @@ public sealed class TorrentWebPageClient(
                 return null;
 
             var matchText = new string(match);
+
+            // Ensure that the matched text is a valid magnet link.
             return Uri.TryCreate(matchText, UriKind.Absolute, out var magnetUri) &&
                 magnetUri.Scheme == _magnetScheme
                     ? MagnetSearchOutcome.Found(magnetUri)
@@ -209,37 +227,14 @@ public sealed class TorrentWebPageClient(
             ? $"The configured {nameof(TorrentWebPageClientOptions.DefaultMagnetRegexPattern)} timed out on this page."
             : "This torrent's magnetRegexPattern timed out on this page.";
 
-    private static bool TryGetMagnetRegex(
+    private static bool TryGetFirstMatch(
         TorrentWebPageClientOptions currentOptions,
         string? regexPattern,
-        [NotNullWhen(true)] out Regex? magnetRegex,
-        [NotNullWhen(false)] out string? error)
+        ReadOnlySpan<char> chars,
+        out Range matchRange)
     {
-        if (string.IsNullOrEmpty(regexPattern))
-        {
-            magnetRegex = currentOptions.DefaultMagnetRegex;
-            error = null;
-            return true;
-        }
-
-        if (!TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
-        {
-            magnetRegex = null;
-            error = $"Invalid magnet-matching regex provided. The value must match '{TorrentRegex.IsFindMagnet}'.";
-            return false;
-        }
-
-        try
-        {
-            magnetRegex = RegexUtils.CreateInterpretedRegex(regexPattern, currentOptions.RegexMatchTimeout);
-            error = null;
-            return true;
-        }
-        catch (RegexParseException e)
-        {
-            magnetRegex = null;
-            error = e.Message;
-            return false;
-        }
+        return string.IsNullOrEmpty(regexPattern)
+            ? currentOptions.DefaultMagnetRegex.TryGetFirstMatch(chars, out matchRange)
+            : chars.TryGetFirstMatch(regexPattern, currentOptions.RegexMatchTimeout, out matchRange);
     }
 }
