@@ -48,12 +48,38 @@ internal sealed class DeleteTorrentByIdTests
         TestData.Transmission.DefaultResponseHeaders,
         TestData.Transmission.DeleteTorrentResponseBody);
 
+    // Fail To Delete Torrent
+
+    private static readonly string _deleteTorrentFailureRequestBody = string.Format(
+        null,
+        TestData.Transmission.DeleteTorrentRequestBodyFormat,
+        _initialTorrents[2].HashString,
+        "false");
+
+    private static readonly TestRequest _deleteTorrentFailureInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _deleteTorrentFailureRequestBody);
+
+    private static readonly TestRequest _deleteTorrentFailureValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _deleteTorrentFailureRequestBody);
+
+    private static readonly TestResponse _deleteTorrentFailureResponse = new(
+        HttpStatusCode.NotFound,
+        TestData.Transmission.DefaultResponseHeaders);
+
     // Request-Response map
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
     {
         [_deleteTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
-        [_deleteTorrentValidHeaderRequest] = _deleteTorrentValidHeaderResponse
+        [_deleteTorrentValidHeaderRequest] = _deleteTorrentValidHeaderResponse,
+        [_deleteTorrentFailureInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_deleteTorrentFailureValidHeaderRequest] = _deleteTorrentFailureResponse,
     };
 
     #endregion
@@ -231,6 +257,32 @@ internal sealed class DeleteTorrentByIdTests
 
         // Row should still exist after a conflict.
         var get = await _client.GetAsync($"{EndpointAddresses.Torrents}/3").ConfigureAwait(false);
+
+        Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+    }
+
+    [Test]
+    public async Task DeleteTorrentByIdAsync_WhenTransmissionRemoveFails_ReturnsFailedDependencyBlamingTransmission()
+    {
+        var torrentAddress = $"{EndpointAddresses.Torrents}/3";
+        var response = await _client
+            .DeleteAsync($"{torrentAddress}?version=1&deleteType=LocalAndTransmission")
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.FailedDependency));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["transmission"], Has.One.Contains("404"));
+            Assert.That(problem.Errors.ContainsKey("id"), Is.False);
+        }
+
+        var get = await _client.GetAsync(torrentAddress).ConfigureAwait(false);
 
         Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }

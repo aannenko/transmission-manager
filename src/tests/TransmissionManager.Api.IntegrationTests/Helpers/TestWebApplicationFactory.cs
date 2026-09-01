@@ -17,7 +17,8 @@ namespace TransmissionManager.Api.IntegrationTests.Helpers;
 internal sealed class TestWebApplicationFactory<TProgram>(
     Torrent[] initialTorrents,
     IReadOnlyDictionary<TestRequest, TestResponse>? torrentPageRequestResponseMap,
-    IReadOnlyDictionary<TestRequest, TestResponse>? transmissionRequestResponseMap)
+    IReadOnlyDictionary<TestRequest, TestResponse>? transmissionRequestResponseMap,
+    Func<TorrentService, CancellationToken, Task>? transmissionAddMutation = null)
     : WebApplicationFactory<TProgram> where TProgram : class
 {
     private static readonly Dictionary<TestRequest, TestResponse> _emptyRequestResponseMap = [];
@@ -69,7 +70,12 @@ internal sealed class TestWebApplicationFactory<TProgram>(
             _ = services.PostConfigure(nameof(TransmissionClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
-                    builder.PrimaryHandler = new FakeHttpMessageHandler(_transmissionRequestResponseMap));
+                    builder.PrimaryHandler = transmissionAddMutation is null
+                        ? new FakeHttpMessageHandler(_transmissionRequestResponseMap)
+                        : new DatabaseMutatingHttpMessageHandler(
+                            _transmissionRequestResponseMap,
+                            builder.Services,
+                            transmissionAddMutation));
             });
         });
     }
@@ -105,6 +111,48 @@ internal sealed class TestWebApplicationFactory<TProgram>(
         {
             connection.Close();
             connection.Dispose();
+        }
+    }
+
+    /// <remarks>
+    /// Mutates the database through a separate service scope while a successful
+    /// <c>torrent-add</c> response is pending, before the API handler attempts its local update.
+    /// </remarks>
+    private sealed class DatabaseMutatingHttpMessageHandler(
+        IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap,
+        IServiceProvider serviceProvider,
+        Func<TorrentService, CancellationToken, Task> mutation)
+        : FakeHttpMessageHandler(requestToResponseMap)
+    {
+        private int _mutationApplied;
+
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            try
+            {
+                var content = request.Content is null
+                    ? null
+                    : await request.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+                if (response.IsSuccessStatusCode
+                    && content?.Contains("\"method\":\"torrent-add\"", StringComparison.Ordinal) is true
+                    && Interlocked.Exchange(ref _mutationApplied, 1) == 0)
+                {
+                    using var scope = serviceProvider.CreateScope();
+                    var torrentService = scope.ServiceProvider.GetRequiredService<TorrentService>();
+                    await mutation(torrentService, cancellationToken).ConfigureAwait(false);
+                }
+
+                return response;
+            }
+            catch
+            {
+                response.Dispose();
+                throw;
+            }
         }
     }
 }

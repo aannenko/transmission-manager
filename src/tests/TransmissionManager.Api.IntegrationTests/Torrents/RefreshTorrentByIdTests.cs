@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.IntegrationTests.Helpers;
 using TransmissionManager.BaseTests.HttpClient;
+using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
+using TransmissionManager.Database.Services;
 using DbSourceKind = TransmissionManager.Database.Dto.TorrentSourceKind;
 
 namespace TransmissionManager.Api.IntegrationTests.Torrents;
@@ -565,6 +568,84 @@ internal sealed class RefreshTorrentByIdTests
         TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.FromSeconds(1));
     }
 
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenLocalVersionChangesAfterTransmissionAdd_ReturnsConflictBlamingVersion()
+    {
+        var (statusCode, problem) = await RefreshCleanupWarningTorrentWithMutationAsync(
+            static async (torrentService, cancellationToken) =>
+            {
+                var result = await torrentService.UpdateOneAsync(
+                        4,
+                        1,
+                        new(refreshDate: DateTime.UtcNow),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                EnsureMutationSucceeded(result.Result);
+            })
+            .ConfigureAwait(false);
+
+        Assert.That(statusCode, Is.EqualTo(HttpStatusCode.Conflict));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["version"], Has.Length.EqualTo(1));
+            Assert.That(problem.Errors.ContainsKey("id"), Is.False);
+            Assert.That(problem.Extensions, Contains.Key("currentVersion"));
+        }
+
+        var currentVersion = ((JsonElement)problem.Extensions["currentVersion"]!).GetInt64();
+
+        Assert.That(currentVersion, Is.EqualTo(2));
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenLocalTorrentIsRemovedAfterTransmissionAdd_ReturnsNotFoundBlamingId()
+    {
+        var (statusCode, problem) = await RefreshCleanupWarningTorrentWithMutationAsync(
+            static async (torrentService, cancellationToken) =>
+            {
+                var result = await torrentService.DeleteOneAsync(4, 1, cancellationToken).ConfigureAwait(false);
+                EnsureMutationSucceeded(result.Result);
+            })
+            .ConfigureAwait(false);
+
+        Assert.That(statusCode, Is.EqualTo(HttpStatusCode.NotFound));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["id"], Has.Length.EqualTo(1));
+            Assert.That(problem.Errors.ContainsKey("version"), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenUpdatedHashAppearsLocallyAfterTransmissionAdd_ReturnsConflictBlamingId()
+    {
+        var (statusCode, problem) = await RefreshCleanupWarningTorrentWithMutationAsync(
+            static async (torrentService, cancellationToken) =>
+            {
+                var result = await torrentService.AddOneAsync(
+                        new(
+                            CleanupWarningTorrentUpdatedHashString,
+                            DateTime.UtcNow,
+                            "Conflicting torrent",
+                            new("https://torrentTracker.com/forum/viewtopic.php?t=conflict"),
+                            DbSourceKind.WebPage,
+                            CleanupWarningTorrentDownloadDir),
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                EnsureMutationSucceeded(result.Result);
+            })
+            .ConfigureAwait(false);
+
+        Assert.That(statusCode, Is.EqualTo(HttpStatusCode.Conflict));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["id"], Has.Length.EqualTo(1));
+            Assert.That(problem.Errors.ContainsKey("version"), Is.False);
+        }
+    }
+
     /// <remarks>
     /// Transmission answered and simply does not hold the torrent, so nothing the caller sent is at
     /// fault - the key has to say the daemon, not the id.
@@ -675,5 +756,40 @@ internal sealed class RefreshTorrentByIdTests
 
         Assert.That(problem, Is.Not.Null);
         Assert.That(problem.Errors["source"], Has.One.Contains("No magnet link was found"));
+    }
+
+    private static async Task<(HttpStatusCode StatusCode, HttpValidationProblemDetails Problem)>
+        RefreshCleanupWarningTorrentWithMutationAsync(
+            Func<TorrentService, CancellationToken, Task> mutation)
+    {
+        var factory = new TestWebApplicationFactory<Program>(
+            _initialTorrents,
+            TestData.SourceRequestResponseMap,
+            _transmissionRequestResponseMap,
+            mutation);
+        try
+        {
+            using var client = factory.CreateClient();
+            using var response = await client
+                .PostAsync($"{EndpointAddresses.Torrents}/4", null)
+                .ConfigureAwait(false);
+
+            var problem = await response.Content
+                .ReadFromJsonAsync<HttpValidationProblemDetails>()
+                .ConfigureAwait(false);
+
+            Assert.That(problem, Is.Not.Null);
+            return (response.StatusCode, problem!);
+        }
+        finally
+        {
+            await factory.DisposeAsync().ConfigureAwait(false);
+        }
+    }
+
+    private static void EnsureMutationSucceeded(TorrentMutationResult result)
+    {
+        if (result is not TorrentMutationResult.Success)
+            throw new InvalidOperationException($"Test database mutation failed: {result}.");
     }
 }
