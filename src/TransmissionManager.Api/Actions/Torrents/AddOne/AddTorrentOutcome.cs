@@ -7,4 +7,4 @@ internal readonly record struct AddTorrentOutcome(
     AddTorrentResult Result,
     TorrentDto? TorrentDto,
     TransmissionAddResult? TransmissionResult,
-    string? Error);
+    KeyValuePair<string, string[]>[] Errors);

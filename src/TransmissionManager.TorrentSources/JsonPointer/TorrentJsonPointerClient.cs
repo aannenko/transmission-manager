@@ -93,7 +93,10 @@ public sealed class TorrentJsonPointerClient(
             or ExecutionRejectedException // Polly: attempt/total timeout, open circuit, rate limiter
             or JsonException) // the response is not the JSON document the source promised
         {
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.RetrievalFailed, e.Message);
+            // The message can quote what the server sent, so it is the source's text, not ours.
+            return MagnetSearchOutcome.Failure(
+                MagnetSearchResult.RetrievalFailed,
+                RemoteTextUtils.Summarize(e.Message));
         }
     }
 
@@ -208,7 +211,8 @@ public sealed class TorrentJsonPointerClient(
         {
             return MagnetSearchOutcome.Failure(
                 MagnetSearchResult.InvalidSelector,
-                $"'{value}' is not a magnet link. Check the value pattern and the magnet format.");
+                $"The value is not a magnet link: '{RemoteTextUtils.Summarize(value)}' " +
+                    $"({value.Length} characters). Check the value pattern and the magnet format.");
         }
 
         return MagnetSearchOutcome.Found(magnetUri);

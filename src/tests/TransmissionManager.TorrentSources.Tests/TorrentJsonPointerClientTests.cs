@@ -518,6 +518,59 @@ internal sealed class TorrentJsonPointerClientTests
         }
     }
 
+    /// <remarks>
+    /// A transport failure quotes what the server sent too - a status line, a header name - so its
+    /// message is the source's text and reaches the same log line as an extracted value does.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenTheTransportFailureMessageHoldsControlCharacters_SummarizesIt()
+    {
+        using var handler = new ThrowingHttpMessageHandler("boom\r\n\u001b[31mFORGED");
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(new($"{_documentAddress}{_pointer}"))
+            .ConfigureAwait(false);
+
+        Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Error!.Any(char.IsControl), Is.False);
+            Assert.That(outcome.Error, Does.Contain("boom___[31mFORGED"));
+        }
+    }
+
+    /// <remarks>
+    /// The counterpart of the web page case, and the one that is live under the shipped configuration:
+    /// with no default pattern and no default format the string at the pointer is quoted as the
+    /// tracker served it. This pins the whole path through the client rather than just the helper.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenTheBuiltValueHoldsControlCharacters_QuotesItSummarized()
+    {
+        const string served = "payload\r\n2026-01-01 warn: FORGED\u001b[31m";
+        const string format = "https://example.com/{0}";
+        var expectedLength = format.Length - "{0}".Length + served.Length;
+
+        var hostileDocument = $$"""
+            {
+              "result": {
+                "6880555": [0, 50, "payload\r\n2026-01-01 warn: FORGED\u001b[31m"]
+              }
+            }
+            """;
+
+        var outcome = await FindWithOverridesAsync(hostileDocument, "[\\s\\S]+", format).ConfigureAwait(false);
+
+        Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Error!.Any(char.IsControl), Is.False);
+            Assert.That(outcome.Error, Does.Contain("payload__2026-01-01 warn: FORGED_[31m"));
+            Assert.That(outcome.Error, Does.Contain($"({expectedLength} characters)"));
+        }
+    }
+
     private static async Task<MagnetSearchOutcome> FindAsync(string pointer, string content)
     {
         using var handler = new FakeHttpMessageHandler(

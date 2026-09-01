@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
@@ -24,6 +24,14 @@ internal sealed class RefreshTorrentByIdTests
     private const string NoMagnetTorrentHashString = "7c9e6679742d4f3e9a1b0c5d8e2f4a6b3d5c7e91";
     private const string NoMagnetTorrentName = "TV Show 5";
     private const string NoMagnetTorrentDownloadDir = "/tvshows";
+
+    private const string UnreadableSourceTorrentHashString = "2b8f4d6a0c1e3579bd8f2a4c6e0b1d3f5a7c9e02";
+    private const string UnreadableSourceTorrentName = "TV Show 6";
+    private const string UnreadableSourceTorrentDownloadDir = "/tvshows";
+
+    private const string TransmissionRefusedTorrentHashString = "8e0a2c4f6b1d3579ace13579bdf02468ace13579";
+    private const string TransmissionRefusedTorrentName = "TV Show 7";
+    private const string TransmissionRefusedTorrentDownloadDir = "/tvshows";
 
     private static readonly DateTime _noMagnetTorrentRefreshDate =
         new(2021, 8, 3, 12, 34, 56, 789, DateTimeKind.Utc);
@@ -53,6 +61,28 @@ internal sealed class RefreshTorrentByIdTests
             SourceUri = TestData.WebPages.NoMagnetPageAddress,
             SourceKind = DbSourceKind.WebPage,
             DownloadDir = NoMagnetTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = UnreadableSourceTorrentHashString,
+            Name = UnreadableSourceTorrentName,
+            SourceUri = TestData.WebPages.RemovedPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = UnreadableSourceTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = TransmissionRefusedTorrentHashString,
+            Name = TransmissionRefusedTorrentName,
+            SourceUri = TestData.WebPages.TransmissionRefusedPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = TransmissionRefusedTorrentDownloadDir,
             RefreshDate = _noMagnetTorrentRefreshDate,
             Version = 1,
         },
@@ -329,6 +359,83 @@ internal sealed class RefreshTorrentByIdTests
             NoMagnetTorrentHashString,
             NoMagnetTorrentName));
 
+    // Get Unreadable-Source Torrent
+
+    private static readonly string _getUnreadableSourceTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        UnreadableSourceTorrentHashString);
+
+    private static readonly TestRequest _getUnreadableSourceTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getUnreadableSourceTorrentRequestBody);
+
+    private static readonly TestRequest _getUnreadableSourceTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getUnreadableSourceTorrentRequestBody);
+
+    private static readonly TestResponse _getUnreadableSourceTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            UnreadableSourceTorrentDownloadDir,
+            UnreadableSourceTorrentHashString,
+            UnreadableSourceTorrentName));
+
+    // Get And Fail To Add Transmission-Refused Torrent
+
+    private static readonly string _getTransmissionRefusedTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        TransmissionRefusedTorrentHashString);
+
+    private static readonly TestRequest _getTransmissionRefusedTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getTransmissionRefusedTorrentRequestBody);
+
+    private static readonly TestRequest _getTransmissionRefusedTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getTransmissionRefusedTorrentRequestBody);
+
+    private static readonly TestResponse _getTransmissionRefusedTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            TransmissionRefusedTorrentDownloadDir,
+            TransmissionRefusedTorrentHashString,
+            TransmissionRefusedTorrentName));
+
+    private static readonly TestRequest _addTransmissionRefusedTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentRequestBodyFormat,
+            TestData.WebPages.TransmissionRefusedMagnet,
+            TransmissionRefusedTorrentDownloadDir));
+
+    /// <remarks>
+    /// Transmission answers successfully but accepts nothing - neither <c>torrent-added</c> nor
+    /// <c>torrent-duplicate</c> - which is how a refusal reaches the handler as a dependency failure.
+    /// </remarks>
+    private static readonly TestResponse _addTransmissionRefusedTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        """{"arguments":{},"result":"success"}""");
+
     // Request-Response map
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
@@ -348,6 +455,11 @@ internal sealed class RefreshTorrentByIdTests
         [_getRemovedTorrentValidHeaderRequest] = _getRemovedTorrentValidHeaderResponse,
         [_getNoMagnetTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getNoMagnetTorrentValidHeaderRequest] = _getNoMagnetTorrentValidHeaderResponse,
+        [_getUnreadableSourceTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getUnreadableSourceTorrentValidHeaderRequest] = _getUnreadableSourceTorrentValidHeaderResponse,
+        [_getTransmissionRefusedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getTransmissionRefusedTorrentValidHeaderRequest] = _getTransmissionRefusedTorrentValidHeaderResponse,
+        [_addTransmissionRefusedTorrentValidHeaderRequest] = _addTransmissionRefusedTorrentValidHeaderResponse,
     };
 
     #endregion
@@ -453,12 +565,96 @@ internal sealed class RefreshTorrentByIdTests
         TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.FromSeconds(1));
     }
 
+    /// <remarks>
+    /// Transmission answered and simply does not hold the torrent, so nothing the caller sent is at
+    /// fault - the key has to say the daemon, not the id.
+    /// </remarks>
     [Test]
     public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringDoesNotExistInTransmission_Returns422UnprocessableEntity()
     {
         var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/3", null).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.UnprocessableEntity));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors, Contains.Key("transmission"));
+            Assert.That(problem.Errors.ContainsKey("source"), Is.False);
+        }
+    }
+
+    /// <remarks>
+    /// The counterpart of the case above: here it is the id that is wrong, and a 404 has to say so
+    /// rather than blame the daemon.
+    /// </remarks>
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenIdDoesNotExist_ReturnsNotFound()
+    {
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/-1", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        Assert.That(problem.Errors["id"], Is.EqualTo(["No such torrent."]));
+
+        // The point of keying the messages is that there is nothing else to read.
+        Assert.That(problem.Detail, Is.Null);
+    }
+
+    /// <remarks>
+    /// A refresh leans on the same two dependencies an addition does, failing with the same 424, so
+    /// only the key tells them apart. This is the cron-driven path, where the key is the whole of
+    /// the diagnostic - nobody is watching the response.
+    /// </remarks>
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenStoredSourceCannotBeRead_Returns424BlamingTheSource()
+    {
+        var id = Array.FindIndex(_initialTorrents, static t => t.HashString == UnreadableSourceTorrentHashString) + 1;
+
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/{id}", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.FailedDependency));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["source"], Has.One.Contains("404"));
+            Assert.That(problem.Errors.ContainsKey("transmission"), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenTransmissionRefusesTheMagnet_Returns424BlamingTransmission()
+    {
+        var id = Array.FindIndex(_initialTorrents, static t => t.HashString == TransmissionRefusedTorrentHashString) + 1;
+
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/{id}", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.FailedDependency));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors, Contains.Key("transmission"));
+            Assert.That(problem.Errors.ContainsKey("source"), Is.False);
+        }
     }
 
     /// <remarks>
@@ -473,9 +669,11 @@ internal sealed class RefreshTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.UnprocessableEntity));
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Detail, Contains.Substring("No magnet link was found"));
+        Assert.That(problem.Errors["source"], Has.One.Contains("No magnet link was found"));
     }
 }

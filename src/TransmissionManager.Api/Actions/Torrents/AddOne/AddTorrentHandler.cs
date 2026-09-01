@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
-using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
@@ -21,9 +19,6 @@ internal sealed class AddTorrentHandler(
     TorrentSchedulerService schedulerService,
     BackgroundTorrentUpdateService backgroundUpdateService)
 {
-    private static readonly CompositeFormat _error =
-        CompositeFormat.Parse("Torrent '{0}' addition failed: '{1}'.");
-
     public async Task<Outcome> AddTorrentAsync(AddTorrentRequest request, CancellationToken cancellationToken)
     {
         var sourceKind = (DbSourceKind)request.SourceKind;
@@ -40,8 +35,8 @@ internal sealed class AddTorrentHandler(
         if (magnetUri is null)
         {
             return searchResult.IsUnprocessableSource()
-                ? OnInvalidRequest(request.SourceUri, getMagnetError)
-                : OnDependencyFailed(request.SourceUri, null, getMagnetError);
+                ? OnInvalidRequest(getMagnetError!)
+                : OnDependencyFailed(TorrentErrorKeys.Source, getMagnetError!);
         }
 
         var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService
@@ -49,14 +44,14 @@ internal sealed class AddTorrentHandler(
             .ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return OnDependencyFailed(request.SourceUri, null, transmissionError);
+            return OnDependencyFailed(TorrentErrorKeys.Transmission, transmissionError!);
 
         var (addResult, torrent) = await torrentService
             .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
             .ConfigureAwait(false);
 
         if (addResult is TorrentMutationResult.NotUnique)
-            return OnExists(request.SourceUri, transmissionResult);
+            return OnExists(transmissionResult);
 
         return OnAdded(torrent!, transmissionResult, request.Cron);
     }
@@ -72,18 +67,19 @@ internal sealed class AddTorrentHandler(
                 .UpdateTorrentNameAsync(torrent.Id, torrent.HashString, torrent.Name, torrent.Version);
         }
 
-        return new(Result.Added, torrent.ToDto(), transmissionResult, null);
+        return new(Result.Added, torrent.ToDto(), transmissionResult, []);
     }
 
-    private static Outcome OnExists(Uri webPageUri, TransmissionAddResult? result) =>
-        new(Result.Exists, null, result, GetError(webPageUri, EndpointMessages.TorrentAlreadyExists));
+    /// <remarks>
+    /// The address is the only thing a caller can act on: the collision is on the source address or
+    /// on the hash the source resolved to, and the storage layer does not say which.
+    /// </remarks>
+    private static Outcome OnExists(TransmissionAddResult? result) =>
+        new(Result.Exists, null, result, [new(TorrentErrorKeys.SourceUri, [EndpointMessages.TorrentAlreadyExists])]);
 
-    private static Outcome OnDependencyFailed(Uri webPageUri, TransmissionAddResult? result, string? message) =>
-        new(Result.DependencyFailed, null, result, GetError(webPageUri, message));
+    private static Outcome OnDependencyFailed(string key, string message) =>
+        new(Result.DependencyFailed, null, null, [new(key, [message])]);
 
-    private static Outcome OnInvalidRequest(Uri webPageUri, string? message) =>
-        new(Result.InvalidRequest, null, null, GetError(webPageUri, message));
-
-    private static string GetError(Uri webPageUri, string? message) =>
-        string.Format(CultureInfo.InvariantCulture, _error, webPageUri, message);
+    private static Outcome OnInvalidRequest(string message) =>
+        new(Result.InvalidRequest, null, null, [new(TorrentErrorKeys.Source, [message])]);
 }

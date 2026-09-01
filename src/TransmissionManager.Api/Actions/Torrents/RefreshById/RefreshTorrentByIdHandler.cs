@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Text;
-using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Transmission;
@@ -17,21 +15,18 @@ internal sealed class RefreshTorrentByIdHandler(
     BackgroundTorrentUpdateService backgroundUpdateService)
     : IRefreshTorrentByIdHandler
 {
-    private static readonly CompositeFormat _error =
-        CompositeFormat.Parse("Torrent '{0}' refresh failed: '{1}'.");
-
     public async Task<RefreshTorrentByIdOutcome> RefreshTorrentByIdAsync(long id, CancellationToken cancellationToken)
     {
         var torrent = await torrentService.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         if (torrent is null)
-            return OnNotFoundLocally(id);
+            return OnNotFoundLocally();
 
         var (_, transmissionGetError) = await transmissionService
             .GetTorrentAsync(torrent.HashString, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionGetError is not null)
-            return OnNotFoundInTransmission(id, transmissionGetError);
+            return OnNotFoundInTransmission(transmissionGetError);
 
         var (searchResult, magnetUri, getMagnetError) = await serviceProvider
             .FindMagnetUriAsync(
@@ -45,8 +40,8 @@ internal sealed class RefreshTorrentByIdHandler(
         if (magnetUri is null)
         {
             return searchResult.IsUnprocessableSource()
-                ? OnInvalidConfiguration(id, getMagnetError)
-                : OnDependencyFailed(id, null, getMagnetError);
+                ? OnInvalidConfiguration(getMagnetError!)
+                : OnDependencyFailed(TorrentErrorKeys.Source, null, getMagnetError!);
         }
 
         var (transmissionAddResult, transmissionAddTorrent, transmissionAddError) = await transmissionService
@@ -54,7 +49,7 @@ internal sealed class RefreshTorrentByIdHandler(
             .ConfigureAwait(false);
 
         if (transmissionAddTorrent is null)
-            return OnDependencyFailed(id, transmissionAddResult, transmissionAddError);
+            return OnDependencyFailed(TorrentErrorKeys.Transmission, transmissionAddResult, transmissionAddError!);
 
         if (transmissionAddResult is TransmissionAddResult.Added)
         {
@@ -74,11 +69,11 @@ internal sealed class RefreshTorrentByIdHandler(
                 case TorrentMutationResult.Success:
                     break;
                 case TorrentMutationResult.NotFound:
-                    return OnRemoved(id, transmissionAddResult);
+                    return OnRemoved(transmissionAddResult);
                 case TorrentMutationResult.VersionConflict:
-                    return OnConflict(id, transmissionAddResult, currentVersion!.Value);
+                    return OnConflict(transmissionAddResult, currentVersion!.Value);
                 case TorrentMutationResult.NotUnique:
-                    return OnExists(id, transmissionAddResult);
+                    return OnExists(transmissionAddResult);
                 default:
                     throw new InvalidOperationException(
                         $"Unexpected {nameof(TorrentMutationResult)}: {updateResult}");
@@ -120,26 +115,31 @@ internal sealed class RefreshTorrentByIdHandler(
     private static RefreshTorrentByIdOutcome OnRefreshed(
         TorrentDto torrent,
         TransmissionAddResult? transmissionResult,
-        string? message = null) =>
-        new(Result.Refreshed, torrent, transmissionResult, message);
+        string? warning = null) =>
+        new(Result.Refreshed, torrent, transmissionResult, warning, []);
 
-    private static RefreshTorrentByIdOutcome OnNotFoundLocally(long id) =>
-        new(Result.NotFoundLocally, null, null, GetError(id, EndpointMessages.NoSuchTorrent));
+    private static RefreshTorrentByIdOutcome OnNotFoundLocally() =>
+        new(Result.NotFoundLocally, null, null, null, [new(TorrentErrorKeys.Id, [EndpointMessages.NoSuchTorrent])]);
 
-    private static RefreshTorrentByIdOutcome OnNotFoundInTransmission(long id, string message) =>
-        new(Result.NotFoundInTransmission, null, null, GetError(id, message));
+    private static RefreshTorrentByIdOutcome OnNotFoundInTransmission(string message) =>
+        new(Result.NotFoundInTransmission, null, null, null, [new(TorrentErrorKeys.Transmission, [message])]);
 
     private static RefreshTorrentByIdOutcome OnDependencyFailed(
-        long id,
+        string key,
         TransmissionAddResult? transmissionResult,
-        string? message) =>
-        new(Result.DependencyFailed, null, transmissionResult, GetError(id, message));
+        string message) =>
+        new(Result.DependencyFailed, null, transmissionResult, null, [new(key, [message])]);
 
-    private static RefreshTorrentByIdOutcome OnInvalidConfiguration(long id, string? message) =>
-        new(Result.InvalidConfiguration, null, null, GetError(id, message));
+    private static RefreshTorrentByIdOutcome OnInvalidConfiguration(string message) =>
+        new(Result.InvalidConfiguration, null, null, null, [new(TorrentErrorKeys.Source, [message])]);
 
-    private static RefreshTorrentByIdOutcome OnRemoved(long id, TransmissionAddResult? transmissionResult) =>
-        new(Result.Removed, null, transmissionResult, GetError(id, EndpointMessages.TorrentRemovedConflict));
+    private static RefreshTorrentByIdOutcome OnRemoved(TransmissionAddResult? transmissionResult) =>
+        new(
+            Result.Removed,
+            null,
+            transmissionResult,
+            null,
+            [new(TorrentErrorKeys.Id, [EndpointMessages.TorrentRemovedConflict])]);
 
     /// <remarks>
     /// The refreshed magnet has already been added to Transmission and the previous torrent has
@@ -147,22 +147,24 @@ internal sealed class RefreshTorrentByIdHandler(
     /// row already holds it. Per the project's independence-from-Transmission rule the partial
     /// outcome is surfaced as-is and the user retries; no compensating removal is performed.
     /// </remarks>
-    private static RefreshTorrentByIdOutcome OnExists(long id, TransmissionAddResult? transmissionResult) =>
-        new(Result.Exists, null, transmissionResult, GetError(id, EndpointMessages.TorrentAlreadyExists));
+    private static RefreshTorrentByIdOutcome OnExists(TransmissionAddResult? transmissionResult) =>
+        new(
+            Result.Exists,
+            null,
+            transmissionResult,
+            null,
+            [new(TorrentErrorKeys.Id, [EndpointMessages.TorrentAlreadyExists])]);
 
     private static RefreshTorrentByIdOutcome OnConflict(
-        long id,
         TransmissionAddResult? transmissionResult,
         long currentVersion) =>
         new(
             Result.VersionConflict,
             null,
             transmissionResult,
-            GetError(id, EndpointMessages.TorrentModifiedConflict),
+            null,
+            [new(TorrentErrorKeys.Version, [EndpointMessages.TorrentModifiedConflict])],
             currentVersion);
-
-    private static string GetError(long id, string? message) =>
-        string.Format(CultureInfo.InvariantCulture, _error, id, message);
 
     private static string? GetTorrentUpdatedName(
         string oldName,

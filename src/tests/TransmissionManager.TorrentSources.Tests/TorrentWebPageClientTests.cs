@@ -129,6 +129,60 @@ internal sealed class TorrentWebPageClientTests
     }
 
     /// <remarks>
+    /// A transport failure quotes what the server sent too - a status line, a header name - so its
+    /// message is the source's text and reaches the same log line as a magnet match does.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenTheTransportFailureMessageHoldsControlCharacters_SummarizesIt()
+    {
+        using var handler = new ThrowingHttpMessageHandler("boom\r\n\u001b[31mFORGED");
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient).FindMagnetUriAsync(_webPageUri).ConfigureAwait(false);
+
+        Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Error!.Any(char.IsControl), Is.False);
+            Assert.That(outcome.Error, Does.Contain("boom___[31mFORGED"));
+        }
+    }
+
+    /// <remarks>
+    /// A page is a third party's bytes, and a pattern whose match is not a magnet quotes them back.
+    /// Left raw they reach a log line, where a newline forges a record and an escape sequence drives
+    /// the operator's terminal - so this pins the whole path through the client rather than just the
+    /// helper: control characters replaced, the quote truncated, and the length that of what was
+    /// really matched rather than of the summary.
+    /// </remarks>
+    [Test]
+    public async Task FindMagnetUriAsync_WhenTheMatchHoldsControlCharacters_QuotesItSummarized()
+    {
+        const string anchor = "<a\r\nclass=\"x\" href=\"";
+        const string page = $"<div>\r\n{anchor}{_magnetUri}\">m</a>\r\n</div>";
+        const string expectedMatch = $"{anchor}{_magnetUri}";
+
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, _webPageUri),
+            new(HttpStatusCode.OK, Content: page));
+
+        using var httpClient = new HttpClient(handler);
+
+        var outcome = await CreateClient(httpClient)
+            .FindMagnetUriAsync(_webPageUri, @"<a[^>]*href=""magnet:\?[^""]+")
+            .ConfigureAwait(false);
+
+        Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.InvalidSelector));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(outcome.Error!.Any(char.IsControl), Is.False);
+            Assert.That(outcome.Error, Does.Contain("<a__class="));
+            Assert.That(outcome.Error, Does.Contain($"({expectedMatch.Length} characters)"));
+            Assert.That(outcome.Error, Does.Contain("..."));
+        }
+    }
+
+    /// <remarks>
     /// The first match wins, as it does for the JSON source. The window is anchored on the literal
     /// <c>magnet:?</c>, but the pattern runs over the whole of it, so a pattern can match text
     /// earlier than the magnet that brought the window into view. Selecting that earlier text is the

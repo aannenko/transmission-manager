@@ -96,7 +96,10 @@ public sealed class TorrentWebPageClient(
             or IOException // a connection dropped mid-body arrives as HttpIOException, not HttpRequestException
             or ExecutionRejectedException) // Polly: attempt/total timeout, open circuit, rate limiter
         {
-            return MagnetSearchOutcome.Failure(MagnetSearchResult.RetrievalFailed, e.Message);
+            // The message can quote what the server sent, so it is the source's text, not ours.
+            return MagnetSearchOutcome.Failure(
+                MagnetSearchResult.RetrievalFailed,
+                RemoteTextUtils.Summarize(e.Message));
         }
     }
 
@@ -210,7 +213,8 @@ public sealed class TorrentWebPageClient(
                     ? MagnetSearchOutcome.Found(magnetUri)
                     : MagnetSearchOutcome.Failure(
                         MagnetSearchResult.InvalidSelector,
-                        $"'{matchText}' is not a magnet link. Check the magnet regex.");
+                        $"The match is not a magnet link: '{RemoteTextUtils.Summarize(match)}' " +
+                            $"({match.Length} characters). Check the magnet regex.");
         }
         finally
         {

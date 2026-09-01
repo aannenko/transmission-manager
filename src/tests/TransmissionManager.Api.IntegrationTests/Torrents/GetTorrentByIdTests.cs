@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
 using System.Net;
 using System.Net.Http.Json;
 using TransmissionManager.Api.Common.Constants;
@@ -51,9 +51,17 @@ internal sealed class GetTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Detail, Is.EqualTo("Torrent '999' retrieval failed: 'No such torrent.'."));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["id"], Is.EqualTo(["No such torrent."]));
+
+            // The point of keying the messages is that there is nothing else to read.
+            Assert.That(problem.Detail, Is.Null);
+        }
     }
 }

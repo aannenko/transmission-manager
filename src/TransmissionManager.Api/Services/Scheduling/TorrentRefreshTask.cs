@@ -17,13 +17,20 @@ internal sealed partial class TorrentRefreshTask(
     {
         log.ScheduledRefreshStarted(torrentId);
 
-        var (result, _, transmissionResult, message, _) = await refreshHandler
+        var (result, _, transmissionResult, warning, errors, _) = await refreshHandler
             .RefreshTorrentByIdAsync(torrentId, CancellationToken)
             .ConfigureAwait(false);
 
         if (result is RefreshTorrentByIdResult.Refreshed)
-            log.ScheduledRefreshSucceeded(torrentId, transmissionResult, message);
+            log.ScheduledRefreshSucceeded(torrentId, transmissionResult, warning);
         else
-            log.ScheduledRefreshFailed(torrentId, message, transmissionResult);
+            log.ScheduledRefreshFailed(torrentId, ToLogText(errors), transmissionResult);
     }
+
+    /// <remarks>
+    /// A scheduled refresh has no caller to answer, so what a request would return keyed by the
+    /// setting at fault is flattened into one line, keys included - they say what to go and fix.
+    /// </remarks>
+    private static string ToLogText(KeyValuePair<string, string[]>[] errors) =>
+        string.Join("; ", errors.Select(static error => $"{error.Key}: {string.Join(", ", error.Value)}"));
 }

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using System.Globalization;
-using System.Text;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Services;
 
@@ -9,9 +7,6 @@ namespace TransmissionManager.Api.Actions.Torrents.GetById;
 
 internal static class GetTorrentByIdEndpoint
 {
-    private static readonly CompositeFormat _error =
-        CompositeFormat.Parse("Torrent '{0}' retrieval failed: '{1}'.");
-
     public static IEndpointRouteBuilder MapGetTorrentByIdEndpoint(this IEndpointRouteBuilder builder)
     {
         _ = builder.MapGet("/{id}", GetTorrentByIdAsync).WithName(EndpointNames.GetTorrentById);
@@ -26,8 +21,8 @@ internal static class GetTorrentByIdEndpoint
         var torrent = await service.FindOneByIdAsync(id, cancellationToken).ConfigureAwait(false);
         return torrent is not null
             ? TypedResults.Ok(torrent.ToDto())
-            : TypedResults.Problem(
-                string.Format(CultureInfo.InvariantCulture, _error, id, EndpointMessages.NoSuchTorrent),
-                statusCode: StatusCodes.Status404NotFound);
+            : EndpointProblems.Problem(
+                [new(TorrentErrorKeys.Id, [EndpointMessages.NoSuchTorrent])],
+                StatusCodes.Status404NotFound);
     }
 }

@@ -19,7 +19,7 @@ internal static class AddTorrentEndpoint
             AddTorrentRequest request,
             CancellationToken cancellationToken)
     {
-        var (result, torrent, transmissionResult, error) = await handler
+        var (result, torrent, transmissionResult, errors) = await handler
             .AddTorrentAsync(request, cancellationToken)
             .ConfigureAwait(false);
 
@@ -30,14 +30,14 @@ internal static class AddTorrentEndpoint
                     linker.GetPathByName(EndpointNames.GetTorrentById, new() { ["id"] = torrent!.Id }),
                     new AddTorrentResponse(torrent!, transmissionResult!.Value)),
             AddTorrentResult.Exists =>
-                TypedResults.Problem(
-                    error,
-                    statusCode: StatusCodes.Status409Conflict,
-                    extensions: [new(nameof(transmissionResult), transmissionResult)]),
+                EndpointProblems.Problem(
+                    errors,
+                    StatusCodes.Status409Conflict,
+                    new(nameof(transmissionResult), transmissionResult)),
             AddTorrentResult.InvalidRequest =>
-                TypedResults.Problem(error, statusCode: StatusCodes.Status400BadRequest),
+                EndpointProblems.Problem(errors, StatusCodes.Status400BadRequest),
             AddTorrentResult.DependencyFailed =>
-                TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
+                EndpointProblems.Problem(errors, StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException()
         };
     }

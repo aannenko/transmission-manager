@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
@@ -19,27 +18,24 @@ internal static class RefreshTorrentByIdEndpoint
             long id,
             CancellationToken cancellationToken)
     {
-        var (result, torrentDto, transmissionResult, message, currentVersion) = await handler
+        var (result, torrentDto, transmissionResult, warning, errors, currentVersion) = await handler
             .RefreshTorrentByIdAsync(id, cancellationToken)
             .ConfigureAwait(false);
 
         return result switch
         {
             RefreshTorrentByIdResult.Refreshed =>
-                TypedResults.Ok(new RefreshTorrentByIdResponse(torrentDto!, transmissionResult!.Value, message)),
+                TypedResults.Ok(new RefreshTorrentByIdResponse(torrentDto!, transmissionResult!.Value, warning)),
             RefreshTorrentByIdResult.NotFoundLocally or RefreshTorrentByIdResult.Removed =>
-                TypedResults.Problem(message, statusCode: StatusCodes.Status404NotFound),
+                EndpointProblems.Problem(errors, StatusCodes.Status404NotFound),
             RefreshTorrentByIdResult.NotFoundInTransmission or RefreshTorrentByIdResult.InvalidConfiguration =>
-                TypedResults.Problem(message, statusCode: StatusCodes.Status422UnprocessableEntity),
+                EndpointProblems.Problem(errors, StatusCodes.Status422UnprocessableEntity),
             RefreshTorrentByIdResult.VersionConflict =>
-                TypedResults.Problem(
-                    message,
-                    statusCode: StatusCodes.Status409Conflict,
-                    extensions: [new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion)]),
+                EndpointProblems.Conflict(errors, currentVersion),
             RefreshTorrentByIdResult.Exists =>
-                TypedResults.Problem(message, statusCode: StatusCodes.Status409Conflict),
+                EndpointProblems.Problem(errors, StatusCodes.Status409Conflict),
             RefreshTorrentByIdResult.DependencyFailed =>
-                TypedResults.Problem(message, statusCode: StatusCodes.Status424FailedDependency),
+                EndpointProblems.Problem(errors, StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException(),
         };
     }

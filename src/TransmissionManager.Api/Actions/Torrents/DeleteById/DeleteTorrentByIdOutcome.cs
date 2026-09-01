@@ -3,4 +3,4 @@
 internal readonly record struct DeleteTorrentByIdOutcome(
     DeleteTorrentByIdResult Result,
     long? CurrentVersion,
-    string? Error);
+    KeyValuePair<string, string[]>[] Errors);

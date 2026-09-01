@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
-using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
@@ -21,7 +20,7 @@ internal static class DeleteTorrentByIdEndpoint
         [EnumDataType(typeof(DeleteTorrentByIdType))] DeleteTorrentByIdType deleteType = DeleteTorrentByIdType.Local,
         CancellationToken cancellationToken = default)
     {
-        var (result, currentVersion, error) = await handler
+        var (result, currentVersion, errors) = await handler
             .TryDeleteTorrentByIdAsync(id, version, deleteType, cancellationToken)
             .ConfigureAwait(false);
 
@@ -30,14 +29,11 @@ internal static class DeleteTorrentByIdEndpoint
             DeleteTorrentByIdResult.Deleted =>
                 TypedResults.NoContent(),
             DeleteTorrentByIdResult.NotFound =>
-                TypedResults.Problem(error, statusCode: StatusCodes.Status404NotFound),
+                EndpointProblems.Problem(errors, StatusCodes.Status404NotFound),
             DeleteTorrentByIdResult.VersionConflict =>
-                TypedResults.Problem(
-                    error,
-                    statusCode: StatusCodes.Status409Conflict,
-                    extensions: [new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion)]),
+                EndpointProblems.Conflict(errors, currentVersion),
             DeleteTorrentByIdResult.DependencyFailed =>
-                TypedResults.Problem(error, statusCode: StatusCodes.Status424FailedDependency),
+                EndpointProblems.Problem(errors, StatusCodes.Status424FailedDependency),
             _ => throw new NotImplementedException(),
         };
     }

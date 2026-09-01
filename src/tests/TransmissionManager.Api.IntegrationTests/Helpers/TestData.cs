@@ -123,6 +123,22 @@ internal static class TestData
             </html>
             """;
 
+        /// <summary>
+        /// An address the server answers about with an unsuccessful status, as a removed topic
+        /// would be. Deliberately a status the resilience pipeline does not retry, so that a test
+        /// using it neither waits out backoffs nor depends on how many attempts are configured.
+        /// </summary>
+        public const string RemovedPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234572";
+
+        /// <summary>
+        /// A page holding a magnet link that Transmission answers about without accepting, so that
+        /// a failure of the second dependency can be told from a failure of the first.
+        /// </summary>
+        public const string TransmissionRefusedPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234573";
+
+        public const string TransmissionRefusedMagnet =
+            "magnet:?xt=urn:btih:5C7D9E1F2A3B4C5D6E7F8091A2B3C4D5E6F70819&dn=TV+Show+5";
+
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
     }
 
@@ -276,6 +292,13 @@ internal static class TestData
 
             [new(HttpMethod.Get, new(WebPages.NoMagnetPageAddress))] =
                 new(HttpStatusCode.OK, Content: WebPages.NoMagnetPageHtml),
+
+            [new(HttpMethod.Get, new(WebPages.RemovedPageAddress))] =
+                new(HttpStatusCode.NotFound),
+
+            [new(HttpMethod.Get, new(WebPages.TransmissionRefusedPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.TransmissionRefusedMagnet)),
 
             [new(HttpMethod.Get, new(JsonApi.Address))] =
                 new(HttpStatusCode.OK, Content: JsonApi.Document),

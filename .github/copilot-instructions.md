@@ -39,7 +39,11 @@ Endpoints live under `Actions/{Feature}/{ActionName}/` and combine an `{Action}E
 
 **When to extract a Handler.** Extract when the endpoint coordinates multiple services *or* models a non-trivial Outcome union (Success / NotFound / Conflict / external-system failure / etc.). Simple pass-through endpoints keep logic inline with a private static `BuildResponse`/`ToXxxResponse` helper — `GetTorrentPageEndpoint` is the deliberate inline example.
 
-**There is no OpenAPI/Swagger**, so `src/TransmissionManager.Api/README.md` and the `.http` file beside each action *are* the API's contract documentation — a change to a request/response DTO has no other way to reach a user and must update them in the same commit. Verify any address a doc example fetches: a plausible-looking JSON Pointer index was wrong against the live API (measured).
+**There is no OpenAPI/Swagger yet** — one is planned, and endpoint and schema documentation belongs there when it lands. Until then the `.http` file beside each action carries the request/response contract and must be updated in the same commit as a DTO change. `src/TransmissionManager.Api/README.md` is a quick-start for someone setting the thing up, **not** a reference — do not push everything missing into it. Verify any address a doc example fetches: a plausible-looking JSON Pointer index was wrong against the live API (measured).
+
+### Error messages
+
+Every failure answers with an `errors` object keyed by what is at fault rather than a prose `detail` — `EndpointProblems` builds it. A message does not repeat back the id or the body the caller just sent, though it may quote a setting to show which one it means. **Text a torrent source served must go through `RemoteTextUtils.Summarize` before it enters any message** — see that type for why. Options validators are exempt: they answer an operator at startup, not a caller.
 
 ### Keyset pagination (GetPage endpoint)
 

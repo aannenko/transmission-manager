@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -89,10 +88,12 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problemDetails = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent '1' retrieval failed: 'No such torrent.'."));
+        Assert.That(problemDetails.Errors["id"], Is.EqualTo(["No such torrent."]));
     }
 
     [Test]
@@ -108,10 +109,12 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problemDetails = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Detail, Is.EqualTo("Torrent '2' retrieval failed: 'No such torrent.'."));
+        Assert.That(problemDetails.Errors["id"], Is.EqualTo(["No such torrent."]));
     }
 
     [Test]
@@ -121,12 +124,12 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problemDetails = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(
-            problemDetails.Detail,
-            Is.EqualTo("Torrent '-1' deletion failed: 'No such torrent.'."));
+        Assert.That(problemDetails.Errors["id"], Is.EqualTo(["No such torrent."]));
     }
 
     [Test]
@@ -138,12 +141,12 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problemDetails = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(
-            problemDetails.Detail,
-            Is.EqualTo("Torrent '-1' deletion failed: 'No such torrent.'."));
+        Assert.That(problemDetails.Errors["id"], Is.EqualTo(["No such torrent."]));
     }
 
     [Test]
@@ -180,10 +183,16 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problemDetails = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problemDetails.Errors["version"], Is.EqualTo(["The torrent has been modified by another client."]));
+            Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
+        }
 
         var currentVersion = ((JsonElement)problemDetails.Extensions["currentVersion"]!).GetInt64();
 
@@ -205,10 +214,16 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
 
-        var problemDetails = await response.Content.ReadFromJsonAsync<ProblemDetails>().ConfigureAwait(false);
+        var problemDetails = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
 
         Assert.That(problemDetails, Is.Not.Null);
-        Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problemDetails.Errors["version"], Is.EqualTo(["The torrent has been modified by another client."]));
+            Assert.That(problemDetails.Extensions, Contains.Key("currentVersion"));
+        }
 
         var currentVersion = ((JsonElement)problemDetails.Extensions["currentVersion"]!).GetInt64();
 
