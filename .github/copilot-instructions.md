@@ -99,6 +99,8 @@ Regenerate via `src/scripts/Optimize-DbContext.ps1`. The script accepts `-NoBuil
 
 **Gotcha — do not "fix" the missing `Relational:Collation` annotations.** The generated `TorrentEntityType.cs` adds the five `NOCASE`-collated string properties (`HashString`, `Name`, `SourceUri`, `DownloadDir`, `Cron`) without any collation annotation, and `IProperty.GetCollation()` throws on the read-optimized model. This is by design: the read-optimized (compiled) model carries only what the query pipeline needs; `OnModelCreating` still runs at startup and re-applies `UseCollation("NOCASE")`, so `EnsureCreatedAsync` produces `TEXT COLLATE NOCASE` columns and the unique indexes on `HashString`/`SourceUri` remain case-insensitive. Verified end-to-end. If a reviewer flags "compiled model drops NOCASE collations", point them here.
 
+**Decision — keep `SourceUri` uniqueness case-insensitive.** `NOCASE` applies to the whole URI, including a JSON Pointer fragment whose member names are case-sensitive; leave the schema and index unchanged unless the owner explicitly reopens this decision.
+
 ### Independence from Transmission
 
 TransmissionManager and the Transmission daemon are **independent systems**. The local catalog is not a mirror — a torrent may exist on one side and not the other by design. When a request mutates one side and the other side fails or races (e.g., local OCC conflict after a successful Transmission removal, or vice versa), surface the partial outcome (`409 Conflict`, `424 Failed Dependency`, etc.) and let the user retry. Do **not** introduce non-OCC fallbacks, compensating writes, or "force-finish" paths to keep the two sides in lockstep.
