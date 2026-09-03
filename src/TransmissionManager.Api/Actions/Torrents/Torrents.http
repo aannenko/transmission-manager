@@ -35,6 +35,7 @@ Content-Type: application/json
 # The fragment (everything after "#") is an RFC 6901 JSON Pointer selecting a string in the response
 # The indices depend on the API's response shape - fetch it once to see where the value sits
 # magnetRegexPattern picks the info hash out of that string, jsonValueFormat builds the magnet link out of it
+# The tracker address is percent-encoded because it is nested inside the magnet URI's tr parameter
 # Do not provide either of the two to use the global ones
 POST {{TransmissionManager_Web_HostAddress}}/
 Content-Type: application/json
@@ -43,7 +44,7 @@ Content-Type: application/json
     "sourceUri": "https://api.rutracker.cc/v1/static/pvc/f/1106#/result/6871470/7",
     "sourceKind": "JsonPointer",
     "magnetRegexPattern": "[a-fA-F0-9]{40}",
-    "jsonValueFormat": "magnet:?xt=urn:btih:{0}",
+    "jsonValueFormat": "magnet:?xt=urn:btih:{0}&tr=http%3A%2F%2Fbt.t-ru.org%2Fann%3Fmagnet",
     "downloadDir": "/tvshows",
     "cron": "0 9,20 * * *"
 }

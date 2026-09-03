@@ -131,17 +131,19 @@ Because the pointer lives in the fragment, one endpoint can serve many torrents,
 The string a pointer addresses is rarely a magnet link already - most often it is a bare info hash. Two optional, independent steps bridge the gap:
 
 1. `magnetRegexPattern` extracts the value out of the addressed string. Its **whole match** is taken, so a pattern that needs surrounding context to find the right place excludes that context with a zero-width lookaround, as in `(?<=btih:)[a-fA-F0-9]{40}`. Unlike a `WebPage` pattern, it does not have to look for a magnet link.
-2. `jsonValueFormat` builds the magnet link out of that value, which its only placeholder, `{0}`, stands for - as in `magnet:?xt=urn:btih:{0}`. No other placeholder and no other brace is allowed.
+2. `jsonValueFormat` builds the magnet link out of that value, which its only placeholder, `{0}`, stands for - as in `magnet:?xt=urn:btih:{0}&tr=https%3A%2F%2Ftracker.example%2Fannounce`. No other placeholder and no other brace is allowed.
 
 Use neither, either or both; with neither, the addressed string is used as it is. Whatever comes out has to be an absolute `magnet:` URI, or the request is refused.
 
 Left out or empty, each of the two falls back to a default from the configuration - and **both shipped defaults are empty**, because no pair of them is right for every API. Wrapping an already-complete magnet link in `magnet:?xt=urn:btih:{0}` would drop its `&dn=` and its passkey-bearing `&tr=`, and would turn a [BitTorrent v2](https://www.bittorrent.org/beps/bep_0052.html) `btmh` magnet into a valid-looking `btih` one carrying a meaningless hash.
 
+A format containing only `xt` creates a trackerless magnet. It may still find peers through the Distributed Hash Table (DHT), but metadata discovery can be slow or fail. When the source uses a tracker, carry its address in a `tr` parameter. The `tracker.example` address used in these examples is a deliberately non-working placeholder from the reserved `.example` domain; replace it with the tracker appropriate for your source. The tracker address is percent-encoded because it is nested inside the magnet URI's query.
+
 So either set these fields per torrent, or - if all your JSON sources share a shape - configure the defaults for all torrents in Transmission Manager by adding these to the `docker run` command:
 
 ```bash
   -e TorrentSources__JsonPointer__DefaultJsonValueRegexPattern='[a-fA-F0-9]{40}' \
-  -e TorrentSources__JsonPointer__DefaultJsonValueFormat='magnet:?xt=urn:btih:{0}' \
+  -e TorrentSources__JsonPointer__DefaultJsonValueFormat='magnet:?xt=urn:btih:{0}&tr=https%3A%2F%2Ftracker.example%2Fannounce' \
 ```
 
 ## Send requests
@@ -158,7 +160,7 @@ iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType applicat
 # (the part after "#" is a JSON Pointer telling Transmission Manager where the value sits in the response,
 # magnetRegexPattern picks the info hash out of that value and jsonValueFormat builds the magnet link;
 # leave both out if you have configured deployment-wide defaults for them)
-iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://api.example.com/v1/topics/f/1106#/result/6880555/7","sourceKind":"JsonPointer","magnetRegexPattern":"[a-fA-F0-9]{40}","jsonValueFormat":"magnet:?xt=urn:btih:{0}","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
+iwr http://<docker_host>:9092/api/v1/torrents -Method Post -ContentType application/json -Body '{"sourceUri":"https://api.example.com/v1/topics/f/1106#/result/6880555/7","sourceKind":"JsonPointer","magnetRegexPattern":"[a-fA-F0-9]{40}","jsonValueFormat":"magnet:?xt=urn:btih:{0}&tr=https%3A%2F%2Ftracker.example%2Fannounce","downloadDir":"/tvshows","cron":"0 11,17 * * *"}'
 
 # Can't wait for Transmission Manager API to refresh your torrent #3 at the scheduled time? Force-refresh it yourself!
 iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType application/json
@@ -170,7 +172,7 @@ iwr http://<docker_host>:9092/api/v1/torrents/3 -Method Post -ContentType applic
 # (the version query parameter is required and must match the torrent's current Version;
 # send magnetRegexPattern or jsonValueFormat as "" to clear it and fall back to the configured default,
 # or cron as "" to stop refreshing the torrent on a schedule)
-iwr http://<docker_host>:9092/api/v1/torrents/3?version=1 -Method Patch -ContentType application/json -Body '{"jsonValueFormat":"magnet:?xt=urn:btih:{0}","cron":"0 9,20 * * *"}'
+iwr http://<docker_host>:9092/api/v1/torrents/3?version=1 -Method Patch -ContentType application/json -Body '{"jsonValueFormat":"magnet:?xt=urn:btih:{0}&tr=https%3A%2F%2Ftracker.example%2Fannounce","cron":"0 9,20 * * *"}'
 
 # Unregister torrent #5 from Transmission Manager API but do not touch it in Transmission
 # (the version query parameter is required and must match the torrent's current Version)
