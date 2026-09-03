@@ -98,6 +98,12 @@ internal static class TestData
         public const string FirstPageMagnetExisting =
             "magnet:?xt=urn:btih:0BDA511316A069E86DD8EE8A3610475D2013A7FA&dn=TV+Show+1";
 
+        public const string HashConflictPageAddress =
+            "https://torrentTracker.com/forum/viewtopic.php?t=1234574";
+
+        public const string HashConflictPageMagnet =
+            "magnet:?xt=urn:btih:0BDA511316A069E86DD8EE8A3610475D2013A7FA&dn=TV+Show+1+Mirror";
+
         public const string SecondPageMagnetUpdated =
             "magnet:?xt=urn:btih:9EBC251E08FB1AECB7B24D26385341875473919A&dn=TV+Show+2";
 
@@ -277,6 +283,10 @@ internal static class TestData
             [new(HttpMethod.Get, new(Database.FirstTorrentWebPageAddress))] =
                 new(HttpStatusCode.OK,
                     Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.FirstPageMagnetExisting)),
+
+            [new(HttpMethod.Get, new(WebPages.HashConflictPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.HashConflictPageMagnet)),
 
             [new(HttpMethod.Get, new(Database.SecondTorrentWebPageAddress))] =
                 new(HttpStatusCode.OK,

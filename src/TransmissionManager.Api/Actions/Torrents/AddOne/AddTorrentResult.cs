@@ -3,12 +3,12 @@
 internal enum AddTorrentResult
 {
     /// <summary>
-    /// The torrent was added to both Transmission and the local catalog.
+    /// The torrent is present in Transmission and was added to the local catalog.
     /// </summary>
     Added,
 
     /// <summary>
-    /// Another torrent already holds the same web page address or hash.
+    /// Another torrent already holds the same source URI or hash.
     /// </summary>
     /// <remarks>
     /// The magnet was still handed to Transmission before the local insert was rejected, so the
@@ -17,7 +17,7 @@ internal enum AddTorrentResult
     Exists,
 
     /// <summary>
-    /// The request's source address or magnet regex yielded no magnet.
+    /// The request's torrent source configuration did not yield a magnet.
     /// </summary>
     /// <remarks>
     /// Distinct from <see cref="DependencyFailed"/>: the source was never reached,
@@ -28,7 +28,7 @@ internal enum AddTorrentResult
     InvalidRequest,
 
     /// <summary>
-    /// The torrent web page or Transmission could not be reached.
+    /// The torrent source could not be retrieved, or Transmission could not accept the magnet.
     /// </summary>
     /// <remarks>
     /// Nothing was added anywhere; the request itself is fine and may be retried as-is.

@@ -96,6 +96,38 @@ internal sealed class AddTorrentTests
         TestData.Transmission.DefaultResponseHeaders,
         _addExistingTorrentResponseBody);
 
+    // Add Torrent Whose Hash Exists Locally
+
+    private static readonly string _addHashConflictRequestBody = string.Format(
+        null,
+        TestData.Transmission.AddTorrentRequestBodyFormat,
+        TestData.WebPages.HashConflictPageMagnet,
+        _initialTorrents[0].DownloadDir);
+
+    private static readonly TestRequest _addHashConflictInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _addHashConflictRequestBody);
+
+    private static readonly TestRequest _addHashConflictValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _addHashConflictRequestBody);
+
+    private static readonly string _addHashConflictResponseBody = string.Format(
+        null,
+        TestData.Transmission.AddTorrentAddedResponseBodyFormat,
+        _initialTorrents[0].HashString,
+        28,
+        _initialTorrents[0].Name);
+
+    private static readonly TestResponse _addHashConflictValidHeaderResponse = new(
+        HttpStatusCode.Created,
+        TestData.Transmission.DefaultResponseHeaders,
+        _addHashConflictResponseBody);
+
     // Add Torrent Transmission Does Not Accept
 
     private static readonly string _transmissionRefusedRequestBody = string.Format(
@@ -133,6 +165,8 @@ internal sealed class AddTorrentTests
         [_addNewTorrentValidHeaderRequest] = _addNewTorrentValidHeaderResponse,
         [_addExistingTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_addExistingTorrentValidHeaderRequest] = _addExistingTorrentValidHeaderResponse,
+        [_addHashConflictInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_addHashConflictValidHeaderRequest] = _addHashConflictValidHeaderResponse,
         [_transmissionRefusedInvalidHeaderRequest] = _invalidHeaderResponse,
         [_transmissionRefusedValidHeaderRequest] = _transmissionRefusedValidHeaderResponse,
     };
@@ -239,7 +273,7 @@ internal sealed class AddTorrentTests
         Assert.That(problem, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problem.Errors["source"], Has.One.Contains("404"));
+            Assert.That(problem.Errors["torrentSource"], Has.One.Contains("404"));
             Assert.That(problem.Errors.ContainsKey("transmission"), Is.False);
         }
     }
@@ -267,7 +301,7 @@ internal sealed class AddTorrentTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(problem.Errors, Contains.Key("transmission"));
-            Assert.That(problem.Errors.ContainsKey("source"), Is.False);
+            Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
 
             // The point of keying the messages is that there is nothing else to read.
             Assert.That(problem.Detail, Is.Null);
@@ -287,6 +321,8 @@ internal sealed class AddTorrentTests
             Cron = _initialTorrents[0].Cron,
         };
 
+        var countBefore = await GetTorrentCountAsync().ConfigureAwait(false);
+
         var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
@@ -298,13 +334,54 @@ internal sealed class AddTorrentTests
         Assert.That(problemDetails, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
+            Assert.That(problemDetails.Errors, Has.Count.EqualTo(1));
             Assert.That(
-                problemDetails.Errors[nameof(AddTorrentRequest.SourceUri)],
+                problemDetails.Errors["torrent"],
                 Is.EqualTo(["A torrent with the same URI or hash already exists."]));
-
+            Assert.That(problemDetails.Errors.ContainsKey(nameof(AddTorrentRequest.SourceUri)), Is.False);
             Assert.That(problemDetails.Extensions.TryGetValue("transmissionResult", out var transmissionResult));
             Assert.That(transmissionResult?.ToString(), Is.EqualTo("Duplicate"));
+            Assert.That(problemDetails.Detail, Is.Null);
         }
+
+        var countAfter = await GetTorrentCountAsync().ConfigureAwait(false);
+        Assert.That(countAfter, Is.EqualTo(countBefore));
+    }
+
+    [Test]
+    public async Task AddTorrentAsync_WhenOnlyHashExists_ReturnsConflictResponse()
+    {
+        var dto = new AddTorrentRequest
+        {
+            DownloadDir = "/tvshows",
+            SourceUri = new(TestData.WebPages.HashConflictPageAddress),
+        };
+
+        var countBefore = await GetTorrentCountAsync().ConfigureAwait(false);
+        var response = await _client
+            .PostAsJsonAsync(EndpointAddresses.Torrents, dto)
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors, Has.Count.EqualTo(1));
+            Assert.That(
+                problem.Errors["torrent"],
+                Is.EqualTo(["A torrent with the same URI or hash already exists."]));
+            Assert.That(problem.Errors.ContainsKey(nameof(AddTorrentRequest.SourceUri)), Is.False);
+            Assert.That(problem.Extensions["transmissionResult"]?.ToString(), Is.EqualTo("Added"));
+            Assert.That(problem.Detail, Is.Null);
+        }
+
+        var countAfter = await GetTorrentCountAsync().ConfigureAwait(false);
+        Assert.That(countAfter, Is.EqualTo(countBefore));
     }
 
     /// <remarks>
@@ -435,7 +512,7 @@ internal sealed class AddTorrentTests
             .ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Errors["source"], Has.One.Contains("No magnet link was found"));
+        Assert.That(problem.Errors["torrentSource"], Has.One.Contains("No magnet link was found"));
     }
 
     /// <remarks>

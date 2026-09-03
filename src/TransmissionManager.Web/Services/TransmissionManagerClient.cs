@@ -125,7 +125,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
                     .ConfigureAwait(false);
 
                 if (document.RootElement.ValueKind is JsonValueKind.Object
-                    && document.RootElement.TryGetProperty(ProblemDetailsExtensionKeys.CurrentVersion, out var element)
+                    && document.RootElement.TryGetProperty(ProblemDetailsKeys.CurrentVersion, out var element)
                     && element.ValueKind is JsonValueKind.Number
                     && element.TryGetInt64(out var v))
                 {

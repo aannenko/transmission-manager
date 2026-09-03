@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Scheduling;
@@ -36,7 +37,7 @@ internal sealed class AddTorrentHandler(
         {
             return searchResult.IsUnprocessableSource()
                 ? OnInvalidRequest(getMagnetError!)
-                : OnDependencyFailed(TorrentErrorKeys.Source, getMagnetError!);
+                : OnDependencyFailed(ProblemDetailsKeys.TorrentSource, getMagnetError!);
         }
 
         var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService
@@ -44,7 +45,7 @@ internal sealed class AddTorrentHandler(
             .ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return OnDependencyFailed(TorrentErrorKeys.Transmission, transmissionError!);
+            return OnDependencyFailed(ProblemDetailsKeys.Transmission, transmissionError!);
 
         var (addResult, torrent) = await torrentService
             .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
@@ -71,15 +72,19 @@ internal sealed class AddTorrentHandler(
     }
 
     /// <remarks>
-    /// The address is the only thing a caller can act on: the collision is on the source address or
-    /// on the hash the source resolved to, and the storage layer does not say which.
+    /// The collision is on the source address or on the hash the source resolved to, and the
+    /// storage layer deliberately does not say which.
     /// </remarks>
     private static Outcome OnExists(TransmissionAddResult? result) =>
-        new(Result.Exists, null, result, [new(TorrentErrorKeys.SourceUri, [EndpointMessages.TorrentAlreadyExists])]);
+        new(
+            Result.Exists,
+            null,
+            result,
+            [new(ProblemDetailsKeys.Torrent, [EndpointMessages.TorrentAlreadyExists])]);
 
     private static Outcome OnDependencyFailed(string key, string message) =>
         new(Result.DependencyFailed, null, null, [new(key, [message])]);
 
     private static Outcome OnInvalidRequest(string message) =>
-        new(Result.InvalidRequest, null, null, [new(TorrentErrorKeys.Source, [message])]);
+        new(Result.InvalidRequest, null, null, [new(ProblemDetailsKeys.TorrentSource, [message])]);
 }

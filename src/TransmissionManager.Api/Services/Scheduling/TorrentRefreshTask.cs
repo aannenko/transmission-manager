@@ -29,7 +29,7 @@ internal sealed partial class TorrentRefreshTask(
 
     /// <remarks>
     /// A scheduled refresh has no caller to answer, so what a request would return keyed by the
-    /// setting at fault is flattened into one line, keys included - they say what to go and fix.
+    /// input, concept or dependency to inspect is flattened into one line, keys included.
     /// </remarks>
     private static string ToLogText(KeyValuePair<string, string[]>[] errors) =>
         string.Join("; ", errors.Select(static error => $"{error.Key}: {string.Join(", ", error.Value)}"));

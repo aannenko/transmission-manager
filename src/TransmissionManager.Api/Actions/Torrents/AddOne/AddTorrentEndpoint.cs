@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 
 namespace TransmissionManager.Api.Actions.Torrents.AddOne;
@@ -33,7 +34,7 @@ internal static class AddTorrentEndpoint
                 EndpointProblems.Problem(
                     errors,
                     StatusCodes.Status409Conflict,
-                    new(nameof(transmissionResult), transmissionResult)),
+                    new(ProblemDetailsKeys.TransmissionResult, transmissionResult)),
             AddTorrentResult.InvalidRequest =>
                 EndpointProblems.Problem(errors, StatusCodes.Status400BadRequest),
             AddTorrentResult.DependencyFailed =>

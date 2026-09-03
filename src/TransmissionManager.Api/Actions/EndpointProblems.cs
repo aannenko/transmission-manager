@@ -6,8 +6,8 @@ namespace TransmissionManager.Api.Actions;
 /// <remarks>
 /// Every failure this API reports carries its messages in the <c>errors</c> object, keyed by what is
 /// at fault, whatever the status code - so a client parses one shape and never has to read prose to
-/// learn which setting to change. Data annotation failures already arrive that way through
-/// <c>TypedResults.ValidationProblem</c>; these keep the hand-written ones in step.
+/// learn which input, concept or dependency to inspect. Data annotation failures already arrive
+/// that way through <c>TypedResults.ValidationProblem</c>; these keep the hand-written ones in step.
 /// </remarks>
 internal static class EndpointProblems
 {
@@ -38,7 +38,7 @@ internal static class EndpointProblems
             : Problem(
                 errors,
                 StatusCodes.Status409Conflict,
-                new(ProblemDetailsExtensionKeys.CurrentVersion, currentVersion));
+                new(ProblemDetailsKeys.CurrentVersion, currentVersion));
     }
 
     /// <remarks>
@@ -48,5 +48,5 @@ internal static class EndpointProblems
     /// response carrying any other status code has to do it here.
     /// </remarks>
     private static KeyValuePair<string, object?> ToErrorsExtension(KeyValuePair<string, string[]>[] errors) =>
-        new(ProblemDetailsExtensionKeys.Errors, new Dictionary<string, string[]>(errors, StringComparer.Ordinal));
+        new(ProblemDetailsKeys.Errors, new Dictionary<string, string[]>(errors, StringComparer.Ordinal));
 }

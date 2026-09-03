@@ -618,7 +618,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenUpdatedHashAppearsLocallyAfterTransmissionAdd_ReturnsConflictBlamingId()
+    public async Task RefreshTorrentByIdAsync_WhenUpdatedHashAppearsLocallyAfterTransmissionAdd_ReturnsConflictBlamingTorrent()
     {
         var (statusCode, problem) = await RefreshCleanupWarningTorrentWithMutationAsync(
             static async (torrentService, cancellationToken) =>
@@ -641,7 +641,8 @@ internal sealed class RefreshTorrentByIdTests
         Assert.That(statusCode, Is.EqualTo(HttpStatusCode.Conflict));
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problem.Errors["id"], Has.Length.EqualTo(1));
+            Assert.That(problem.Errors["torrent"], Has.Length.EqualTo(1));
+            Assert.That(problem.Errors.ContainsKey("id"), Is.False);
             Assert.That(problem.Errors.ContainsKey("version"), Is.False);
         }
     }
@@ -665,7 +666,7 @@ internal sealed class RefreshTorrentByIdTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(problem.Errors, Contains.Key("transmission"));
-            Assert.That(problem.Errors.ContainsKey("source"), Is.False);
+            Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
         }
     }
 
@@ -712,7 +713,7 @@ internal sealed class RefreshTorrentByIdTests
         Assert.That(problem, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problem.Errors["source"], Has.One.Contains("404"));
+            Assert.That(problem.Errors["torrentSource"], Has.One.Contains("404"));
             Assert.That(problem.Errors.ContainsKey("transmission"), Is.False);
         }
     }
@@ -734,7 +735,7 @@ internal sealed class RefreshTorrentByIdTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(problem.Errors, Contains.Key("transmission"));
-            Assert.That(problem.Errors.ContainsKey("source"), Is.False);
+            Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
         }
     }
 
@@ -755,7 +756,7 @@ internal sealed class RefreshTorrentByIdTests
             .ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Errors["source"], Has.One.Contains("No magnet link was found"));
+        Assert.That(problem.Errors["torrentSource"], Has.One.Contains("No magnet link was found"));
     }
 
     private static async Task<(HttpStatusCode StatusCode, HttpValidationProblemDetails Problem)>

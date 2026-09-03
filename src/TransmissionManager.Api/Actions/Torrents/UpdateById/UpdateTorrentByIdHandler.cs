@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Validation;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Database.Dto;
@@ -32,9 +33,9 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
             TorrentMutationResult.Success => OnUpdated(id, dto.Cron),
             TorrentMutationResult.NotFound => OnNotFound(),
             TorrentMutationResult.VersionConflict =>
-                OnConflict(TorrentErrorKeys.Version, EndpointMessages.TorrentModifiedConflict, currentVersion),
+                OnConflict(ProblemDetailsKeys.Version, EndpointMessages.TorrentModifiedConflict, currentVersion),
             TorrentMutationResult.NotUnique => // unreachable - we don't change anything unique in a torrent
-                OnConflict(TorrentErrorKeys.Id, EndpointMessages.TorrentAlreadyExists, currentVersion),
+                OnConflict(ProblemDetailsKeys.Torrent, EndpointMessages.TorrentAlreadyExists, currentVersion),
             _ => throw new InvalidOperationException($"Unexpected {nameof(TorrentMutationResult)}: {result}")
         };
     }
@@ -82,7 +83,7 @@ internal sealed class UpdateTorrentByIdHandler(TorrentService torrentService, To
     }
 
     private static UpdateTorrentByIdOutcome OnNotFound() =>
-        new(UpdateTorrentByIdResult.NotFound, null, [new(TorrentErrorKeys.Id, [EndpointMessages.NoSuchTorrent])]);
+        new(UpdateTorrentByIdResult.NotFound, null, [new(ProblemDetailsKeys.Id, [EndpointMessages.NoSuchTorrent])]);
 
     private static UpdateTorrentByIdOutcome OnConflict(string key, string message, long? currentVersion) =>
         new(UpdateTorrentByIdResult.Conflict, currentVersion, [new(key, [message])]);

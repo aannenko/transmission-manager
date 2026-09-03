@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Database.Services;
 
@@ -22,7 +23,7 @@ internal static class GetTorrentByIdEndpoint
         return torrent is not null
             ? TypedResults.Ok(torrent.ToDto())
             : EndpointProblems.Problem(
-                [new(TorrentErrorKeys.Id, [EndpointMessages.NoSuchTorrent])],
+                [new(ProblemDetailsKeys.Id, [EndpointMessages.NoSuchTorrent])],
                 StatusCodes.Status404NotFound);
     }
 }

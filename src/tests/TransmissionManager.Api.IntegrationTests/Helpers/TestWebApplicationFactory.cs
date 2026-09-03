@@ -16,15 +16,15 @@ namespace TransmissionManager.Api.IntegrationTests.Helpers;
 
 internal sealed class TestWebApplicationFactory<TProgram>(
     Torrent[] initialTorrents,
-    IReadOnlyDictionary<TestRequest, TestResponse>? torrentPageRequestResponseMap,
+    IReadOnlyDictionary<TestRequest, TestResponse>? sourceRequestResponseMap,
     IReadOnlyDictionary<TestRequest, TestResponse>? transmissionRequestResponseMap,
     Func<TorrentService, CancellationToken, Task>? transmissionAddMutation = null)
     : WebApplicationFactory<TProgram> where TProgram : class
 {
     private static readonly Dictionary<TestRequest, TestResponse> _emptyRequestResponseMap = [];
 
-    private readonly IReadOnlyDictionary<TestRequest, TestResponse> _torrentPageRequestResponseMap =
-        torrentPageRequestResponseMap ?? _emptyRequestResponseMap;
+    private readonly IReadOnlyDictionary<TestRequest, TestResponse> _sourceRequestResponseMap =
+        sourceRequestResponseMap ?? _emptyRequestResponseMap;
 
     private readonly IReadOnlyDictionary<TestRequest, TestResponse> _transmissionRequestResponseMap =
         transmissionRequestResponseMap ?? _emptyRequestResponseMap;
@@ -58,13 +58,13 @@ internal sealed class TestWebApplicationFactory<TProgram>(
             _ = services.PostConfigure(nameof(TorrentWebPageClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
-                    builder.PrimaryHandler = new FakeHttpMessageHandler(_torrentPageRequestResponseMap));
+                    builder.PrimaryHandler = new FakeHttpMessageHandler(_sourceRequestResponseMap));
             });
 
             _ = services.PostConfigure(nameof(TorrentJsonPointerClient), (HttpClientFactoryOptions options) =>
             {
                 options.HttpMessageHandlerBuilderActions.Add(builder =>
-                    builder.PrimaryHandler = new FakeHttpMessageHandler(_torrentPageRequestResponseMap));
+                    builder.PrimaryHandler = new FakeHttpMessageHandler(_sourceRequestResponseMap));
             });
 
             _ = services.PostConfigure(nameof(TransmissionClient), (HttpClientFactoryOptions options) =>

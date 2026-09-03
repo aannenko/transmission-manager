@@ -64,14 +64,14 @@ internal static class QueryableTorrentExtensions
                 query.Where(torrent =>
                     torrent.Name.CompareTo(name) < 0 ||
                     (torrent.Name.CompareTo(name) == 0 && torrent.Id < anchorId)),
-            (TorrentOrder.Uri, string webPage) =>
+            (TorrentOrder.Uri, string sourceUri) =>
                 query.Where(torrent =>
-                    torrent.SourceUri.CompareTo(webPage) > 0 ||
-                    (torrent.SourceUri.CompareTo(webPage) == 0 && torrent.Id > anchorId)),
-            (TorrentOrder.UriDesc, string webPage) =>
+                    torrent.SourceUri.CompareTo(sourceUri) > 0 ||
+                    (torrent.SourceUri.CompareTo(sourceUri) == 0 && torrent.Id > anchorId)),
+            (TorrentOrder.UriDesc, string sourceUri) =>
                 query.Where(torrent =>
-                    torrent.SourceUri.CompareTo(webPage) < 0 ||
-                    (torrent.SourceUri.CompareTo(webPage) == 0 && torrent.Id < anchorId)),
+                    torrent.SourceUri.CompareTo(sourceUri) < 0 ||
+                    (torrent.SourceUri.CompareTo(sourceUri) == 0 && torrent.Id < anchorId)),
             (TorrentOrder.DownloadDir, string downloadDir) =>
                 query.Where(torrent =>
                     torrent.DownloadDir.CompareTo(downloadDir) > 0 ||

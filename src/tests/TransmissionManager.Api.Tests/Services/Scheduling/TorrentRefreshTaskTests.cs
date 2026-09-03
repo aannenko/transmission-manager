@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System.Globalization;
 using TransmissionManager.Api.Actions.Torrents.RefreshById;
+using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.Api.Services.Scheduling;
@@ -54,7 +55,7 @@ internal sealed class TorrentRefreshTaskTests
 
     /// <remarks>
     /// The torrent id has to survive in the log line. Nothing else identifies which torrent a
-    /// scheduled failure is about - the keyed errors name the setting at fault, not the row - and
+    /// scheduled failure is about - the keyed errors describe what to inspect, not the row - and
     /// the prose that used to carry the id was dropped when failures became keyed.
     /// </remarks>
     [TestCase(RefreshTorrentByIdResult.NotFoundLocally)]
@@ -71,7 +72,7 @@ internal sealed class TorrentRefreshTaskTests
             null,
             null,
             Warning: null,
-            Errors: [new("SourceUri", ["refresh failed"])]);
+            Errors: [new(ProblemDetailsKeys.TorrentSource, ["refresh failed"])]);
 
         var logs = await RunAsync(outcome).ConfigureAwait(false);
 
@@ -85,19 +86,22 @@ internal sealed class TorrentRefreshTaskTests
     }
 
     /// <remarks>
-    /// A scheduled refresh has nowhere to put the keys but the message, and they are the actionable
-    /// half - "which setting do I go and fix" - so losing them would leave the log line ambiguous
-    /// between a bad address and a bad pattern.
+    /// No handler produces several errors today. This synthetic outcome verifies that the generic
+    /// flattener retains every key and message if one does.
     /// </remarks>
     [Test]
-    public async Task Invoke_WhenRefreshFailsOnSeveralSettings_LogsEveryKeyAndMessage()
+    public async Task Invoke_WhenRefreshFailureContainsSeveralErrors_LogsEveryKeyAndMessage()
     {
         var outcome = new RefreshTorrentByIdOutcome(
             RefreshTorrentByIdResult.InvalidConfiguration,
             null,
             null,
             Warning: null,
-            Errors: [new("SourceUri", ["bad address"]), new("MagnetRegexPattern", ["bad pattern", "too long"])]);
+            Errors:
+            [
+                new(ProblemDetailsKeys.TorrentSource, ["bad address", "bad pattern"]),
+                new(ProblemDetailsKeys.Transmission, ["remove failed"]),
+            ]);
 
         var logs = await RunAsync(outcome).ConfigureAwait(false);
 
@@ -105,7 +109,7 @@ internal sealed class TorrentRefreshTaskTests
             logs,
             Has.Some.Matches<RecordedLog>(static log => log.Level is LogLevel.Warning
                 && log.Message.Contains(
-                    "SourceUri: bad address; MagnetRegexPattern: bad pattern, too long",
+                    "torrentSource: bad address, bad pattern; transmission: remove failed",
                     StringComparison.Ordinal)));
     }
 

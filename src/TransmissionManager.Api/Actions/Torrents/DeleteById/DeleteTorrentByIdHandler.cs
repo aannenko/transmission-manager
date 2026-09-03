@@ -1,4 +1,5 @@
-﻿using TransmissionManager.Api.Common.Dto.Torrents;
+﻿using TransmissionManager.Api.Common.Constants;
+using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
@@ -58,11 +59,13 @@ internal sealed class DeleteTorrentByIdHandler(
     }
 
     private static DeleteTorrentByIdOutcome OnNotFound() =>
-        new(Result.NotFound, null, [new(TorrentErrorKeys.Id, [EndpointMessages.NoSuchTorrent])]);
+        new(Result.NotFound, null, [new(ProblemDetailsKeys.Id, [EndpointMessages.NoSuchTorrent])]);
 
     private static DeleteTorrentByIdOutcome OnConflict(long version) =>
-        new(Result.VersionConflict, version, [new(TorrentErrorKeys.Version, [EndpointMessages.TorrentModifiedConflict])]);
+        new(Result.VersionConflict,
+            version,
+            [new(ProblemDetailsKeys.Version, [EndpointMessages.TorrentModifiedConflict])]);
 
     private static DeleteTorrentByIdOutcome OnDependencyFailed(string message) =>
-        new(Result.DependencyFailed, null, [new(TorrentErrorKeys.Transmission, [message])]);
+        new(Result.DependencyFailed, null, [new(ProblemDetailsKeys.Transmission, [message])]);
 }
