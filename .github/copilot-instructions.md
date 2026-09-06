@@ -33,6 +33,10 @@ Shared libraries:
 
 ## Key Conventions
 
+### Choosing a pattern
+
+**Where the codebase does one thing two ways, pick the winner and extend it — never add a third.** A new requirement is a reason to finish an existing pattern, not to start one: when half a client's methods return `SomeOutcome` and the rest throw, the way to carry a new error body is to give `SomeOutcome` somewhere to put it, not to add a `SomeException` beside both. Name the concept and find how it is already spelled here before designing.
+
 ### Endpoint structure (Vertical Slice / Action pattern)
 
 Endpoints live under `Actions/{Feature}/{ActionName}/` and combine an `{Action}Endpoint.cs`, an optional `{Action}Handler.cs`, an `{Action}Result.cs`/`{Action}Outcome.cs` enum or tuple, and DTOs. Endpoints return `Results<T1, T2, ...>` discriminated unions; errors use Problem Details (RFC 7807). `Actions/Torrents/Add/` is a representative folder.
