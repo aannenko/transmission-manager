@@ -12,10 +12,6 @@ namespace TransmissionManager.Api.Common.Attributes;
 /// (<c>{0,1000000}</c>, a megabyte built from a forty-character hash). A bare <c>{0}</c> is valid,
 /// and is what a source already holding whole magnet links needs.
 /// <see langword="null"/> and the empty string are valid and defer to the configured default.
-/// <para>
-/// Mirrors <c>JsonValueRegex.IsJsonValueFormat</c> in the torrent sources project, which this
-/// project cannot reference; a test asserts the two stay identical.
-/// </para>
 /// </remarks>
 public sealed class JsonValueFormatAttribute : RegularExpressionAttribute
 {

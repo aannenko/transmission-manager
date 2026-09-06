@@ -76,7 +76,7 @@ internal static class JsonPointerParser
             var segmentBytes = Encoding.UTF8.GetByteCount(segment);
             if (segmentBytes > maxSegmentBytes)
             {
-                // We'll not be able match or even hold a value this long - failing early.
+                // A value this long can be neither matched nor held - failing early.
                 error = $"Segment {segmentsAdded + 1} of the JSON Pointer is {segmentBytes} bytes, which exceeds the " +
                     $"{maxSegmentBytes} bytes allowed by a " +
                     $"{nameof(TorrentJsonPointerClientOptions.MaxJsonTokenBytes)} of {maxTokenBytes}.";

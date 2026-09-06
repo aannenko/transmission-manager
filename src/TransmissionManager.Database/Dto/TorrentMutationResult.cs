@@ -15,10 +15,9 @@ public enum TorrentMutationResult
     /// No row with the requested id exists.
     /// </summary>
     /// <remarks>
-    /// Reported when the mutation matched no row and the disambiguating SELECT found none either,
-    /// so it is best-effort under concurrent churn - see the <c>&lt;remarks&gt;</c> on
-    /// <c>TorrentService</c>. <see cref="TorrentMutationOutcome.CurrentVersion"/> is
-    /// <see langword="null"/>.
+    /// Best-effort under concurrent churn: another writer can delete the row between the failed
+    /// mutation and the check that classifies it.
+    /// <see cref="TorrentMutationOutcome.CurrentVersion"/> is <see langword="null"/>.
     /// </remarks>
     NotFound,
 

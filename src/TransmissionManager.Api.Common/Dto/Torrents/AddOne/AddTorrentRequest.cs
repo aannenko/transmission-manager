@@ -17,6 +17,9 @@ public sealed class AddTorrentRequest : IValidatableObject
     [Required]
     public required string DownloadDir { get; init; }
 
+    /// <summary>
+    /// Finds the torrent's magnet link, or the value one is built from, in what its source returns.
+    /// </summary>
     /// <remarks>
     /// Built with <c>RegexOptions.ExplicitCapture</c>, so a plain <c>(…)</c> only groups and
     /// captures nothing; name a group to capture or backreference it.

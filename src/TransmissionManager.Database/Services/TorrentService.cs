@@ -6,6 +6,10 @@ using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Services;
 
+/// <summary>
+/// Reads and mutates the torrent catalog, guarding every mutation with its optimistic-concurrency
+/// token.
+/// </summary>
 /// <remarks>
 /// <para>
 /// The OCC mutation paths (<see cref="UpdateOneAsync"/> and <see cref="DeleteOneAsync"/>) use
@@ -82,7 +86,6 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
     {
         var query = ApplyFilter(dbContext.Torrents.AsNoTracking(), filter);
 
-        // Paginate
         if (page == default)
             page = new();
 

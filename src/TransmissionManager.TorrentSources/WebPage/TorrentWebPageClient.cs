@@ -21,10 +21,13 @@ public sealed class TorrentWebPageClient(
     private static ReadOnlySpan<byte> Magnet => "magnet:?"u8;
 
     /// <summary>
-    /// Finds a magnet URI on the specified torrent web page.
+    /// Finds a magnet link on the web page at <paramref name="torrentWebPageUri"/>.
     /// </summary>
-    /// <param name="torrentWebPageUri">The URI of the torrent web page to search.</param>
-    /// <param name="regexPattern">An optional regular expression pattern to match the magnet URI.</param>
+    /// <param name="torrentWebPageUri">The address of the page to scan.</param>
+    /// <param name="regexPattern">
+    /// Matches the magnet link on the page as its whole match, or <see langword="null"/> to use
+    /// <see cref="TorrentWebPageClientOptions.DefaultMagnetRegexPattern"/>.
+    /// </param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="MagnetSearchOutcome"/> representing the result of the search, including failures.
@@ -52,7 +55,6 @@ public sealed class TorrentWebPageClient(
 
         var currentOptions = options.CurrentValue;
 
-        // Ensure that the user-supplied regexPattern, if provided, has expected shape.
         if (!string.IsNullOrEmpty(regexPattern) && !TorrentRegex.IsFindMagnetRegex().IsMatch(regexPattern))
         {
             return MagnetSearchOutcome.Failure(
@@ -167,7 +169,6 @@ public sealed class TorrentWebPageClient(
                     indexOfMagnet = bytes.IndexOf(Magnet);
                 }
 
-                // magnet found, but may not match the regex - ensure it matches the regex and return it
                 var outcome = FindMagnetUriInBytes(bytes, currentOptions, regexPattern);
                 if (outcome is not null)
                     return outcome;
@@ -207,7 +208,6 @@ public sealed class TorrentWebPageClient(
 
             var matchText = new string(match);
 
-            // Ensure that the matched text is a valid magnet link.
             return Uri.TryCreate(matchText, UriKind.Absolute, out var magnetUri) &&
                 magnetUri.Scheme == _magnetScheme
                     ? MagnetSearchOutcome.Found(magnetUri)

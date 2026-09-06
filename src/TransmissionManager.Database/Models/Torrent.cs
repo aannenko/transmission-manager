@@ -38,14 +38,12 @@ public sealed class Torrent
     public string? Cron { get; set; }
 
     /// <summary>
-    /// Optimistic concurrency token. Initialised to <c>1</c> by
-    /// <c>TorrentAddDtoExtensions.ToTorrent</c> and bumped by <c>TorrentService.UpdateOneAsync</c>
-    /// via an explicit <c>SetProperty</c> inside <c>ExecuteUpdateAsync</c>.
+    /// Optimistic concurrency token, which a caller must echo to update or delete this torrent.
     /// </summary>
     /// <remarks>
-    /// <see cref="ConcurrencyCheckAttribute"/> is defence in depth for any future code path that
-    /// mutates a <c>Torrent</c> via the EF change tracker. See the <c>&lt;remarks&gt;</c> on
-    /// <c>TorrentService</c> for the OCC contract and the constraints such code must follow.
+    /// Starts at <c>1</c> and advances with every successful update. See the
+    /// <c>&lt;remarks&gt;</c> on <c>TorrentService</c> for the OCC contract and the constraints any
+    /// new mutation path must follow.
     /// </remarks>
     [ConcurrencyCheck]
     public required long Version { get; set; }

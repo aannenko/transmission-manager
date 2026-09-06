@@ -179,7 +179,6 @@ internal sealed class DeleteTorrentByIdTests
     public async Task DeleteTorrentByIdAsync_WhenInvalidFlagToRemoveDataUsed_ReturnsProblemDetails()
     {
         var torrentAddress = $"{EndpointAddresses.Torrents}/1?version=1&deleteType=999";
-        // deleteType=InvalidFlag returns problem details without the Errors dict
 
         var response = await _client.DeleteAsync(torrentAddress).ConfigureAwait(false);
 

@@ -22,15 +22,6 @@ internal static class HttpStatusCodeExtensions
             _ => ApiResultStatus.Failed,
         };
 
-    /// <summary>
-    /// Tells whether the code says the request succeeded.
-    /// </summary>
-    /// <param name="statusCode">The status the server answered with.</param>
-    /// <returns><see langword="true"/> for 2xx.</returns>
-    /// <remarks>
-    /// A failure can carry a success code, so a message built from one has to say the answer was
-    /// not understood rather than that the request failed.
-    /// </remarks>
     public static bool IsSuccessCode(this HttpStatusCode statusCode) =>
         (int)statusCode is >= 200 and <= 299;
 }

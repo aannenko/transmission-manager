@@ -43,9 +43,6 @@ internal static class RemoteTextUtils
     /// The upper bound is not decoration: the summary is built in a buffer of that size on the
     /// stack, and a stack overflow can be neither caught nor logged.
     /// </exception>
-    /// <remarks>
-    /// The ellipsis is present at the end of the returned summary only if the value was truncated.
-    /// </remarks>
     public static string Summarize(ReadOnlySpan<char> value, int maxLength = DefaultSummaryLength)
     {
         if (maxLength is < 1 or > _maxSummaryLength)

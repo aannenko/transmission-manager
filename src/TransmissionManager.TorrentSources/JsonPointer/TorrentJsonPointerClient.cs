@@ -24,6 +24,16 @@ public sealed class TorrentJsonPointerClient(
     /// The address of the document, ending with an RFC 6901 JSON Pointer as its fragment, as in
     /// <c>https://source.com/forum/1106#/result/6880555/7</c>.
     /// </param>
+    /// <param name="jsonValueRegexPattern">
+    /// Extracts the part of the addressed string that identifies the torrent, as its whole match, or
+    /// <see langword="null"/> to use
+    /// <see cref="TorrentJsonPointerClientOptions.DefaultJsonValueRegexPattern"/>.
+    /// </param>
+    /// <param name="jsonValueFormat">
+    /// Builds the magnet link out of the extracted value, which <c>{0}</c> stands for, or
+    /// <see langword="null"/> to use
+    /// <see cref="TorrentJsonPointerClientOptions.DefaultJsonValueFormat"/>.
+    /// </param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>
     /// A <see cref="MagnetSearchOutcome"/> representing the result of the search, including failures.

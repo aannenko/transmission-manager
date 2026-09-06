@@ -4,6 +4,9 @@ using System.Text.RegularExpressions;
 
 namespace TransmissionManager.TorrentSources.JsonPointer;
 
+/// <summary>
+/// Configures how a JSON source is fetched, read under a memory bound, and turned into a magnet link.
+/// </summary>
 /// <remarks>
 /// Paired with <see cref="ValidateTorrentJsonPointerClientOptions"/>, which is the only thing that
 /// checks any of this and where each setting's accepted values and their reasons are written.

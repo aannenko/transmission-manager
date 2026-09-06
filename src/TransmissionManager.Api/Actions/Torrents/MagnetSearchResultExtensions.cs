@@ -8,7 +8,6 @@ internal static class MagnetSearchResultExtensions
     /// Determines whether the specified result means the source cannot yield a magnet until
     /// something changes outside this application.
     /// </summary>
-    /// <param name="result">The result to examine.</param>
     /// <returns>Whether retrying unchanged is pointless.</returns>
     /// <remarks>
     /// <see cref="MagnetSearchResult.NotFound"/> is the debatable member and sits here deliberately:

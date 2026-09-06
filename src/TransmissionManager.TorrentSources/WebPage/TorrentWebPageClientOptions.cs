@@ -3,6 +3,9 @@ using System.Text.RegularExpressions;
 
 namespace TransmissionManager.TorrentSources.WebPage;
 
+/// <summary>
+/// Configures how a web page is fetched and scanned for a magnet link.
+/// </summary>
 /// <remarks>
 /// Paired with <see cref="ValidateTorrentWebPageClientOptions"/>, which is the only thing that
 /// checks any of this and where each setting's accepted values and their reasons are written.

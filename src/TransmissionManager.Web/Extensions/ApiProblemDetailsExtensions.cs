@@ -7,7 +7,6 @@ internal static class ApiProblemDetailsExtensions
     /// <summary>
     /// Joins the problem details response's key-valued errors into one line.
     /// </summary>
-    /// <param name="problemDetails">The response to read.</param>
     /// <returns>The joined messages, or an empty string if the response carries none.</returns>
     /// <remarks>
     /// The key is written as the API sent it, because several messages do not say what they are
