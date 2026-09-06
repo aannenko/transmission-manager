@@ -4,11 +4,16 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Static because the light/dark theme is a stored user choice, not a prefers-color-scheme match. -->
+    <meta name="theme-color" content="#dddddd" />
     <title>Transmission Manager</title>
     <base href="/" />
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="icon-192.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
     <!-- If you add any scoped CSS files, uncomment the following to load them
     <link href="TransmissionManager.Web.styles.css" rel="stylesheet" /> -->
     <script type="importmap"></script>
