@@ -58,9 +58,9 @@ else
                 OrderBy = GetTorrentPageOrder.RefreshDateDesc
             }));
 
-        if (torrentPage is not null)
+        if (torrentPage.Status is ApiResultStatus.Success)
         {
-            _torrents = torrentPage.Torrents as TorrentDto[] ?? torrentPage.Torrents.ToArray();
+            _torrents = torrentPage.Value!.Torrents as TorrentDto[] ?? torrentPage.Value.Torrents.ToArray();
 
             if (_torrents.Length is 0)
             {
@@ -80,23 +80,23 @@ else
         }
     }
 
-    private async Task<RefreshTorrentByIdResponse> RefreshTorrentAsync(long id)
+    private async Task<ApiResult<RefreshTorrentByIdResponse>> RefreshTorrentAsync(long id)
     {
-        var response = await Client.RefreshTorrentByIdAsync(id);
-        if (response.TransmissionResult is TransmissionAddResult.Added)
+        var result = await Client.RefreshTorrentByIdAsync(id);
+        if (result.Status is ApiResultStatus.Success && result.Value!.TransmissionResult is TransmissionAddResult.Added)
         {
             await LoadTorrentsAsync();
             StateHasChanged();
         }
 
-        return response;
+        return result;
     }
 
-    private async Task<MutationOutcome> DeleteTorrentAsync(long id, long version, DeleteTorrentByIdType deleteType)
+    private async Task<ApiResult> DeleteTorrentAsync(long id, long version, DeleteTorrentByIdType deleteType)
     {
-        var outcome = await Client.DeleteTorrentByIdAsync(id, version, deleteType);
+        var result = await Client.DeleteTorrentByIdAsync(id, version, deleteType);
         await LoadTorrentsAsync();
         StateHasChanged();
-        return outcome;
+        return result;
     }
 }

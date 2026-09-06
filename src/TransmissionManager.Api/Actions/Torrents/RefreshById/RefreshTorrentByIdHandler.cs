@@ -5,8 +5,8 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
-using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 using Outcome = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdOutcome;
+using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 
 namespace TransmissionManager.Api.Actions.Torrents.RefreshById;
 
@@ -143,10 +143,9 @@ internal sealed class RefreshTorrentByIdHandler(
     }
 
     /// <remarks>
-    /// The refreshed magnet has already been added to Transmission and the previous torrent has
-    /// <b>not</b> been removed, because the local row could not be repointed at the new hash — another
-    /// row already holds it. Per the project's independence-from-Transmission rule the partial
-    /// outcome is surfaced as-is and the user retries; no compensating removal is performed.
+    /// The refreshed magnet is already in Transmission and the previous torrent has <b>not</b> been
+    /// removed, because another row already holds the new hash. The partial outcome is surfaced as
+    /// it is and the user retries; the two systems are independent, so nothing compensates.
     /// </remarks>
     private static Outcome OnExists(TransmissionAddResult? transmissionResult)
     {

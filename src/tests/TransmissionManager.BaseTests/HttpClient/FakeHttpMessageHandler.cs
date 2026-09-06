@@ -34,6 +34,12 @@ public class FakeHttpMessageHandler(IReadOnlyDictionary<TestRequest, TestRespons
             Content = testResponse.Content is null ? null : new StringContent(testResponse.Content)
         };
 
+        if (response.Content is not null && testResponse.ContentType is not null)
+        {
+            _ = response.Content.Headers.Remove("Content-Type");
+            _ = response.Content.Headers.TryAddWithoutValidation("Content-Type", testResponse.ContentType);
+        }
+
         if (testResponse.Headers?.Count > 0)
         {
             foreach (var (name, value) in testResponse.Headers)

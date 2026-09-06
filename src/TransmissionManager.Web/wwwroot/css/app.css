@@ -398,6 +398,13 @@ textarea::placeholder {
         outline: 0;
     }
 
+    .form-input:disabled {
+        background: var(--neutral-100);
+        color: var(--secondary-text-color);
+        cursor: not-allowed;
+        opacity: 1;
+    }
+
 .form-button {
     display: inline-block;
     width: 100%;

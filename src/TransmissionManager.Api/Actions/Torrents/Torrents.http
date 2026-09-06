@@ -33,7 +33,6 @@ Content-Type: application/json
 
 # Add a torrent by the address of a JSON API that exposes its info hash
 # The fragment (everything after "#") is an RFC 6901 JSON Pointer selecting a string in the response
-# The indices depend on the API's response shape - fetch it once to see where the value sits
 # magnetRegexPattern picks the info hash out of that string, jsonValueFormat builds the magnet link out of it
 # The tracker address is percent-encoded because it is nested inside the magnet URI's tr parameter
 # Do not provide either of the two to use the global ones

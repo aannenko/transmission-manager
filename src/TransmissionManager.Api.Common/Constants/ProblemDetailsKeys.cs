@@ -1,10 +1,8 @@
 ﻿namespace TransmissionManager.Api.Common.Constants;
 
-/// <remarks>
-/// <see cref="Errors"/> names the extension containing the error dictionary. The request-parameter
-/// and request-processing regions contain keys used inside that dictionary. Framework-generated
-/// body-field keys are Pascal-case and are not declared here.
-/// </remarks>
+/// <summary>
+/// The keys this API reports errors under.
+/// </summary>
 public static class ProblemDetailsKeys
 {
     #region Extension members
@@ -13,11 +11,13 @@ public static class ProblemDetailsKeys
 
     public static readonly string TransmissionResult = "transmissionResult";
 
+    /// <summary>
+    /// Carries the dictionary of everything that is wrong, keyed by what is at fault.
+    /// </summary>
     /// <remarks>
-    /// The key ASP.NET Core reports validation failures under. Fill it with a dictionary
-    /// with keys containing field names, and values being arrays of error messages.
+    /// Each value is an array of messages. Every key in the regions below goes inside it.
     /// </remarks>
-    public static readonly string Errors = "errors"; // keys below are put inside this dictionary
+    public static readonly string Errors = "errors";
 
     #endregion
 
@@ -32,26 +32,30 @@ public static class ProblemDetailsKeys
     #region Request processing
 
     /// <summary>
-    /// Transmission refused the request, could not be reached, or does not hold the torrent the
-    /// request is about.
+    /// Blames the request as a whole for breaking a rule that no single field breaks on its own.
+    /// </summary>
+    /// <remarks>
+    /// Pascal-case because it arrives among the framework's own body-field keys. The message says
+    /// which part of the request it means, so the key does not repeat it.
+    /// </remarks>
+    public static readonly string Request = "Request";
+
+    /// <summary>
+    /// Blames Transmission for refusing the request, being unreachable, or not holding the torrent.
     /// </summary>
     public static readonly string Transmission = "transmission";
 
     /// <summary>
-    /// The torrent operation as a whole when the local catalog rejects a source URI or hash and no
-    /// individual request value identifies the conflicting torrent.
+    /// Blames the torrent for a duplicate source URI or hash of another existing torrent.
     /// </summary>
     public static readonly string Torrent = "torrent";
 
     /// <summary>
-    /// The torrent's source as a whole - its address, its magnet pattern and its magnet format
-    /// together.
+    /// Blames the torrent's source for not yielding a magnet link.
     /// </summary>
     /// <remarks>
-    /// A failed magnet search does not name which of the three is to blame, and mostly cannot: a
-    /// pattern or a format that is malformed is refused before the source is ever read, so what
-    /// reaches here is what only the message can explain - a page holding no magnet, a pattern
-    /// matching nothing, a pointer addressing the wrong value.
+    /// Covers the source's address, magnet pattern and magnet format together, because a failure
+    /// rarely points at just one of them.
     /// </remarks>
     public static readonly string TorrentSource = "torrentSource";
 

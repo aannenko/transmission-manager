@@ -1,4 +1,5 @@
-﻿@using TransmissionManager.Api.Common.Dto.Torrents
+﻿@using System.Net
+@using TransmissionManager.Api.Common.Dto.Torrents
 @using TransmissionManager.Web.Constants
 @using TransmissionManager.Web.Dto
 @using TransmissionManager.Web.Extensions
@@ -51,22 +52,27 @@
     public TorrentDto Torrent { get; set; }
 
     [Parameter, EditorRequired]
-    public Func<long, Task<RefreshTorrentByIdResponse>> RefreshAsync { get; set; }
+    public Func<long, Task<ApiResult<RefreshTorrentByIdResponse>>> RefreshAsync { get; set; }
 
     [Parameter, EditorRequired]
-    public Func<long, long, DeleteTorrentByIdType, Task<MutationOutcome>> DeleteAsync { get; set; }
+    public Func<long, long, DeleteTorrentByIdType, Task<ApiResult>> DeleteAsync { get; set; }
 
     private protected override string BusyMessage => string.Empty;
 
-    private protected override string GetGenericErrorMessage(HttpRequestException exception)
+    private string OperationFailure => _operation switch
     {
-        return _operation switch
-        {
-            Operation.Refresh => $"Failed to refresh torrent: '{exception.Message}'.",
-            Operation.Delete => $"Failed to delete torrent: '{exception.Message}'.",
-            _ => "An unexpected error occurred."
-        };
-    }
+        Operation.Refresh => "Failed to refresh torrent",
+        Operation.Delete => "Failed to delete torrent",
+        _ => "An unexpected error occurred"
+    };
+
+    private protected override string GetGenericErrorMessage(HttpRequestException exception) =>
+        $"{OperationFailure}: '{exception.Message}'.";
+
+    private protected override string GetProblemDetailsMessage(
+        ApiProblemDetails? problemDetails,
+        HttpStatusCode? statusCode) =>
+        $"{OperationFailure}: '{base.GetProblemDetailsMessage(problemDetails, statusCode)}'.";
 
     private async Task RefreshTorrentsAsync()
     {
@@ -109,7 +115,7 @@
             (Self: this, deleteType),
             static args => args.Self.DeleteAsync(args.Self.Torrent.Id, args.Self.Torrent.Version, args.deleteType));
 
-        if (outcome.Status != MutationStatus.Success && string.IsNullOrEmpty(Message))
+        if (outcome.Status != ApiResultStatus.Success && string.IsNullOrEmpty(Message))
             Message = "Failed to delete torrent.";
     }
 }

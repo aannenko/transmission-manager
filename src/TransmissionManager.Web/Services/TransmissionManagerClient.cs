@@ -1,83 +1,90 @@
 ﻿using System.Net.Http.Json;
-using System.Text.Json;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Torrents;
 using TransmissionManager.Api.Common.Serialization;
 using TransmissionManager.Web.Dto;
+using TransmissionManager.Web.Extensions;
 
 namespace TransmissionManager.Web.Services;
 
+/// <summary>
+/// Calls the TransmissionManager API.
+/// </summary>
+/// <remarks>
+/// Every method answers with a result rather than throwing for what the API said, the way the API's
+/// own actions answer with an outcome. Only a request that never got an answer - a transport failure
+/// or a cancellation - leaves as an exception, because there is no response to describe.
+/// </remarks>
 internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
-    public async Task<Version> GetAppVersionAsync(CancellationToken cancellationToken = default)
+    public async Task<ApiResult<Version>> GetAppVersionAsync(CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.AppVersion, UriKind.Relative);
-        var version = await httpClient
-            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.Version, cancellationToken)
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        return await response
+            .ToApiResultAsync(DtoJsonSerializerContext.Default.Version, cancellationToken)
             .ConfigureAwait(false);
-
-        return version is null
-            ? throw new HttpRequestException("Failed to retrieve app version.")
-            : version;
     }
 
-    public async Task<TorrentDto> GetTorrentById(long torrentId, CancellationToken cancellationToken = default)
+    public async Task<ApiResult<TorrentDto>> GetTorrentByIdAsync(
+        long torrentId,
+        CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
-        var torrent = await httpClient
-            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.TorrentDto, cancellationToken)
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        return await response
+            .ToApiResultAsync(DtoJsonSerializerContext.Default.TorrentDto, cancellationToken)
             .ConfigureAwait(false);
-
-        return torrent ?? throw new HttpRequestException($"Failed to retrieve torrent with id {torrentId}.");
     }
 
-    public async Task<GetTorrentPageResponse> GetTorrentPageAsync(
+    public async Task<ApiResult<GetTorrentPageResponse>> GetTorrentPageAsync(
         GetTorrentPageParameters request = default,
         CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
-        var torrentPage = await httpClient
-            .GetFromJsonAsync(requestUri, DtoJsonSerializerContext.Default.GetTorrentPageResponse, cancellationToken)
+        using var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        return await response
+            .ToApiResultAsync(DtoJsonSerializerContext.Default.GetTorrentPageResponse, cancellationToken)
             .ConfigureAwait(false);
-
-        return torrentPage ?? throw new HttpRequestException("Failed to retrieve torrent page.");
     }
 
-    public async Task<AddTorrentResponse> AddTorrentAsync(
+    public async Task<ApiResult<AddTorrentResponse>> AddTorrentAsync(
         AddTorrentRequest request,
         CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri(EndpointAddresses.Torrents, UriKind.Relative);
-        var response = await httpClient
-            .PostAsJsonAsync(requestUri, request, cancellationToken)
+        using var response = await httpClient
+            .PostAsJsonAsync(
+                requestUri,
+                request,
+                DtoJsonSerializerContext.Default.AddTorrentRequest,
+                cancellationToken)
             .ConfigureAwait(false);
 
-        var addTorrentResponse = await response
-            .EnsureSuccessStatusCode()
-            .Content.ReadFromJsonAsync<AddTorrentResponse>(cancellationToken)
+        var result = await response
+            .ToApiResultAsync(DtoJsonSerializerContext.Default.AddTorrentResponse, cancellationToken)
             .ConfigureAwait(false);
 
-        return addTorrentResponse ?? throw new HttpRequestException("Failed to add torrent.");
+        return RequireTorrent(result, result.Value?.TorrentDto);
     }
 
-    public async Task<RefreshTorrentByIdResponse> RefreshTorrentByIdAsync(
+    public async Task<ApiResult<RefreshTorrentByIdResponse>> RefreshTorrentByIdAsync(
         long torrentId,
         CancellationToken cancellationToken = default)
     {
         var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
         using var response = await httpClient
-            .PostAsJsonAsync(requestUri, string.Empty, cancellationToken)
+            .PostAsync(requestUri, null, cancellationToken)
             .ConfigureAwait(false);
 
-        var refreshResponse = await response
-            .EnsureSuccessStatusCode()
-            .Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>(cancellationToken)
+        var result = await response
+            .ToApiResultAsync(DtoJsonSerializerContext.Default.RefreshTorrentByIdResponse, cancellationToken)
             .ConfigureAwait(false);
 
-        return refreshResponse ?? throw new HttpRequestException($"Failed to refresh torrent with id {torrentId}.");
+        return RequireTorrent(result, result.Value?.TorrentDto);
     }
 
-    public async Task<MutationOutcome> UpdateTorrentByIdAsync(
+    public async Task<ApiResult> UpdateTorrentByIdAsync(
         long torrentId,
         long version,
         UpdateTorrentByIdRequest request,
@@ -85,13 +92,17 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
     {
         var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}?version={version}", UriKind.Relative);
         using var response = await httpClient
-            .PatchAsJsonAsync(requestUri, request, cancellationToken)
+            .PatchAsJsonAsync(
+                requestUri,
+                request,
+                DtoJsonSerializerContext.Default.UpdateTorrentByIdRequest,
+                cancellationToken)
             .ConfigureAwait(false);
 
-        return await ToMutationOutcomeAsync(response, cancellationToken).ConfigureAwait(false);
+        return await response.ToApiResultAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<MutationOutcome> DeleteTorrentByIdAsync(
+    public async Task<ApiResult> DeleteTorrentByIdAsync(
         long torrentId,
         long version,
         DeleteTorrentByIdType deleteType,
@@ -100,47 +111,30 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         var requestUri = new Uri(
             $"{EndpointAddresses.Torrents}/{torrentId}?version={version}&deleteType={deleteType}",
             UriKind.Relative);
+
         using var response = await httpClient.DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
-        return await ToMutationOutcomeAsync(response, cancellationToken).ConfigureAwait(false);
+        return await response.ToApiResultAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<MutationOutcome> ToMutationOutcomeAsync(
-        HttpResponseMessage response,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Rejects a success that carries no torrent.
+    /// </summary>
+    /// <param name="result">The result the response was read into.</param>
+    /// <param name="torrentDto">The torrent that result should be carrying.</param>
+    /// <returns>
+    /// <paramref name="result"/> itself, or a failure of the same status if the torrent is missing.
+    /// </returns>
+    /// <remarks>
+    /// The response records declare the torrent as required, but the serializer does not enforce a
+    /// non-nullable annotation, so an answer that omits it arrives as a null the callers would
+    /// dereference. A success carrying no torrent is reported the same way a body that could not be
+    /// read at all is - both mean the caller asked for a torrent and did not get one.
+    /// </remarks>
+    private static ApiResult<T> RequireTorrent<T>(ApiResult<T> result, TorrentDto? torrentDto)
+        where T : class
     {
-        if (response.StatusCode is System.Net.HttpStatusCode.NotFound)
-            return MutationOutcome.NotFound;
-
-        if (response.StatusCode is System.Net.HttpStatusCode.Conflict)
-        {
-            long? currentVersion = null;
-            try
-            {
-                using var stream = await response.Content
-                    .ReadAsStreamAsync(cancellationToken)
-                    .ConfigureAwait(false);
-
-                using var document = await JsonDocument
-                    .ParseAsync(stream, cancellationToken: cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (document.RootElement.ValueKind is JsonValueKind.Object
-                    && document.RootElement.TryGetProperty(ProblemDetailsKeys.CurrentVersion, out var element)
-                    && element.ValueKind is JsonValueKind.Number
-                    && element.TryGetInt64(out var v))
-                {
-                    currentVersion = v;
-                }
-            }
-            catch (JsonException)
-            {
-                // Body absent or malformed; fall through with null currentVersion.
-            }
-
-            return MutationOutcome.Conflict(currentVersion);
-        }
-
-        _ = response.EnsureSuccessStatusCode();
-        return MutationOutcome.Success;
+        return result.Status is ApiResultStatus.Success && torrentDto is null
+            ? ApiResult<T>.Failure(result.StatusCode, result.ProblemDetails)
+            : result;
     }
 }

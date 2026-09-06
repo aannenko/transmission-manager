@@ -190,6 +190,10 @@ internal sealed class UpdateTorrentByIdTests
         Assert.That(versionErrors[0], Contains.Substring("must be between"));
     }
 
+    /// <remarks>
+    /// The body being empty is a fact about the request, so it arrives under one key rather than
+    /// under each field it could have carried - a client reading those would mark all four invalid.
+    /// </remarks>
     [Test]
     public async Task UpdateTorrentByIdAsync_WhenAllFieldsAreNull_ReturnsBadRequest()
     {
@@ -204,12 +208,11 @@ internal sealed class UpdateTorrentByIdTests
         var problem = await response.Content.ReadFromJsonAsync<HttpValidationProblemDetails>().ConfigureAwait(false);
 
         Assert.That(problem, Is.Not.Null);
-        Assert.That(problem.Errors, Contains.Key("DownloadDir"));
-
-        var errors = problem.Errors["DownloadDir"];
-
-        Assert.That(errors, Is.Not.Empty);
-        Assert.That(errors[0], Contains.Substring("At least one field must be provided."));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors, Has.Count.EqualTo(1));
+            Assert.That(problem.Errors["Request"], Is.EqualTo(["At least one field must be provided."]));
+        }
     }
 
     /// <remarks>

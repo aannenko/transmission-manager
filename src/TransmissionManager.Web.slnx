@@ -6,6 +6,10 @@
     <File Path=".editorconfig" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TransmissionManager.BaseTests/TransmissionManager.BaseTests.csproj" />
+    <Project Path="tests/TransmissionManager.Web.Tests/TransmissionManager.Web.Tests.csproj" />
+  </Folder>
   <Project Path="TransmissionManager.Api.Common/TransmissionManager.Api.Common.csproj" />
   <Project Path="TransmissionManager.Web/TransmissionManager.Web.csproj" />
 </Solution>

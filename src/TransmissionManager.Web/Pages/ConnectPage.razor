@@ -1,6 +1,8 @@
 ﻿@page "/connect"
 @using System.ComponentModel.DataAnnotations
+@using System.Net
 @using TransmissionManager.Web.Components
+@using TransmissionManager.Web.Dto
 @using TransmissionManager.Web.Services
 @using TransmissionManager.Web.Validation
 @inherits CommonComponentBase
@@ -53,6 +55,21 @@
     private protected override string GetOperationCanceledMessage(OperationCanceledException exception) =>
         $"Connection attempt timed out. Please check the {nameof(Host)} and {nameof(Port)}.";
 
+    /// <remarks>
+    /// An answer carrying no problem details did not come from this API - a wrong port reaching some
+    /// other application, or a proxy answering for it - so the address is what the user has to
+    /// check. An answer that did come from this API already says what is wrong.
+    /// </remarks>
+    private protected override string GetProblemDetailsMessage(
+        ApiProblemDetails? problemDetails,
+        HttpStatusCode? statusCode)
+    {
+        var message = base.GetProblemDetailsMessage(problemDetails, statusCode);
+        return problemDetails is null
+            ? $"{message} Please check the {nameof(Host)} and {nameof(Port)}."
+            : message;
+    }
+
     private async Task ConnectAsync()
     {
         if (IsBusy)
@@ -69,17 +86,13 @@
             return;
         }
 
-        var appVersion = await CallNetworkService(
+        var result = await CallNetworkService(
             (ConnectionService, baseAddress),
             static args => args.ConnectionService.ConnectAsync(args.baseAddress));
 
-        if (appVersion is not null)
+        if (result.Status is ApiResultStatus.Success)
         {
-            Message = $"Connected to {baseAddress} | Version: {appVersion} ";
-        }
-        else if (string.IsNullOrEmpty(Message))
-        {
-            Message = $"Failed to connect. Please check the {nameof(Host)} and {nameof(Port)}.";
+            Message = $"Connected to {baseAddress} | Version: {result.Value} ";
         }
     }
 }

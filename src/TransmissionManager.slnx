@@ -14,6 +14,7 @@
     <Project Path="tests/TransmissionManager.Database.Tests/TransmissionManager.Database.Tests.csproj" />
     <Project Path="tests/TransmissionManager.TorrentSources.Tests/TransmissionManager.TorrentSources.Tests.csproj" />
     <Project Path="tests/TransmissionManager.Transmission.Tests/TransmissionManager.Transmission.Tests.csproj" />
+    <Project Path="tests/TransmissionManager.Web.Tests/TransmissionManager.Web.Tests.csproj" />
   </Folder>
   <Project Path="TransmissionManager.Api.Common/TransmissionManager.Api.Common.csproj" />
   <Project Path="TransmissionManager.Api/TransmissionManager.Api.csproj" />

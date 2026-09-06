@@ -24,3 +24,6 @@ jobs:
 
       - name: Build WEB solution
         run: dotnet build src/TransmissionManager.Web.slnx --no-restore
+
+      - name: Run all WEB tests
+        run: dotnet test src/TransmissionManager.Web.slnx --no-build --verbosity normal

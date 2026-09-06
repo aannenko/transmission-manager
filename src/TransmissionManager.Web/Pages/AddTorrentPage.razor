@@ -1,9 +1,10 @@
 ﻿@page "/torrents/add"
-@using System.ComponentModel.DataAnnotations
-@using TransmissionManager.Api.Common.Attributes
+@using System.Net
 @using TransmissionManager.Api.Common.Dto.Torrents
 @using TransmissionManager.Web.Components
 @using TransmissionManager.Web.Constants
+@using TransmissionManager.Web.Dto
+@using TransmissionManager.Web.Forms
 @using TransmissionManager.Web.Services
 @inherits CommonComponentBase
 @inject TransmissionManagerClient Client
@@ -13,33 +14,54 @@
 <div class="item-card">
     <h4 class="text-block">Add a torrent</h4>
 
-    <EditForm Model="this" OnValidSubmit="AddTorrentAsync">
+    <div>
+        <label for="sourceKind">Torrent source:</label>
+        <select id="sourceKind"
+                class="form-input"
+                disabled="@IsBusy"
+                @bind:get="_form.SourceKind"
+                @bind:set="ChangeSourceKind">
+            <option value="@TorrentSourceKind.WebPage">Web page</option>
+            <option value="@TorrentSourceKind.JsonPointer">JSON API</option>
+        </select>
+    </div>
+
+    <EditForm EditContext="_editContext" OnSubmit="AddTorrentAsync">
         <DataAnnotationsValidator />
 
         <div>
-            <label for="sourceUri">Torrent webpage:</label>
-            <InputText id="sourceUri" class="form-input" disabled="@IsBusy" @bind-Value="SourceUri" />
-            <ValidationMessage For="@(() => SourceUri)" />
+            <label for="sourceUri">@SourceUriLabel</label>
+            <InputText id="sourceUri" class="form-input" disabled="@IsBusy" @bind-Value="_form.SourceUri" />
+            <ValidationMessage For="@(() => _form.SourceUri)" />
         </div>
 
         <div>
             <label for="downloadDir">Download directory:</label>
-            <InputText id="downloadDir" class="form-input" disabled="@IsBusy" @bind-Value="DownloadDir" />
-            <ValidationMessage For="@(() => DownloadDir)" />
+            <InputText id="downloadDir" class="form-input" disabled="@IsBusy" @bind-Value="_form.DownloadDir" />
+            <ValidationMessage For="@(() => _form.DownloadDir)" />
         </div>
 
         <div>
-            <label for="magnetRegexPattern">Magnet link regex (optional):</label>
-            <InputText id="magnetRegexPattern" class="form-input" disabled="@IsBusy" @bind-Value="MagnetRegexPattern" />
-            <ValidationMessage For="@(() => MagnetRegexPattern)" />
+            <label for="magnetRegexPattern">@MagnetRegexPatternLabel</label>
+            <InputText id="magnetRegexPattern" class="form-input" disabled="@IsBusy" @bind-Value="_form.MagnetRegexPattern" />
+            <ValidationMessage For="@(() => _form.MagnetRegexPattern)" />
+        </div>
+
+        <div>
+            <label for="jsonValueFormat">Magnet link format (JSON API only, optional):</label>
+            <InputText id="jsonValueFormat"
+                       class="form-input"
+                       disabled="@(IsBusy || _form.IsWebPageSource)"
+                       @bind-Value="_form.JsonValueFormat" />
+            <ValidationMessage For="@(() => _form.JsonValueFormat)" />
         </div>
 
         <div>
             <label for="cron">
                 Refresh schedule <a target="_blank" href="https://crontab.guru/#0_9,19_*_*_*">cron</a> (optional):
             </label>
-            <InputText id="cron" class="form-input" disabled="@IsBusy" @bind-Value="Cron" />
-            <ValidationMessage For="@(() => Cron)" />
+            <InputText id="cron" class="form-input" disabled="@IsBusy" @bind-Value="_form.Cron" />
+            <ValidationMessage For="@(() => _form.Cron)" />
         </div>
 
         <button class="form-button clickable" type="submit" disabled="@IsBusy">Add torrent</button>
@@ -59,55 +81,77 @@
 </div>
 
 @code {
+    private readonly AddTorrentForm _form = new();
+
+    private EditContext _editContext = null!;
+
     private long _newTorrentId = -1;
 
-    [Required(ErrorMessage = "Value required.")]
-    [Url(ErrorMessage = "The value is not a valid http or https URL.")]
-    public string SourceUri { get; private set; } = string.Empty;
+    private string SourceUriLabel => _form.IsWebPageSource
+        ? "Torrent webpage:"
+        : "JSON API address with pointer:";
 
-    [Required(ErrorMessage = "Value required.")]
-    public string DownloadDir { get; private set; } = "/tvshows";
-
-    [MagnetRegex]
-    public string MagnetRegexPattern { get; private set; } = string.Empty;
-
-    [Cron]
-    public string Cron { get; private set; } = "0 9,19 * * *";
+    private string MagnetRegexPatternLabel => _form.IsWebPageSource
+        ? "Magnet link regex (optional):"
+        : "JSON value regex (optional):";
 
     private protected override string BusyMessage => "Adding torrent...";
 
-    public async Task AddTorrentAsync()
+    protected override void OnInitialized() => _editContext = new(_form);
+
+    /// <remarks>
+    /// The TransmissionResult is worth stating on this page: an Add that conflicts locally may
+    /// already have handed the magnet to Transmission, and the user has to know that happened.
+    /// </remarks>
+    private protected override string GetProblemDetailsMessage(
+        ApiProblemDetails? problemDetails,
+        HttpStatusCode? statusCode)
+    {
+        var message = base.GetProblemDetailsMessage(problemDetails, statusCode);
+        return problemDetails?.TransmissionResult is { } transmissionResult
+            ? $"{message} Transmission result: {transmissionResult}."
+            : message;
+    }
+
+    /// <remarks>
+    /// The select sits outside the <see cref="EditForm"/> on purpose: replacing the
+    /// <see cref="EditContext"/> is what clears the other kind's validation messages, and
+    /// <see cref="EditForm"/> keys its render region on that context, so every descendant is torn
+    /// down and rebuilt - which would destroy the select mid-change and drop keyboard focus to the
+    /// document. Only a tampered value can parse to an undefined kind, so it is refused rather than
+    /// looked up.
+    /// </remarks>
+    private void ChangeSourceKind(TorrentSourceKind sourceKind)
+    {
+        if (!Enum.IsDefined(sourceKind) || !_form.SwitchSourceKind(sourceKind))
+            return;
+
+        _editContext = new(_form);
+        _newTorrentId = -1;
+        Message = string.Empty;
+    }
+
+    public async Task AddTorrentAsync(EditContext editContext)
     {
         if (IsBusy)
             return;
 
         _newTorrentId = -1;
+        Message = string.Empty;
 
-        SourceUri = SourceUri.Trim();
-        DownloadDir = DownloadDir.Trim();
-        MagnetRegexPattern = MagnetRegexPattern.Trim();
-        Cron = Cron.Trim();
+        _form.Normalize();
+        if (!editContext.Validate())
+            return;
 
-        var request = new AddTorrentRequest
-        {
-            SourceUri = new(SourceUri),
-            DownloadDir = DownloadDir,
-            MagnetRegexPattern = string.IsNullOrEmpty(MagnetRegexPattern) ? null : MagnetRegexPattern,
-            Cron = string.IsNullOrEmpty(Cron) ? null : Cron
-        };
-
-        var response = await CallNetworkService(
+        var request = _form.CreateRequest();
+        var result = await CallNetworkService(
             (Client, request),
             static args => args.Client.AddTorrentAsync(args.request));
 
-        if (response?.TorrentDto is not null)
+        if (result.Status is ApiResultStatus.Success)
         {
             Message = "Torrent added, ";
-            _newTorrentId = response.TorrentDto.Id;
-        }
-        else if (string.IsNullOrEmpty(Message))
-        {
-            Message = "Failed to add torrent, please check the input fields.";
+            _newTorrentId = result.Value!.TorrentDto.Id;
         }
     }
 }

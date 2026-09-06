@@ -1,5 +1,6 @@
 ﻿@page "/torrents/{Id:long}"
 @using System.ComponentModel.DataAnnotations
+@using System.Net
 @using TransmissionManager.Api.Common.Attributes
 @using TransmissionManager.Api.Common.Dto.Torrents
 @using TransmissionManager.Api.Common.Validation
@@ -24,7 +25,7 @@
     </div>
 
     <div>
-        <span>Torrent webpage:</span>
+        <span>@SourceUriLabel</span>
         <div class="form-input">
             <a href="@SourceUri" target="_blank">@SourceUri</a>
         </div>
@@ -54,6 +55,15 @@
             <InputText id="magnetRegexPattern" class="form-input" disabled="@AreControlsDisabled" @bind-Value="MagnetRegexPattern" />
             <ValidationMessage For="@(() => MagnetRegexPattern)" />
         </div>
+
+        @if (!IsWebPageSource)
+        {
+            <div>
+                <label for="jsonValueFormat">Magnet link format (optional):</label>
+                <InputText id="jsonValueFormat" class="form-input" disabled="@AreControlsDisabled" @bind-Value="JsonValueFormat" />
+                <ValidationMessage For="@(() => JsonValueFormat)" />
+            </div>
+        }
 
         <div>
             <label for="cron">
@@ -101,7 +111,11 @@
     [Required(ErrorMessage = "Value required.")]
     public string DownloadDir { get; private set; } = string.Empty;
 
+    [MaxLength(TorrentSourceRules.MaxPatternLength)]
     public string MagnetRegexPattern { get; private set; } = string.Empty;
+
+    [JsonValueFormat]
+    public string JsonValueFormat { get; private set; } = string.Empty;
 
     [Cron]
     public string Cron { get; private set; } = string.Empty;
@@ -114,21 +128,33 @@
 
     private DateTimeOffset? RefreshDate => _currentTorrent?.RefreshDate;
 
+    private string SourceUriLabel => IsWebPageSource
+        ? "Torrent webpage:"
+        : "JSON API address with pointer:";
+
     private bool IsWebPageSource => SourceKind is not TorrentSourceKind.JsonPointer;
 
     private TorrentSourceKind SourceKind => _currentTorrent?.SourceKind ?? TorrentSourceKind.WebPage;
 
     private string MagnetRegexPatternLabel => IsWebPageSource
         ? "Magnet link regex (optional):"
-        : "Value regex, applied to the string the JSON Pointer addresses (optional):";
+        : "JSON value regex (optional):";
 
+    /// <summary>
+    /// Checks the pattern and the format against the rules of this torrent's source kind.
+    /// </summary>
+    /// <param name="validationContext">The context this validation runs in.</param>
+    /// <returns>What is wrong with the pattern or the format, if anything.</returns>
     /// <remarks>
     /// A web page pattern has to find a magnet link, a JSON one is unconstrained, and no attribute
     /// on the property can see which. Applying the web page rule to both made this form
     /// unsubmittable for a JSON torrent, and clearing the field to get past it destroyed the pattern.
     /// </remarks>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) =>
-        TorrentSourceRules.GetValidationResults(SourceKind, MagnetRegexPattern, null);
+        TorrentSourceRules.GetValidationResults(
+            SourceKind,
+            MagnetRegexPattern,
+            IsWebPageSource ? null : JsonValueFormat);
 
     private bool AreControlsDisabled => IsBusy || _currentTorrent is null;
 
@@ -148,17 +174,28 @@
 
     protected override async Task OnParametersSetAsync() => await GetTorrentAsync();
 
+    private string OperationFailure => _operation switch
+    {
+        Operation.Load => "Failed to load torrent",
+        Operation.Update => "Failed to update torrent",
+        Operation.Refresh => "Failed to refresh torrent",
+        Operation.DeleteRecord => "Failed to delete torrent record",
+        Operation.DeleteTransmission => "Failed to delete torrent from Transmission",
+        Operation.DeleteData => "Failed to delete torrent data",
+        _ => "An error occurred"
+    };
+
     private protected override string GetGenericErrorMessage(HttpRequestException exception) =>
-        _operation switch
-        {
-            Operation.Load => $"Failed to load torrent: '{exception.Message}'.",
-            Operation.Update => $"Failed to update torrent: '{exception.Message}'.",
-            Operation.Refresh => $"Failed to refresh torrent: '{exception.Message}'.",
-            Operation.DeleteRecord => $"Failed to delete torrent record: '{exception.Message}'.",
-            Operation.DeleteTransmission => $"Failed to delete torrent from Transmission: '{exception.Message}'.",
-            Operation.DeleteData => $"Failed to delete torrent data: '{exception.Message}'.",
-            _ => $"An error occurred: '{exception.Message}'."
-        };
+        $"{OperationFailure}: '{exception.Message}'.";
+
+    /// <remarks>
+    /// The outcomes this page acts on - a torrent that is gone, or one another client changed - are
+    /// answered where they are handled, so anything reaching here is a refusal it can only report.
+    /// </remarks>
+    private protected override string GetProblemDetailsMessage(
+        ApiProblemDetails? problemDetails,
+        HttpStatusCode? statusCode) =>
+        $"{OperationFailure}: '{base.GetProblemDetailsMessage(problemDetails, statusCode)}'.";
 
     private async Task GetTorrentAsync()
     {
@@ -167,20 +204,16 @@
 
         _operation = Operation.Load;
 
-        var torrentDto = await CallNetworkService(
+        var result = await CallNetworkService(
             (Client, Id),
-            static args => args.Client.GetTorrentById(args.Id));
+            static args => args.Client.GetTorrentByIdAsync(args.Id));
 
-        FillTorrentData(torrentDto);
+        FillTorrentData(result.Value);
 
-        if (torrentDto is not null)
-        {
+        if (result.Status is ApiResultStatus.Success)
             Message = string.Empty;
-        }
-        else if (string.IsNullOrEmpty(Message))
-        {
+        else if (result.Status is ApiResultStatus.NotFound)
             Message = "Torrent not found.";
-        }
     }
 
     private async Task UpdateTorrentAsync()
@@ -192,12 +225,14 @@
 
         DownloadDir = DownloadDir.Trim();
         MagnetRegexPattern = MagnetRegexPattern.Trim();
+        JsonValueFormat = JsonValueFormat.Trim();
         Cron = Cron.Trim();
 
         var request = new UpdateTorrentByIdRequest
         {
             DownloadDir = DownloadDir,
             MagnetRegexPattern = MagnetRegexPattern,
+            JsonValueFormat = IsWebPageSource ? null : JsonValueFormat,
             Cron = Cron
         };
 
@@ -208,21 +243,19 @@
 
         switch (outcome.Status)
         {
-            case MutationStatus.Success:
+            case ApiResultStatus.Success:
                 FillTorrentData(current.ApplyPatch(request));
                 Message = "Torrent updated.";
                 break;
-            case MutationStatus.Conflict:
+            case ApiResultStatus.Conflict:
                 await GetTorrentAsync();
                 Message = "Torrent was modified by another client. Reloaded the latest data; review and retry.";
                 break;
-            case MutationStatus.NotFound:
+            case ApiResultStatus.NotFound:
                 FillTorrentData(null);
                 Message = "Torrent no longer exists; it may have been deleted by another client.";
                 break;
             default:
-                if (string.IsNullOrEmpty(Message))
-                    Message = "Failed to update torrent.";
                 break;
         }
     }
@@ -234,21 +267,17 @@
 
         _operation = Operation.Refresh;
 
-        var response = await CallNetworkService(
+        var result = await CallNetworkService(
             (Client, Id),
             static args => args.Client.RefreshTorrentByIdAsync(args.Id));
 
-        if (response?.TorrentDto is not null)
-        {
-            FillTorrentData(response.TorrentDto);
-            Message = string.IsNullOrEmpty(response.Message)
-                ? $"Torrent refreshed. Transmission result: {response.TransmissionResult}."
-                : $"Torrent refreshed. Transmission result: {response.TransmissionResult}. {response.Message}";
-        }
-        else if (string.IsNullOrEmpty(Message))
-        {
-            Message = "Failed to refresh torrent.";
-        }
+        if (result.Status is not ApiResultStatus.Success)
+            return;
+
+        FillTorrentData(result.Value!.TorrentDto);
+        Message = string.IsNullOrEmpty(result.Value.Message)
+            ? $"Torrent refreshed. Transmission result: {result.Value.TransmissionResult}."
+            : $"Torrent refreshed. Transmission result: {result.Value.TransmissionResult}. {result.Value.Message}";
     }
 
     private Task DeleteLocalTorrentAsync() =>
@@ -280,23 +309,21 @@
 
         switch (outcome.Status)
         {
-            case MutationStatus.Success:
+            case ApiResultStatus.Success:
                 FillTorrentData(null);
                 Message = "Torrent deleted.";
                 break;
-            case MutationStatus.Conflict:
+            case ApiResultStatus.Conflict:
                 await GetTorrentAsync();
                 Message = outcome.CurrentVersion is { } cv
                     ? $"Torrent was modified by another client (now at version {cv}). Reloaded the latest data; please review and retry."
                     : "Torrent was modified by another client. Reloaded the latest data; please review and retry.";
                 break;
-            case MutationStatus.NotFound:
+            case ApiResultStatus.NotFound:
                 FillTorrentData(null);
                 Message = "Torrent was already deleted.";
                 break;
             default:
-                if (string.IsNullOrEmpty(Message))
-                    Message = "Failed to delete torrent.";
                 break;
         }
     }
@@ -306,6 +333,9 @@
         _currentTorrent = torrentDto;
         DownloadDir = torrentDto?.DownloadDir ?? string.Empty;
         MagnetRegexPattern = torrentDto?.MagnetRegexPattern ?? string.Empty;
+        JsonValueFormat = torrentDto is { SourceKind: TorrentSourceKind.JsonPointer }
+            ? torrentDto.JsonValueFormat ?? string.Empty
+            : string.Empty;
         Cron = torrentDto?.Cron ?? string.Empty;
     }
 }

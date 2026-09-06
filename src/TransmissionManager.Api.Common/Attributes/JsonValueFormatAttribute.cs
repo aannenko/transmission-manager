@@ -3,8 +3,7 @@
 namespace TransmissionManager.Api.Common.Attributes;
 
 /// <summary>
-/// Specifies that a value must be a format that builds a magnet link out of an extracted value,
-/// which <c>{0}</c> stands for.
+/// Specifies that a value must be a format string with one or more <c>{0}</c> placeholders.
 /// </summary>
 /// <remarks>
 /// The value is substituted by composite formatting, which honours far more than a placeholder, so
