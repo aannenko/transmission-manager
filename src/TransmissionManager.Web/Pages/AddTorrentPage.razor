@@ -69,14 +69,13 @@
 
     @if (!string.IsNullOrEmpty(Message))
     {
-        if (_newTorrentId > -1)
-        {
-            <p class="text-block">@Message<a href="@($"{PageAddresses.Torrents}/{_newTorrentId}")">go to details</a></p>
-        }
-        else
-        {
-            <p class="text-block">@Message</p>
-        }
+        <p role="alert" class="text-block">
+            @Message
+            @if (_newTorrentId > -1)
+            {
+                <a href="@($"{PageAddresses.Torrents}/{_newTorrentId}")">go to details</a>
+            }
+        </p>
     }
 </div>
 

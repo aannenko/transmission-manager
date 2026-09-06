@@ -13,7 +13,7 @@
 
 @if (_torrents.Length is 0)
 {
-    <p>@Message</p>
+    <p role="alert">@Message</p>
     @if (!string.IsNullOrEmpty(_suggestedAddress))
     {
         <a href="@_suggestedAddress">@_suggestedAction</a>
