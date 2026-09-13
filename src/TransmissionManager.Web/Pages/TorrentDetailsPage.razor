@@ -46,13 +46,13 @@
 
         <div>
             <label for="downloadDir">Download directory:</label>
-            <InputText id="downloadDir" class="form-input" disabled="@AreControlsDisabled" @bind-Value="DownloadDir" />
+            <InputText id="downloadDir" type="search" role="textbox" class="form-input" disabled="@AreControlsDisabled" @bind-Value="DownloadDir" />
             <ValidationMessage For="@(() => DownloadDir)" />
         </div>
 
         <div>
             <label for="magnetRegexPattern">@MagnetRegexPatternLabel</label>
-            <InputText id="magnetRegexPattern" class="form-input" disabled="@AreControlsDisabled" @bind-Value="MagnetRegexPattern" />
+            <InputText id="magnetRegexPattern" type="search" role="textbox" class="form-input" disabled="@AreControlsDisabled" @bind-Value="MagnetRegexPattern" />
             <ValidationMessage For="@(() => MagnetRegexPattern)" />
         </div>
 
@@ -60,7 +60,7 @@
         {
             <div>
                 <label for="jsonValueFormat">Magnet link format (optional):</label>
-                <InputText id="jsonValueFormat" class="form-input" disabled="@AreControlsDisabled" @bind-Value="JsonValueFormat" />
+                <InputText id="jsonValueFormat" type="search" role="textbox" class="form-input" disabled="@AreControlsDisabled" @bind-Value="JsonValueFormat" />
                 <ValidationMessage For="@(() => JsonValueFormat)" />
             </div>
         }
@@ -69,7 +69,7 @@
             <label for="cron">
                 Refresh schedule <a target="_blank" href="https://crontab.guru/#0_9,19_*_*_*">cron</a> (optional):
             </label>
-            <InputText id="cron" class="form-input" disabled="@AreControlsDisabled" @bind-Value="Cron" />
+            <InputText id="cron" type="search" role="textbox" class="form-input" disabled="@AreControlsDisabled" @bind-Value="Cron" />
             <ValidationMessage For="@(() => Cron)" />
         </div>
 

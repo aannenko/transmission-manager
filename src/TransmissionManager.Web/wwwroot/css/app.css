@@ -230,12 +230,21 @@ a {
     text-align: start;
 }
 
+/* Font */
+
 body {
     margin: 0;
     font-family: 'Noto Sans', sans-serif;
     font-optical-sizing: auto;
     font-weight: 400;
     font-style: normal;
+}
+
+input,
+button,
+select,
+textarea {
+    font-family: inherit;
 }
 
 /* Layout container and sections */

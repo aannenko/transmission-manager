@@ -31,25 +31,27 @@
 
         <div>
             <label for="sourceUri">@SourceUriLabel</label>
-            <InputText id="sourceUri" class="form-input" disabled="@IsBusy" @bind-Value="_form.SourceUri" />
+            <InputText id="sourceUri" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="_form.SourceUri" />
             <ValidationMessage For="@(() => _form.SourceUri)" />
         </div>
 
         <div>
             <label for="downloadDir">Download directory:</label>
-            <InputText id="downloadDir" class="form-input" disabled="@IsBusy" @bind-Value="_form.DownloadDir" />
+            <InputText id="downloadDir" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="_form.DownloadDir" />
             <ValidationMessage For="@(() => _form.DownloadDir)" />
         </div>
 
         <div>
             <label for="magnetRegexPattern">@MagnetRegexPatternLabel</label>
-            <InputText id="magnetRegexPattern" class="form-input" disabled="@IsBusy" @bind-Value="_form.MagnetRegexPattern" />
+            <InputText id="magnetRegexPattern" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="_form.MagnetRegexPattern" />
             <ValidationMessage For="@(() => _form.MagnetRegexPattern)" />
         </div>
 
         <div>
             <label for="jsonValueFormat">Magnet link format (JSON API only, optional):</label>
             <InputText id="jsonValueFormat"
+                       type="search"
+                       role="textbox"
                        class="form-input"
                        disabled="@(IsBusy || _form.IsWebPageSource)"
                        @bind-Value="_form.JsonValueFormat" />
@@ -60,7 +62,7 @@
             <label for="cron">
                 Refresh schedule <a target="_blank" href="https://crontab.guru/#0_9,19_*_*_*">cron</a> (optional):
             </label>
-            <InputText id="cron" class="form-input" disabled="@IsBusy" @bind-Value="_form.Cron" />
+            <InputText id="cron" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="_form.Cron" />
             <ValidationMessage For="@(() => _form.Cron)" />
         </div>
 

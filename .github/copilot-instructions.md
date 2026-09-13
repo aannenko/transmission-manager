@@ -109,6 +109,12 @@ Regenerate via `src/scripts/Optimize-DbContext.ps1`. The script accepts `-NoBuil
 
 TransmissionManager and the Transmission daemon are **independent systems**. The local catalog is not a mirror — a torrent may exist on one side and not the other by design. When a request mutates one side and the other side fails or races (e.g., local OCC conflict after a successful Transmission removal, or vice versa), surface the partial outcome (`409 Conflict`, `424 Failed Dependency`, etc.) and let the user retry. Do **not** introduce non-OCC fallbacks, compensating writes, or "force-finish" paths to keep the two sides in lockstep.
 
+### Web app
+
+**Supported browsers are Chromium, the five latest versions.** Firefox and Safari behaviour is not a release criterion, and a feature may rely on Chromium-specific rendering.
+
+Text fields are `<InputText type="search" role="textbox">`, which makes Chromium draw the clear button itself — the app ships no markup, CSS or icon for it. The `role` is there because `type="search"` otherwise announces every field as a search box; the type is presentational, the role is the truth. Two consequences were accepted deliberately: the button appears only while the field is focused, and Firefox draws none at all. **Carry both attributes on every new text field** — nothing in the build or the tests catches their absence. `ConnectPage`'s port field stays a plain `InputNumber`: a non-nullable `int` has no "cleared" value to represent.
+
 ### C# style
 
 Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal sealed` for non-public implementations; `ConfigureAwait(false)` in library async code.

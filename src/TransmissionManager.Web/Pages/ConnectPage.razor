@@ -18,7 +18,7 @@
 
         <div>
             <label for="host">Host:</label>
-            <InputText id="host" class="form-input" disabled="@IsBusy" @bind-Value="Host" />
+            <InputText id="host" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="Host" />
             <ValidationMessage For="@(() => Host)" />
         </div>
 
