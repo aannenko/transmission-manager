@@ -17,6 +17,8 @@ dotnet test src/TransmissionManager.slnx --filter "ClassName=AddTorrentTests"
 dotnet test src/TransmissionManager.slnx --filter "FullyQualifiedName~AddTorrentTests.AddTorrent_Returns201"
 ```
 
+CI in the form of GitHub Actions lives in `.github/workflows/`. **A push is not finished until its runs are** — watch them (`gh run watch <id> --exit-status`) and report what they said.
+
 ## Architecture
 
 Two deployable apps:
