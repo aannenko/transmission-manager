@@ -11,7 +11,6 @@ namespace TransmissionManager.TorrentSources.WebPage;
 public sealed class TorrentWebPageClient(
     IOptionsMonitor<TorrentWebPageClientOptions> options,
     HttpClient httpClient)
-    : ITorrentSourceClient
 {
     private const int _bufferSize = 2048;
     private const int _defaultPadding = _bufferSize / 16;

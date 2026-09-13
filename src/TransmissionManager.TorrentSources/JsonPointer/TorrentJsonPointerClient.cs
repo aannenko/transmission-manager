@@ -12,7 +12,6 @@ namespace TransmissionManager.TorrentSources.JsonPointer;
 public sealed class TorrentJsonPointerClient(
     IOptionsMonitor<TorrentJsonPointerClientOptions> options,
     HttpClient httpClient)
-    : ITorrentSourceClient
 {
     private const string _magnetScheme = "magnet";
 

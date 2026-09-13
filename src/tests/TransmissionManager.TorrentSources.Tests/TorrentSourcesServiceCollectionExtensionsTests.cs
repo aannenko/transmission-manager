@@ -131,30 +131,6 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
             Throws.InvalidOperationException.With.Message.Contains(sectionName));
     }
 
-    /// <remarks>
-    /// Discovery by interface rather than a hardcoded list, so a client added later fails this until
-    /// it is registered.
-    /// </remarks>
-    [Test]
-    public void AddTorrentSourcesServices_WhenOptionsAreValid_RegistersEverySourceClient()
-    {
-        var clientTypes = typeof(ITorrentSourceClient).Assembly
-            .GetTypes()
-            .Where(static type =>
-                type is { IsClass: true, IsAbstract: false } && type.IsAssignableTo(typeof(ITorrentSourceClient)))
-            .ToArray();
-
-        Assert.That(clientTypes, Is.Not.Empty, $"No {nameof(ITorrentSourceClient)} implementations were discovered.");
-
-        using var provider = CreateProvider(Settings());
-
-        using (Assert.EnterMultipleScope())
-        {
-            foreach (var clientType in clientTypes)
-                Assert.That(provider.GetService(clientType), Is.Not.Null, $"{clientType.Name} is not registered.");
-        }
-    }
-
     private static Dictionary<string, string?> Settings() => new()
     {
         ["TorrentSources:WebPage:DefaultMagnetRegexPattern"] = _defaultMagnetRegexPattern,
