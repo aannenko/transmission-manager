@@ -273,10 +273,6 @@ internal static class TestData
             };
     }
 
-    /// <remarks>
-    /// Contains responses for both source kinds because <see cref="TestWebApplicationFactory{TProgram}"/>
-    /// installs one handler map behind both source clients.
-    /// </remarks>
     public static readonly IReadOnlyDictionary<TestRequest, TestResponse> SourceRequestResponseMap =
         new Dictionary<TestRequest, TestResponse>
         {

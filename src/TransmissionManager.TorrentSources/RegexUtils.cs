@@ -11,10 +11,6 @@ internal static class RegexUtils
     /// <summary>
     /// The options every pattern either source matches with is built with.
     /// </summary>
-    /// <remarks>
-    /// The options decide what parses, so the API checks a pattern with these same ones - otherwise
-    /// a pattern accepted there could still be refused when it is used.
-    /// </remarks>
     public const RegexOptions PatternOptions = RegexOptions.ExplicitCapture;
 
     /// <summary>
@@ -22,8 +18,7 @@ internal static class RegexUtils
     /// </summary>
     /// <remarks>
     /// Building a regular expression takes longer the longer its pattern is and cannot be cancelled,
-    /// so a configured default is held to this as much as a torrent's own pattern is. The API keeps
-    /// its own copy of the number, since it has to refuse an over-long pattern before storing one.
+    /// so a configured default is held to this as much as a torrent's own pattern is.
     /// </remarks>
     public const int MaxPatternLength = 512;
 

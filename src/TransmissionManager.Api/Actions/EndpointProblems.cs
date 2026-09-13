@@ -4,10 +4,8 @@ using TransmissionManager.Api.Common.Constants;
 namespace TransmissionManager.Api.Actions;
 
 /// <remarks>
-/// Every failure this API reports carries its messages in the <c>errors</c> object, keyed by what is
-/// at fault, whatever the status code - so a client parses one shape and never has to read prose to
-/// learn which input, concept or dependency to inspect. Data annotation failures already arrive
-/// that way through <c>TypedResults.ValidationProblem</c>; these keep the hand-written ones in step.
+/// Input validation failures arrive with their messages in the <c>errors</c> object through
+/// <c>TypedResults.ValidationProblem</c>; these build the same shape for the hand-written ones.
 /// </remarks>
 internal static class EndpointProblems
 {
@@ -26,10 +24,7 @@ internal static class EndpointProblems
 
     /// <remarks>
     /// The current version is present only when resubmitting against it can resolve the conflict,
-    /// which is what lets a caller tell a lost race from a collision it has to fix. No handler
-    /// reaches this with no version today - the storage layer answers <c>NotFound</c> rather than
-    /// <c>VersionConflict</c> when the row is gone - but omitting the extension is a better answer
-    /// than a null one if that ever changes.
+    /// which is what lets a caller tell a lost race from a collision it has to fix.
     /// </remarks>
     public static ProblemHttpResult Conflict(KeyValuePair<string, string[]>[] errors, long? currentVersion)
     {

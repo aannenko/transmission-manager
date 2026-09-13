@@ -398,9 +398,7 @@ internal sealed class TorrentWebPageClientTests
     /// A supplied pattern is built at its first match, and a match is only attempted inside a window
     /// the literal <c>magnet:?</c> opened - so on a page holding none, a pattern that cannot be built
     /// is never built, and the page is reported as holding no magnet link rather than the pattern as
-    /// broken. What is said therefore depends on what the page happens to hold. Deliberate: the API
-    /// refuses an unbuildable pattern when one is added or updated, so only a row written before it
-    /// did so can reach here.
+    /// broken. What is said therefore depends on what the page happens to hold.
     /// </remarks>
     [Test]
     public async Task FindMagnetUriAsync_WhenPatternDoesNotParseAndThePageHoldsNoMagnet_ReturnsNotFound()
@@ -423,10 +421,9 @@ internal sealed class TorrentWebPageClientTests
     }
 
     /// <remarks>
-    /// Both of these satisfy the API's <c>[MagnetRegex]</c> shape check, yet throw when built - so a
-    /// pattern that does not parse reaches the client no matter how thoroughly the request was
-    /// validated. It is reported once the page has been fetched, because a supplied pattern is built
-    /// at its first match rather than up front.
+    /// Both of these are shaped like a magnet pattern, yet throw when built. Failure is reported
+    /// once the page has been fetched, because a supplied pattern is built at its first match rather
+    /// than up front.
     /// </remarks>
     [TestCase(@"magnet:\?xt=(")]
     [TestCase(@"magnet:\?xt=[")]

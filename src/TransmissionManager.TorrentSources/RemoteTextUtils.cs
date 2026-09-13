@@ -3,11 +3,9 @@
 namespace TransmissionManager.TorrentSources;
 
 /// <remarks>
-/// Whatever a source served is untrusted, and an error message quoting it reaches two places that
-/// treat it as structure rather than data: a log line, where a newline forges a record and an escape
-/// sequence reaches the operator's terminal raw on Linux, and an HTTP response body, whose size is
-/// otherwise bounded only by the read buffer. Text that came from a request, from configuration or
-/// from this project's own vocabulary needs none of this.
+/// Text a source served is untrusted: a control character in it forges structure in whatever the
+/// summary is embedded in, and its length is otherwise bounded only by the read buffer. Both are
+/// neutralised here, so a summary is safe to embed and costs a bounded amount of message.
 /// </remarks>
 internal static class RemoteTextUtils
 {

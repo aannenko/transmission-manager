@@ -141,10 +141,6 @@ internal sealed class TorrentSourceRulesTests
         Assert.That(failures, expectedValid ? Is.Empty : Is.Not.Empty);
     }
 
-    /// <remarks>
-    /// The adapter the request DTOs and the details page validate through: it has to carry every
-    /// message across, against the member it was reported for.
-    /// </remarks>
     [Test]
     public void ToValidationResults_WhenBothRulesAreBroken_CarriesEveryMessageAndMember()
     {

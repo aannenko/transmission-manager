@@ -28,8 +28,7 @@ internal sealed class ConnectionService(
     /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
     /// <returns>The version the API reported, or what it answered instead.</returns>
     /// <exception cref="OperationCanceledException">
-    /// Thrown when the attempt is cancelled or exceeds the one-second timeout, which is what lets
-    /// the connect page tell a timeout from a refusal.
+    /// Thrown when the attempt is cancelled or exceeds the one-second timeout.
     /// </exception>
     /// <remarks>
     /// The address is stored only once the API has answered as itself, so a host that merely
