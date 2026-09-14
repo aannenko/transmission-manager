@@ -358,18 +358,22 @@ internal sealed class TorrentWebPageClientTests
     }
 
     [Test]
-    public async Task FindMagnetUriAsync_WhenWebPageDoesNotExist_ReturnsRetrievalFailed()
+    public async Task FindMagnetUriAsync_WhenTheSourceCannotBeReached_ReturnsRetrievalFailedWithTransportMessage()
     {
-        var nonExistentAddress = new Uri("https://seemingly.valid.though.non.existent.address");
+        const string message = "No such host is known. (seemingly.valid.though.non.existent.address:443)";
 
-        using var httpClient = new HttpClient();
+        using var handler = new ThrowingHttpMessageHandler(message);
+        using var httpClient = new HttpClient(handler);
 
-        var outcome = await CreateClient(httpClient).FindMagnetUriAsync(nonExistentAddress).ConfigureAwait(false);
+        var outcome = await CreateClient(httpClient, TimeSpan.FromMinutes(1))
+            .FindMagnetUriAsync(_webPageUri)
+            .ConfigureAwait(false);
 
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
-            Assert.That(outcome.Error, Is.Not.Empty);
+            Assert.That(outcome.MagnetUri, Is.Null);
+            Assert.That(outcome.Error, Does.Contain(message));
             Assert.That(outcome.Error, Does.Not.Contain("did not deliver")); // not a timed out body read
         }
     }
