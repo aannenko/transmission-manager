@@ -2,12 +2,12 @@
 
 using System.Buffers;
 using System.Diagnostics;
-using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace TransmissionManager.Api.Common.Utilities;
 
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
 internal ref struct ValueStringBuilder
 {
     private char[]? _arrayToReturnToPool;
@@ -52,6 +52,16 @@ internal ref struct ValueStringBuilder
     }
 
     /// <summary>
+    /// Ensures that the builder is terminated with a NUL character.
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void NullTerminate()
+    {
+        EnsureCapacity(_pos + 1);
+        _chars[_pos] = '\0';
+    }
+
+    /// <summary>
     /// Get a pinnable reference to the builder.
     /// Does not ensure there is a null char after <see cref="Length"/>
     /// This overload is pattern matched in the C# 7.3+ compiler so you can omit
@@ -59,20 +69,6 @@ internal ref struct ValueStringBuilder
     /// </summary>
     public readonly ref char GetPinnableReference()
     {
-        return ref MemoryMarshal.GetReference(_chars);
-    }
-
-    /// <summary>
-    /// Get a pinnable reference to the builder.
-    /// </summary>
-    /// <param name="terminate">Ensures that the builder has a null char after <see cref="Length"/></param>
-    public ref char GetPinnableReference(bool terminate)
-    {
-        if (terminate)
-        {
-            EnsureCapacity(Length + 1);
-            _chars[Length] = '\0';
-        }
         return ref MemoryMarshal.GetReference(_chars);
     }
 
@@ -85,6 +81,10 @@ internal ref struct ValueStringBuilder
         }
     }
 
+    // ToString() clears the builder, so we need a side-effect free debugger display.
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private readonly string DebuggerDisplay => AsSpan().ToString();
+
     public override string ToString()
     {
         var s = _chars.Slice(0, _pos).ToString();
@@ -95,39 +95,9 @@ internal ref struct ValueStringBuilder
     /// <summary>Returns the underlying storage of the builder.</summary>
     public readonly Span<char> RawChars => _chars;
 
-    /// <summary>
-    /// Returns a span around the contents of the builder.
-    /// </summary>
-    /// <param name="terminate">Ensures that the builder has a null char after <see cref="Length"/></param>
-    public ReadOnlySpan<char> AsSpan(bool terminate)
-    {
-        if (terminate)
-        {
-            EnsureCapacity(Length + 1);
-            _chars[Length] = '\0';
-        }
-        return _chars.Slice(0, _pos);
-    }
-
     public readonly ReadOnlySpan<char> AsSpan() => _chars.Slice(0, _pos);
     public readonly ReadOnlySpan<char> AsSpan(int start) => _chars.Slice(start, _pos - start);
     public readonly ReadOnlySpan<char> AsSpan(int start, int length) => _chars.Slice(start, length);
-
-    public bool TryCopyTo(Span<char> destination, out int charsWritten)
-    {
-        if (_chars.Slice(0, _pos).TryCopyTo(destination))
-        {
-            charsWritten = _pos;
-            Dispose();
-            return true;
-        }
-        else
-        {
-            charsWritten = 0;
-            Dispose();
-            return false;
-        }
-    }
 
     public void Insert(int index, char value, int count)
     {
@@ -196,11 +166,7 @@ internal ref struct ValueStringBuilder
         if (pos > _chars.Length - s.Length)
             Grow(s.Length);
 
-        s
-#if !NET
-            .AsSpan()
-#endif
-            .CopyTo(_chars.Slice(pos));
+        s.CopyTo(_chars.Slice(pos));
         _pos += s.Length;
     }
 
@@ -234,25 +200,27 @@ internal ref struct ValueStringBuilder
         return _chars.Slice(origPos, length);
     }
 
-    public void Append(int value) => AppendNumber(value, 11);
-
-    public void Append(long value) => AppendNumber(value, 20);
-
-    private void AppendNumber<T>(T value, int maxStringLength) where T : INumber<T>, ISpanFormattable
+    public void AppendSpanFormattable<T>(T value, string? format = null, IFormatProvider? provider = null) where T : ISpanFormattable
     {
-        var slice = _chars.Slice(_pos);
-        if (!value.TryFormat(slice, out int charsWritten, default, null))
+        if (value.TryFormat(_chars.Slice(_pos), out var charsWritten, format, provider))
         {
-            Grow(maxStringLength);
-            _ = value.TryFormat(slice, out charsWritten, default, null);
+            _pos += charsWritten;
         }
-
-        _pos += charsWritten;
+        else
+        {
+            Append(value.ToString(format, provider));
+        }
     }
 
+    /// <remarks>
+    /// Not upstream's, and not reducible to <c>AppendSpanFormattable</c>: an enum inherits
+    /// <c>TryFormat</c> from <see cref="Enum"/> instead of declaring it, so a constrained call
+    /// through that interface has nothing to bind to and boxes the value first - 24 bytes a call,
+    /// against none here (measured). Enum names are invariant, so this takes no format provider.
+    /// </remarks>
     public void Append<T>(T value) where T : struct, Enum
     {
-        if (Enum.TryFormat(value, _chars.Slice(_pos), out int charsWritten))
+        if (Enum.TryFormat(value, _chars.Slice(_pos), out var charsWritten))
         {
             _pos += charsWritten;
         }

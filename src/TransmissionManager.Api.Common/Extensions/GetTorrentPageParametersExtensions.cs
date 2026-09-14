@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Utilities;
 using Direction = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageDirection;
@@ -30,7 +31,7 @@ public static class GetTorrentPageParametersExtensions
             rentedArraySize += orderByParamKey.Length + _maxTorrentOrderItemLength;
 
         if (anchorId is not null)
-            rentedArraySize += anchorIdParamKey.Length + 19; // long.MaxValue.ToString().Length is 19
+            rentedArraySize += anchorIdParamKey.Length + 20; // long.MinValue.ToString().Length is 20
 
         if (!string.IsNullOrEmpty(anchorValue))
             rentedArraySize += anchorValueParamKey.Length +
@@ -50,7 +51,8 @@ public static class GetTorrentPageParametersExtensions
 
         builder.Append(EndpointAddresses.Torrents);
         builder.Append(takeParamKey);
-        builder.Append(take);
+
+        builder.AppendSpanFormattable(take, provider: CultureInfo.InvariantCulture);
 
         if (orderBy is not Order.Id)
         {
@@ -61,7 +63,7 @@ public static class GetTorrentPageParametersExtensions
         if (anchorId is not null)
         {
             builder.Append(anchorIdParamKey);
-            builder.Append(anchorId.Value);
+            builder.AppendSpanFormattable(anchorId.Value, provider: CultureInfo.InvariantCulture);
         }
 
         if (!string.IsNullOrEmpty(anchorValue))
