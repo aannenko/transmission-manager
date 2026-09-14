@@ -17,11 +17,21 @@ public static class TransmissionServiceCollectionExtensions
     {
         ArgumentNullException.ThrowIfNull(configuration);
 
+        var transmissionSection = configuration.GetRequiredSection(_transmissionConfigKey);
+
         _ = services
-            .Configure<TransmissionClientOptions>(configuration.GetRequiredSection(_transmissionConfigKey))
-            .Configure<SessionHeaderProviderOptions>(configuration.GetRequiredSection(_transmissionConfigKey))
             .AddSingleton<IValidateOptions<TransmissionClientOptions>, ValidateTransmissionClientOptions>()
+            .AddOptions<TransmissionClientOptions>()
+            .Bind(transmissionSection)
+            .ValidateOnStart();
+
+        _ = services
             .AddSingleton<IValidateOptions<SessionHeaderProviderOptions>, ValidateSessionHeaderProviderOptions>()
+            .AddOptions<SessionHeaderProviderOptions>()
+            .Bind(transmissionSection)
+            .ValidateOnStart();
+
+        _ = services
             .AddSingleton<SessionHeaderProvider>()
             .AddScoped<SessionHeaderHandler>()
             .AddHttpClient<TransmissionClient>(ConfigureHttpClient)
