@@ -139,7 +139,7 @@ internal sealed class TorrentSourceRulesTests
     }
 
     [Test]
-    public void ToValidationResults_WhenBothRulesAreBroken_CarriesEveryMessageAndMember()
+    public void GetValidationResults_WhenBothRulesAreBroken_CarriesEveryMessageAndMember()
     {
         var results = TorrentSourceRules
             .GetValidationResults(TorrentSourceKind.WebPage, _valuePattern, _magnetFormat)
@@ -156,7 +156,7 @@ internal sealed class TorrentSourceRulesTests
     }
 
     [Test]
-    public void ToValidationResults_WhenEveryRuleHolds_YieldsNothing()
+    public void GetValidationResults_WhenEveryRuleHolds_YieldsNothing()
     {
         var results = TorrentSourceRules.GetValidationResults(TorrentSourceKind.WebPage, _magnetPattern, null);
 

@@ -29,7 +29,7 @@ internal sealed class ResponseCompressionTests
     }
 
     [Test]
-    public async Task GetTorrents_WhenAcceptEncodingBrotli_ReturnsBrotliEncodedResponse()
+    public async Task GetTorrentPageAsync_WhenAcceptEncodingBrotli_ReturnsBrotliEncodedResponse()
     {
         using var request = new HttpRequestMessage(HttpMethod.Get, EndpointAddresses.Torrents);
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));

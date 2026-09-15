@@ -203,7 +203,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task AddTorrentsAsync_WhenNewMagnetAndDownloadDirProvided_ReturnsTorrentAdded()
+    public async Task AddTorrentUsingMagnetUriAsync_WhenNewMagnetAndDownloadDirProvided_ReturnsTorrentAdded()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name","download-dir":"/tvshows"}}""";
@@ -236,7 +236,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task AddTorrentsAsync_WhenMagnetAlreadyExists_ReturnsTorrentDuplicate()
+    public async Task AddTorrentUsingMagnetUriAsync_WhenMagnetAlreadyExists_ReturnsTorrentDuplicate()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=Example+Name","download-dir":"/tvshows"}}""";
@@ -269,7 +269,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public void AddTorrentsAsync_WhenMagnetIsInvalid_ThrowsHttpRequestException()
+    public void AddTorrentUsingMagnetUriAsync_WhenMagnetIsInvalid_ThrowsHttpRequestException()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:INVALIDMAGNET","download-dir":"/tvshows"}}""";
@@ -293,7 +293,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public void AddTorrentsAsync_WhenDownloadDirIsInvalid_ThrowsHttpRequestException()
+    public void AddTorrentUsingMagnetUriAsync_WhenDownloadDirIsInvalid_ThrowsHttpRequestException()
     {
         const string expectedRequest =
             """{"method":"torrent-add","arguments":{"filename":"magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2","download-dir":"^&*("}}""";
@@ -317,7 +317,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task RemoveTorrentAsync_WhenHashStringsExist_RemovesTorrents()
+    public async Task RemoveTorrentsAsync_WhenHashStringsExist_RemovesTorrents()
     {
         const string expectedRequest =
             """{"method":"torrent-remove","arguments":{"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa","738c60cbd44f0e9457ba2afdad9e9231d76243fe"],"delete-local-data":true}}""";
@@ -337,7 +337,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task RemoveTorrentAsync_WhenArrayOfHashStringsIsEmpty_ReturnsSuccess()
+    public async Task RemoveTorrentsAsync_WhenArrayOfHashStringsIsEmpty_ReturnsSuccess()
     {
         const string expectedRequest =
             """{"method":"torrent-remove","arguments":{"ids":[],"delete-local-data":false}}""";
@@ -355,7 +355,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task RemoveTorrentAsync_WhenArrayOfHashStringsIsNull_ReturnsSuccess()
+    public async Task RemoveTorrentsAsync_WhenArrayOfHashStringsIsNull_ReturnsSuccess()
     {
         const string expectedRequest =
             """{"method":"torrent-remove","arguments":{"delete-local-data":false}}""";
@@ -373,7 +373,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public async Task RemoveTorrentAsync_WhenHashStringIsInvalid_ReturnsSuccess()
+    public async Task RemoveTorrentsAsync_WhenHashStringIsInvalid_ReturnsSuccess()
     {
         const string expectedRequest =
             """{"method":"torrent-remove","arguments":{"ids":["INVALID"],"delete-local-data":false}}""";
@@ -391,7 +391,7 @@ internal sealed class TransmissionClientTests
     }
 
     [Test]
-    public void RemoveTorrentAsync_WhenResponseIsMalformed_ThrowsHttpRequestException()
+    public void RemoveTorrentsAsync_WhenResponseIsMalformed_ThrowsHttpRequestException()
     {
         const string expectedRequest =
             """{"method":"torrent-remove","arguments":{"ids":["0bda511316a069e86dd8ee8a3610475d2013a7fa"],"delete-local-data":false}}""";
