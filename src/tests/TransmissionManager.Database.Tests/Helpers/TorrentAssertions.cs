@@ -18,6 +18,7 @@ internal static class TorrentAssertions
             Assert.That(actual.SourceKind, Is.EqualTo(expected.SourceKind));
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
+            Assert.That(actual.JsonValueFormat, Is.EqualTo(expected.JsonValueFormat));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
             Assert.That(actual.Version, Is.EqualTo(expected.Version));
         }
@@ -36,6 +37,7 @@ internal static class TorrentAssertions
             Assert.That(actual.SourceKind, Is.EqualTo(expected.SourceKind));
             Assert.That(actual.DownloadDir, Is.EqualTo(expected.DownloadDir));
             Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
+            Assert.That(actual.JsonValueFormat, Is.EqualTo(expected.JsonValueFormat));
             Assert.That(actual.Cron, Is.EqualTo(expected.Cron));
             Assert.That(actual.Version, Is.EqualTo(expectedVersion));
         }
@@ -65,6 +67,14 @@ internal static class TorrentAssertions
                     Assert.That(actual.MagnetRegexPattern, Is.Null);
                 else
                     Assert.That(actual.MagnetRegexPattern, Is.EqualTo(expected.MagnetRegexPattern));
+            }
+
+            if (expected.JsonValueFormat is not null)
+            {
+                if (string.IsNullOrEmpty(expected.JsonValueFormat))
+                    Assert.That(actual.JsonValueFormat, Is.Null);
+                else
+                    Assert.That(actual.JsonValueFormat, Is.EqualTo(expected.JsonValueFormat));
             }
 
             if (expected.Cron is not null)

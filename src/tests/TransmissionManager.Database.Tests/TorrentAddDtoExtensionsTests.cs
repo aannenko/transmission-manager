@@ -17,6 +17,7 @@ internal sealed class TorrentAddDtoExtensionsTests
             sourceKind: TorrentSourceKind.WebPage,
             downloadDir: "/tvshows",
             magnetRegexPattern: @"magnet:\?xt=[^""]+",
+            jsonValueFormat: "magnet:?xt=urn:btih:{0}",
             cron: "0 9,17 * * *");
 
         var torrent = dto.ToTorrent();

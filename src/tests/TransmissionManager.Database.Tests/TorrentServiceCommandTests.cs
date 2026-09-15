@@ -51,7 +51,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             name: "New TV show",
             sourceUri: new("https://torrentTracker.com/api/1106#/result/6880555/7"),
             sourceKind: TorrentSourceKind.JsonPointer,
-            downloadDir: "/tvshows");
+            downloadDir: "/tvshows",
+            jsonValueFormat: "magnet:?xt=urn:btih:{0}");
 
         var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
 
@@ -120,6 +121,108 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             Assert.That(result, Is.EqualTo(TorrentMutationResult.NotUnique));
             Assert.That(torrent, Is.Null);
         }
+    }
+
+    /// <remarks>
+    /// Guards the <c>NOCASE</c> collation on the unique indexes: the compiled model carries no
+    /// collation annotations, so only <c>OnModelCreating</c> re-applying them keeps these columns
+    /// case-insensitive.
+    /// </remarks>
+    [TestCase(
+        "0BDA511316A069E86DD8EE8A3610475D2013A7FA",
+        "https://torrentTracker.com/forum/viewtopic.php?t=9999999",
+        TestName = "AddOneAsync_WhenAUniqueFieldDiffersOnlyInCase_ReturnsNotUnique(hash string)")]
+    [TestCase(
+        "96a76b68b91ccf8929c5476e35ce42ff39101d2a",
+        "https://torrentTracker.com/FORUM/VIEWTOPIC.PHP?t=1234567",
+        TestName = "AddOneAsync_WhenAUniqueFieldDiffersOnlyInCase_ReturnsNotUnique(source URI path)")]
+    public async Task AddOneAsync_WhenAUniqueFieldDiffersOnlyInCase_ReturnsNotUnique(
+        string hashString,
+        string sourceUri)
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var dto = new TorrentAddDto(
+            hashString: hashString,
+            refreshDate: DateTime.UtcNow,
+            name: "New TV show 4",
+            sourceUri: new(sourceUri),
+            sourceKind: TorrentSourceKind.WebPage,
+            downloadDir: "/tvshows");
+
+        var (result, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TorrentMutationResult.NotUnique));
+            Assert.That(torrent, Is.Null);
+        }
+    }
+
+    /// <remarks>
+    /// Pins an accepted trade-off: RFC 6901 member names are case-sensitive, yet uniqueness is
+    /// <c>NOCASE</c> over the whole <c>SourceUri</c>, fragment included, so pointers into two
+    /// differently-cased members collide.
+    /// </remarks>
+    [Test]
+    public async Task AddOneAsync_WhenSourceUriDiffersOnlyInPointerFragmentCase_ReturnsNotUnique()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var (firstResult, _) = await service.AddOneAsync(new TorrentAddDto(
+            hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
+            refreshDate: DateTime.UtcNow,
+            name: "New JSON show",
+            sourceUri: new("https://torrentTracker.com/api/1106#/result/6880555/7"),
+            sourceKind: TorrentSourceKind.JsonPointer,
+            downloadDir: "/tvshows")).ConfigureAwait(false);
+
+        Assert.That(firstResult, Is.EqualTo(TorrentMutationResult.Success));
+
+        var (secondResult, torrent) = await service.AddOneAsync(new TorrentAddDto(
+            hashString: "96a76b68b91ccf8929c5476e35ce42ff39101d2a",
+            refreshDate: DateTime.UtcNow,
+            name: "New JSON show 2",
+            sourceUri: new("https://torrentTracker.com/api/1106#/RESULT/6880555/7"),
+            sourceKind: TorrentSourceKind.JsonPointer,
+            downloadDir: "/tvshows")).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(secondResult, Is.EqualTo(TorrentMutationResult.NotUnique));
+            Assert.That(torrent, Is.Null);
+        }
+    }
+
+    /// <remarks>
+    /// Guards the OCC contract: were the Id reused, a stale <c>(Id, Version)</c> token would match
+    /// a different, newer torrent.
+    /// </remarks>
+    [Test]
+    public async Task AddOneAsync_AfterTheHighestIdWasDeleted_DoesNotReuseThatId()
+    {
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var deletedId = InitialTorrents[^1].Id;
+        var (deleteResult, _) = await service.DeleteOneAsync(deletedId, 1).ConfigureAwait(false);
+
+        Assert.That(deleteResult, Is.EqualTo(TorrentMutationResult.Success));
+
+        var dto = new TorrentAddDto(
+            hashString: "33de7f6754ec58653f0ff349d70578c144268a8e",
+            refreshDate: DateTime.UtcNow,
+            name: "New TV show 5",
+            sourceUri: new("https://torrentTracker.com/forum/viewtopic.php?t=1234571"),
+            sourceKind: TorrentSourceKind.WebPage,
+            downloadDir: "/tvshows");
+
+        var (addResult, torrent) = await service.AddOneAsync(dto).ConfigureAwait(false);
+
+        Assert.That(addResult, Is.EqualTo(TorrentMutationResult.Success));
+        Assert.That(torrent!.Id, Is.GreaterThan(deletedId));
     }
 
     [Test]
@@ -215,6 +318,38 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
             Assert.That(actual!.MagnetRegexPattern, Is.Null);
             Assert.That(actual.Cron, Is.Null);
             Assert.That(actual.Version, Is.EqualTo(2));
+        }
+    }
+
+    [Test]
+    public async Task UpdateOneAsync_WhenJsonValueFormatIsSetThenEmptied_PersistsThenClearsIt()
+    {
+        const string format = "magnet:?xt=urn:btih:{0}";
+        using var context = CreateContext();
+        var service = CreateService(context);
+
+        var (setResult, versionAfterSet) = await service
+            .UpdateOneAsync(3, 1, new(jsonValueFormat: format))
+            .ConfigureAwait(false);
+
+        var afterSet = await context.Torrents.AsNoTracking()
+            .FirstAsync(static t => t.Id == 3)
+            .ConfigureAwait(false);
+
+        var (clearResult, _) = await service
+            .UpdateOneAsync(3, versionAfterSet!.Value, new(jsonValueFormat: string.Empty))
+            .ConfigureAwait(false);
+
+        var afterClear = await context.Torrents.AsNoTracking()
+            .FirstAsync(static t => t.Id == 3)
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(setResult, Is.EqualTo(TorrentMutationResult.Success));
+            Assert.That(afterSet.JsonValueFormat, Is.EqualTo(format));
+            Assert.That(clearResult, Is.EqualTo(TorrentMutationResult.Success));
+            Assert.That(afterClear.JsonValueFormat, Is.Null);
         }
     }
 
