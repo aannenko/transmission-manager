@@ -23,7 +23,8 @@ internal sealed class BackgroundTorrentUpdateServiceTests
     private const string _hash = "abcdef0123456789abcdef0123456789abcdef01";
     private const string _resolvedName = "TV Show 1";
 
-    private static readonly TimeSpan _testTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan _drainTimeout = TimeSpan.FromSeconds(30);
+    private static readonly TimeSpan _longestRetryWait = TimeSpan.FromMinutes(30);
 
     private SqliteConnection _connection = null!;
     private ServiceProvider _services = null!;
@@ -303,19 +304,22 @@ internal sealed class BackgroundTorrentUpdateServiceTests
         _ = await dbContext.Torrents.Where(t => t.Id == id).ExecuteDeleteAsync().ConfigureAwait(false);
     }
 
+    /// <remarks>
+    /// The service waits on <see cref="TimeProvider"/> between attempts, so nothing happens until
+    /// the fake clock moves; but it reaches each wait only after real asynchronous work, which the
+    /// test cannot observe. Hence the pump: advance, yield, look again. One advance of 30 minutes
+    /// clears any single wait, the longest being the fortieth at 40 squared seconds. The wall clock
+    /// is only a guard against a hang - a converging drain never approaches it.
+    /// </remarks>
     private async Task DrainAsync(Task task)
     {
-        var realDeadline = DateTime.UtcNow + _testTimeout;
+        var deadline = DateTime.UtcNow + _drainTimeout;
         while (!task.IsCompleted)
         {
-            // Let real async work (HTTP/EF) progress, then advance virtual time.
-            var completedSignal = await Task.WhenAny(task, Task.Delay(50)).ConfigureAwait(false);
-            if (completedSignal == task)
-                break;
+            _time.Advance(_longestRetryWait);
+            await Task.Yield();
 
-            _time.Advance(TimeSpan.FromMinutes(30));
-
-            if (DateTime.UtcNow > realDeadline)
+            if (DateTime.UtcNow > deadline)
                 throw new TimeoutException("Background update did not complete within the test timeout.");
         }
 
