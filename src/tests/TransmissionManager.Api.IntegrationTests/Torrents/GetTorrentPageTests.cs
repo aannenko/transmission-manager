@@ -73,13 +73,11 @@ internal sealed class GetTorrentPageTests
     [Test]
     public async Task GetTorrentPageAsync_RegardlessOfPaging_PopulatesCountWithTheFilteredTotal()
     {
-        // No filter: Count == seeded total, even on a single small page.
         var parameters = new Parameters(Take: 1);
         var response = await _client.GetAsync(parameters.ToPathAndQueryString()).ConfigureAwait(false);
         var page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
         AssertTorrentPage(page, _torrents[..1], EndpointAddresses.Torrents + "?take=1&anchorId=1", null, 3);
 
-        // CronExists true -> 2; false -> 1.
         response = await _client.GetAsync(new Parameters(CronExists: true).ToPathAndQueryString()).ConfigureAwait(false);
         page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
         AssertTorrentPage(page, [_torrents[0], _torrents[2]], null, null, 2);
@@ -88,7 +86,6 @@ internal sealed class GetTorrentPageTests
         page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
         AssertTorrentPage(page, [_torrents[1]], null, null, 1);
 
-        // Boundary empty page still reports the current filtered total.
         var beyondEnd = new Parameters(Take: 3, AnchorId: 4, Direction: GetTorrentPageDirection.Backward);
         response = await _client.GetAsync(beyondEnd.ToPathAndQueryString()).ConfigureAwait(false);
         page = await response.Content.ReadFromJsonAsync<GetTorrentPageResponse>().ConfigureAwait(false);
@@ -462,7 +459,6 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [], expectedFallbackNextPage, null);
 
-        // Behavioral: clicking the fallback URL returns the page including the boundary (Id=1).
         response = await _client.GetAsync(expectedFallbackNextPage).ConfigureAwait(false);
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
@@ -543,7 +539,6 @@ internal sealed class GetTorrentPageTests
 
         AssertTorrentPage(page, [], null, expectedFallbackPreviousPage);
 
-        // Behavioral: clicking the fallback returns all three rows in (Name, Id) ascending order.
         // Id=2 and Id=3 share Name; their relative order proves the Id tiebreaker survives the bump.
         response = await client.GetAsync(expectedFallbackPreviousPage).ConfigureAwait(false);
 

@@ -89,9 +89,6 @@ internal sealed class ValidateTorrentJsonPointerClientOptionsTests
         AssertFailsNaming(options, nameof(options.DefaultJsonValueFormat));
     }
 
-    /// <remarks>
-    /// Both ends of the limit, because only the pair of them catches an off-by-one.
-    /// </remarks>
     [TestCase(0, true, TestName = "Validate_WhenDefaultJsonValueRegexPatternIsAtTheLengthLimit_Succeeds")]
     [TestCase(1, false, TestName = "Validate_WhenDefaultJsonValueRegexPatternIsOverTheLengthLimit_Fails")]
     public void Validate_WhenDefaultJsonValueRegexPatternIsAroundTheLengthLimit_SucceedsOnlyWithinIt(

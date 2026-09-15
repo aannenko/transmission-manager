@@ -353,8 +353,6 @@ internal sealed class TorrentJsonPointerClientTests
         }
     }
 
-    // A source whose JSON already holds whole magnet links: a pattern that captures the magnet, and
-    // a format that asks for nothing but what it captured.
     [Test]
     public async Task FindMagnetUriAsync_WhenValueIsAWholeMagnet_ReturnsItUnchanged()
     {

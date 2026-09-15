@@ -8,20 +8,20 @@
 
 ## Build, Test, and Lint
 
-.NET 10 solution; central package management via `Directory.Packages.props`. Three `.slnx` files: `TransmissionManager.slnx` (full repo), `TransmissionManager.Api.slnx`, `TransmissionManager.Web.slnx` (scoped). No separate lint command — `AnalysisLevel: latest-all` runs Roslyn analyzers at build time.
+.NET 10 solution; central package management via `Directory.Packages.props`. Solution files: `TransmissionManager.slnx` (full repo), `TransmissionManager.Api.slnx`, `TransmissionManager.Web.slnx` (scoped). No separate lint command — `AnalysisLevel: latest-all` runs Roslyn analyzers at build time.
 
-Non-obvious `dotnet test` filter shapes:
+Non-obvious `dotnet test` filter shapes — NUnit's adapter has no `ClassName` property, so match on `FullyQualifiedName`:
 
 ```shell
-dotnet test src/TransmissionManager.slnx --filter "ClassName=AddTorrentTests"
-dotnet test src/TransmissionManager.slnx --filter "FullyQualifiedName~AddTorrentTests.AddTorrent_Returns201"
+dotnet test src/TransmissionManager.slnx --filter "FullyQualifiedName~AddTorrentTests"
+dotnet test src/TransmissionManager.slnx --filter "FullyQualifiedName~AddTorrentAsync_WhenSourceUriIsNew_AddsTorrentToTransmissionAndDb"
 ```
 
 CI in the form of GitHub Actions lives in `.github/workflows/`. **A push is not finished until its runs are** — watch them (`gh run watch <id> --exit-status`) and report what they said.
 
 ## Architecture
 
-Two deployable apps:
+Deployable apps:
 
 - **TransmissionManager.Api** — ASP.NET Core Minimal API. Schedules cron-driven torrent refreshes via Coravel.
 - **TransmissionManager.Web** — Blazor WebAssembly SPA served by Nginx.
@@ -103,7 +103,7 @@ Prefer extracting stateful or self-contained logic into dedicated classes (handl
 
 Regenerate via `src/scripts/Optimize-DbContext.ps1`. The script accepts `-NoBuild` (CI uses this to reuse the workflow's prior `dotnet build`); `--no-build` is always forwarded to `dotnet ef dbcontext optimize`. CI's "Verify compiled EF Core model is up to date" step fails if the regenerated model differs from the checked-in copy. The `dotnet-ef` version pinned in `src/.config/dotnet-tools.json` and the `Microsoft.EntityFrameworkCore.Design` version pinned in `src/Directory.Packages.props` must be bumped together.
 
-**Gotcha — do not "fix" the missing `Relational:Collation` annotations.** The generated `TorrentEntityType.cs` adds the five `NOCASE`-collated string properties (`HashString`, `Name`, `SourceUri`, `DownloadDir`, `Cron`) without any collation annotation, and `IProperty.GetCollation()` throws on the read-optimized model. This is by design: the read-optimized (compiled) model carries only what the query pipeline needs; `OnModelCreating` still runs at startup and re-applies `UseCollation("NOCASE")`, so `EnsureCreatedAsync` produces `TEXT COLLATE NOCASE` columns and the unique indexes on `HashString`/`SourceUri` remain case-insensitive. Verified end-to-end. If a reviewer flags "compiled model drops NOCASE collations", point them here.
+**Gotcha — do not "fix" the missing `Relational:Collation` annotations.** The generated `TorrentEntityType.cs` adds the `NOCASE`-collated string properties (`HashString`, `Name`, `SourceUri`, `DownloadDir`, `Cron`) without any collation annotation, and `IProperty.GetCollation()` throws on the read-optimized model. This is by design: the read-optimized (compiled) model carries only what the query pipeline needs; `OnModelCreating` still runs at startup and re-applies `UseCollation("NOCASE")`, so `EnsureCreatedAsync` produces `TEXT COLLATE NOCASE` columns and the unique indexes on `HashString`/`SourceUri` remain case-insensitive. Verified end-to-end. If a reviewer flags "compiled model drops NOCASE collations", point them here.
 
 **Decision — keep `SourceUri` uniqueness case-insensitive.** `NOCASE` applies to the whole URI, including a JSON Pointer fragment whose member names are case-sensitive; leave the schema and index unchanged unless the owner explicitly reopens this decision.
 
@@ -125,17 +125,25 @@ Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal
 
 **Member ordering:** public before private; within that, group by purpose. The public-before-private rule wins ties — a single-caller private helper still goes at the end of the type or gets inlined/nested into the caller.
 
-**Comment only what needs it.** A comment earns its place by making unclear code clear, or by carrying what the code cannot say — an invariant, an ordering or concurrency rationale, a throw condition, a measured surprise, a maintainer warning. Most members need none, public ones included; a comment restating the signature is noise.
+**Comment only what needs it.** Write none. Add one only when you can name the question a reader would have that the code does not answer — then write the answer. Examples of what qualifies: an ordering or concurrency rationale, a measured surprise, a maintainer warning. Before keeping one, delete it: if nothing is lost that the name, signature and body give up in seconds, leave it deleted. This decides **whether** to comment; publicly used members are the exception.
 
-**Shape follows visibility.** A publicly accessible member leads with `<summary>`, never `<remarks>` alone. Documenting it at all commits you to the **full** form: a `<param>` for every parameter, a `<typeparam>` for every type parameter, a `<returns>` unless it returns void, and an `<exception>` for each documented throw — even where an individual tag only restates the signature, because a partial set renders as blanks in IntelliSense and generated docs, which reads as an omission rather than a judgement. `ServiceProviderTorrentSourceExtensions.FindMagnetUriAsync` is the worked full form. The bar is whether the member needs documenting at all; most do not. Effective accessibility decides this — a `public` member of an `internal` type is not publicly accessible and may be `<remarks>`-only, documenting just the one thing worth saying. A test's three-part name is already its summary, so a test takes `<remarks>` alone, for why it exists.
+**Document what is intended for public use.** A member qualifies when it is `public` in one of the libraries *and* something outside that library uses it — an extension method counts as use of its class. It then **must** carry the full form, outranking the rule above: `<summary>` first, never `<remarks>` alone, plus a `<param>` per parameter, a `<typeparam>` per type parameter, a `<returns>` unless it returns void, and an `<exception>` per documented throw. Keep a tag even where it only restates the signature; a partial set renders as blanks. `ServiceProviderTorrentSourceExtensions.FindMagnetUriAsync` is the worked full form.
+
+Everything else follows minimalism, `public` included — a `public` member of an `internal` type, anything `public` in `Api` or `Web`, and a library type nothing outside it uses. That last is `public` structurally, not as a contract: generated code must reach its base class (`CommonComponentBase`), a property type cannot be less accessible than the property exposing it, or it is simply over-exposed.
+
+**Finish a documented set.** Where a set's other members carry a comment, the last one does too — one bare member among documented siblings reads as an oversight. Applies to enum members (`MagnetSearchResult.Found`), overload groups, and the tags of one block.
+
+**A test takes `<remarks>` alone.** Its three-part name is already its summary, so most need none; write one only for a hazard it guards or a defect it pins, never for what it asserts.
+
+**Say only what the code does not.** The rules from here bind every comment, mandated ones included. Restating the signature or narrating the body is noise; why a change was made belongs in its commit message. Only a required tag is exempt, and is then one line.
 
 **Short and active.** Lead with what the member does or asserts.
 
 **A comment never looks up.** Describe what the thing it sits on does, requires and guarantees — not who calls it, why they call it, or what happens to the result afterwards. If adding or removing a caller would falsify the sentence, it is in the wrong file (a remark describing which keys an empty update was refused under outlived that behaviour inside a single change set). Delete it — move it only if it is genuinely needed where it lands, which is usually the call site. A caller named as a type, project, layer or page counts as named; "callers" and "a client" are contract and stay, except where the sentence describes what they then do with the value. For a test, the thing it sits on is what it asserts. Suppression justifications are exempt: a `#pragma` cannot be explained in another file. So is a consumer that owns this member's contract, such as its `IValidateOptions<T>`.
 
-**State a shared convention once, on the type.** `UpdateTorrentByIdRequest` puts its null-is-ignored / empty-clears rule in the type's `<remarks>` and names there the one property that differs, instead of repeating the rule on all four.
+**State a shared convention once, on the type.** `UpdateTorrentByIdRequest` puts its null-is-ignored / empty-clears rule in the type's `<remarks>` and names there the one property that differs, instead of repeating the rule on every property.
 
-**Never name a type the project cannot reference.** The four libraries (`Api.Common`, `Database`, `TorrentSources`, `Transmission`) declare no `ProjectReference`s — only `Api` and `Web` do — so a comment in one of them naming a type from another project (test classes included) points at something the reader cannot navigate to, and nothing catches it: `GenerateDocumentationFile` is off repo-wide, so even `<see cref>` goes unvalidated (measured). Put the cross-project statement where the reference direction actually runs — in the consuming project, in a test, or in this file. The mirrored `TorrentSourceKind` pair is the worked example: the `Database` copy documents its own storage contract, the `Api.Common` copy says nothing about the database, and their parity is asserted by a test in `Api.Tests`.
+**Never name a type the project cannot reference.** The libraries (`Api.Common`, `Database`, `TorrentSources`, `Transmission`) declare no `ProjectReference`s — only `Api` and `Web` do — so a comment in one of them naming a type from another project (test classes included) points at something the reader cannot navigate to, and nothing catches it: `GenerateDocumentationFile` is off repo-wide, so even `<see cref>` goes unvalidated (measured). Put the cross-project statement where the reference direction actually runs — in the consuming project, in a test, or in this file. The mirrored `TorrentSourceKind` pair is the worked example: the `Database` copy documents its own storage contract, the `Api.Common` copy says nothing about the database, and their parity is asserted by a test in `Api.Tests`.
 
 ### Naming conventions
 

@@ -1,7 +1,7 @@
 ﻿namespace TransmissionManager.Api.Common.Constants;
 
 /// <summary>
-/// The keys this API reports errors under.
+/// The keys an error is reported under in a problem details response.
 /// </summary>
 public static class ProblemDetailsKeys
 {

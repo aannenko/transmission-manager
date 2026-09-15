@@ -7,10 +7,10 @@ internal sealed class HttpUriAttributeTests
 {
     [TestCase("https://torrentTracker.com/forum/viewtopic.php?t=1", UriKind.Absolute, true)]
     [TestCase("http://torrentTracker.com/forum/viewtopic.php?t=1", UriKind.Absolute, true)]
-    [TestCase("/forum/viewtopic.php?t=1", UriKind.Relative, false)] // relative, unfetchable
-    [TestCase("forum/viewtopic.php", UriKind.Relative, false)] // relative, unfetchable
-    [TestCase("ftp://torrentTracker.com/file", UriKind.Absolute, false)] // absolute but not web
-    [TestCase("file:///c:/torrents/page.html", UriKind.Absolute, false)] // absolute but not web
+    [TestCase("/forum/viewtopic.php?t=1", UriKind.Relative, false)]
+    [TestCase("forum/viewtopic.php", UriKind.Relative, false)]
+    [TestCase("ftp://torrentTracker.com/file", UriKind.Absolute, false)]
+    [TestCase("file:///c:/torrents/page.html", UriKind.Absolute, false)]
     public void IsValid_WithVariousUris_ReturnsExpected(string address, UriKind uriKind, bool shouldBeValid)
     {
         var attribute = new HttpUriAttribute();

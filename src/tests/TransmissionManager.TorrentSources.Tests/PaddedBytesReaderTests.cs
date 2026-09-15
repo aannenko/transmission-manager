@@ -38,7 +38,7 @@ internal sealed class PaddedBytesReaderTests
         result = await reader.ReadNextAsync(5).ConfigureAwait(false);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(result, Is.False); // nothing new was read
+            Assert.That(result, Is.False);
             Assert.That(reader.Bytes.SequenceEqual("pqrst"u8), Is.True); // the retained window survives
         }
 
@@ -46,7 +46,7 @@ internal sealed class PaddedBytesReaderTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result, Is.False);
-            Assert.That(reader.Bytes.Length, Is.EqualTo(0)); // nothing retained, nothing read
+            Assert.That(reader.Bytes.Length, Is.EqualTo(0));
         }
     }
 

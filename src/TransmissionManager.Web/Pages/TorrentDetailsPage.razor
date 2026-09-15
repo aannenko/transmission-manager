@@ -147,8 +147,7 @@
     /// <returns>What is wrong with the pattern or the format, if anything.</returns>
     /// <remarks>
     /// A web page pattern has to find a magnet link, a JSON one is unconstrained, and no attribute
-    /// on the property can see which. Applying the web page rule to both made this form
-    /// unsubmittable for a JSON torrent, and clearing the field to get past it destroyed the pattern.
+    /// on the property can see which.
     /// </remarks>
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext) =>
         TorrentSourceRules.GetValidationResults(
@@ -188,10 +187,6 @@
     private protected override string GetGenericErrorMessage(HttpRequestException exception) =>
         $"{OperationFailure}: '{exception.Message}'.";
 
-    /// <remarks>
-    /// The outcomes this page acts on - a torrent that is gone, or one another client changed - are
-    /// answered where they are handled, so anything reaching here is a refusal it can only report.
-    /// </remarks>
     private protected override string GetProblemDetailsMessage(
         ApiProblemDetails? problemDetails,
         HttpStatusCode? statusCode) =>

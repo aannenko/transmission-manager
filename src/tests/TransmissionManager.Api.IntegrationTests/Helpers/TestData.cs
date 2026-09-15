@@ -74,9 +74,6 @@ internal static class TestData
             ];
     }
 
-    /// <summary>
-    /// Fixtures for a <see cref="TorrentSourceKind.WebPage"/> source.
-    /// </summary>
     internal static class WebPages
     {
         public const string WebPageHtml = """
@@ -181,9 +178,6 @@ internal static class TestData
             }
             """;
 
-        /// <remarks>
-        /// Magnet link synthesized from a prefix and the info hash.
-        /// </remarks>
         public const string FirstMagnet = $"magnet:?xt=urn:btih:{FirstHashString}";
 
         public const string SecondMagnet = $"magnet:?xt=urn:btih:{SecondHashString}";

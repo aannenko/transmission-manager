@@ -1,5 +1,13 @@
 ﻿namespace TransmissionManager.Database.Dto;
 
+/// <summary>
+/// A partial update to a torrent, carrying only the fields it changes.
+/// </summary>
+/// <remarks>
+/// A <see langword="null"/> field is left alone, so an update carrying nothing at all is refused.
+/// <see cref="MagnetRegexPattern"/>, <see cref="JsonValueFormat"/> and <see cref="Cron"/> take an
+/// empty string to clear the stored value; the rest refuse empty strings.
+/// </remarks>
 public sealed class TorrentUpdateDto
 {
     public TorrentUpdateDto(
@@ -35,24 +43,17 @@ public sealed class TorrentUpdateDto
         Cron = cron;
     }
 
-    // null is ignored
     public string? HashString { get; }
 
-    // null is ignored
     public DateTime? RefreshDate { get; }
 
-    // null is ignored
     public string? Name { get; }
 
-    // null is ignored
     public string? DownloadDir { get; }
 
-    // null is ignored, string.Empty sets the value in the DB to null
     public string? MagnetRegexPattern { get; }
 
-    // null is ignored, string.Empty sets the value in the DB to null
     public string? JsonValueFormat { get; }
 
-    // null is ignored, string.Empty sets the value in the DB to null
     public string? Cron { get; }
 }

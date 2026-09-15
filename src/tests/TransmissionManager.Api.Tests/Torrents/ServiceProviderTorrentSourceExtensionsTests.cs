@@ -100,10 +100,6 @@ internal sealed class ServiceProviderTorrentSourceExtensionsTests
             async () => await FindAsync((TorrentSourceKind)999, null).ConfigureAwait(false),
             Throws.TypeOf<ArgumentOutOfRangeException>());
 
-    /// <remarks>
-    /// Resolution is lazy, so the client a search does not need is never constructed - which is the
-    /// reason this dispatches through the provider instead of injecting both clients.
-    /// </remarks>
     [Test]
     public async Task FindMagnetUriAsync_WhenKindIsJsonPointer_DoesNotResolveTheWebPageClient()
     {

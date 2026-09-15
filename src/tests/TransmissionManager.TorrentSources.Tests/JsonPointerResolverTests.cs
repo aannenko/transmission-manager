@@ -310,7 +310,6 @@ internal sealed class JsonPointerResolverTests
             Throws.InstanceOf<JsonException>());
     }
 
-    /// <remarks>Safe because the value is validated as an info hash regardless.</remarks>
     [Test]
     public async Task ResolveAsync_WhenDocumentIsMalformedAfterTheValue_StillReturnsTheValue()
     {
@@ -475,10 +474,7 @@ internal sealed class JsonPointerResolverTests
             Throws.InstanceOf<JsonException>());
     }
 
-    /// <returns>
-    /// A document whose first member nests <paramref name="nesting"/> arrays, none of which the
-    /// pointer enters, followed by the member it does address.
-    /// </returns>
+    /// <returns>A document nesting <paramref name="nesting"/> arrays under "junk", then "wanted".</returns>
     private static string BuildNestedSkipDocument(int nesting) =>
         $$"""{"junk":{{new string('[', nesting)}}1{{new string(']', nesting)}},"wanted":"found-it"}""";
 

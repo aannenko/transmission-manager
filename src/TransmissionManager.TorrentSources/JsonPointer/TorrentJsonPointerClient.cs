@@ -75,7 +75,6 @@ public sealed class TorrentJsonPointerClient(
 
         try
         {
-            // ResponseHeadersRead makes sure await returns after getting the response headers.
             using var response = await httpClient
                 .GetAsync(sourceUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);

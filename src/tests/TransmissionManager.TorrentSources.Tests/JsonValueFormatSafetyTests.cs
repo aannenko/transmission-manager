@@ -97,7 +97,7 @@ internal sealed class JsonValueFormatSafetyTests
                     continue;
 
                 accepted++;
-                var parsed = CompositeFormat.Parse(candidate); // must not throw
+                var parsed = CompositeFormat.Parse(candidate);
                 var formatted = string.Format(CultureInfo.InvariantCulture, parsed, _hash);
                 var placeholders = candidate.Split("{0}").Length - 1;
 

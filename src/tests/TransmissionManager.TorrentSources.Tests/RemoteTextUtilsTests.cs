@@ -106,18 +106,11 @@ internal sealed class RemoteTextUtilsTests
     public void Summarize_WhenMaxLengthIsBelowTheDefaultAndTextFits_DoesNotElide() =>
         Assert.That(RemoteTextUtils.Summarize("abc", 4), Is.EqualTo("abc"));
 
-    /// <remarks>
-    /// The ends of the accepted range, which a guard is as easy to get wrong at as it is outside it.
-    /// </remarks>
     [TestCase(1, "a...")]
     [TestCase(100, "abc")]
     public void Summarize_WhenMaxLengthIsAtAnAcceptedBoundary_Summarizes(int maxLength, string expected) =>
         Assert.That(RemoteTextUtils.Summarize("abc", maxLength), Is.EqualTo(expected));
 
-    /// <remarks>
-    /// Length is quoted alongside the summary by its callers, so a served value of any size costs a
-    /// bounded amount of message - this pins that the bound holds for a value far past the buffer.
-    /// </remarks>
     [Test]
     public void Summarize_WhenTextIsEnormous_StaysBounded()
     {

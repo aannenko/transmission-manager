@@ -55,8 +55,7 @@ internal sealed class ValidateTorrentWebPageClientOptionsTests
     }
 
     /// <remarks>
-    /// Both ends of the limit, because only the pair of them catches an off-by-one. The pattern is
-    /// padded rather than replaced so that length is the one thing left that can fail.
+    /// The pattern is padded rather than replaced so that length is the one thing left that can fail.
     /// </remarks>
     [TestCase(0, true, TestName = "Validate_WhenDefaultMagnetRegexPatternIsAtTheLengthLimit_Succeeds")]
     [TestCase(1, false, TestName = "Validate_WhenDefaultMagnetRegexPatternIsOverTheLengthLimit_Fails")]

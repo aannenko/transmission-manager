@@ -96,9 +96,6 @@ public static class TorrentSourceRules
         };
     }
 
-    /// <returns>
-    /// What is wrong with each setting, or <see langword="null"/> for a setting that is fine.
-    /// </returns>
     private static (string? PatternError, string? FormatError) GetErrors(
         TorrentSourceKind sourceKind,
         string? magnetRegexPattern,
@@ -113,9 +110,6 @@ public static class TorrentSourceRules
         return (GetPatternError(sourceKind, magnetRegexPattern), formatError);
     }
 
-    /// <returns>
-    /// What is wrong with <paramref name="pattern"/>, or <see langword="null"/> if nothing is.
-    /// </returns>
     private static string? GetPatternError(TorrentSourceKind sourceKind, string? pattern)
     {
         if (string.IsNullOrEmpty(pattern))

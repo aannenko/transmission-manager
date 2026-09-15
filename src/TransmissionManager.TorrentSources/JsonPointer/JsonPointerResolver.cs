@@ -94,7 +94,7 @@ internal static class JsonPointerResolver
 
                 if (!isBomChecked) // Strip BOM.
                 {
-                    if (dataLength >= Utf8Bom.Length) // If we've read enough to check for a BOM.
+                    if (dataLength >= Utf8Bom.Length)
                     {
                         isBomChecked = true;
                         if (buffer.AsSpan(0, Utf8Bom.Length).SequenceEqual(Utf8Bom))
@@ -113,8 +113,8 @@ internal static class JsonPointerResolver
                     }
                 }
 
-                // Utf8JsonReader cannot cross an await, so it lives inside this call and walk
-                // carries its position between chunks.
+                // Utf8JsonReader cannot cross an await, so it lives inside this call and the walk
+                // carries its position between the chunks the reader processes.
                 if (AdvanceJsonWalk(buffer.AsSpan(0, dataLength), isFinalBlock, segments, ref walk, out var outcome))
                     return outcome;
 

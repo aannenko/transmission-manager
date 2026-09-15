@@ -223,14 +223,13 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(currentVersion, Is.EqualTo(1));
 
-        // Row should still exist after a conflict
         var get = await _client.GetAsync($"{EndpointAddresses.Torrents}/3").ConfigureAwait(false);
+
         Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));
     }
 
     [Test]
-    public async Task DeleteTorrentByIdAsync_WhenNonLocalAndVersionMismatch_ReturnsConflictAndDoesNotCallTransmission()
-    {
+    public async Task DeleteTorrentByIdAsync_WhenNonLocalAndVersionMismatch_ReturnsConflictAndDoesNotCallTransmission()    {
         // Stale version on a non-local delete must short-circuit before the Transmission RPC.
         // Transmission mock has no mapping for id=3's hash, so any RPC would yield 424 or 5xx, never 409.
         var response = await _client
@@ -254,7 +253,6 @@ internal sealed class DeleteTorrentByIdTests
 
         Assert.That(currentVersion, Is.EqualTo(1));
 
-        // Row should still exist after a conflict.
         var get = await _client.GetAsync($"{EndpointAddresses.Torrents}/3").ConfigureAwait(false);
 
         Assert.That(get.StatusCode, Is.EqualTo(HttpStatusCode.OK));

@@ -264,10 +264,6 @@ internal sealed class UpdateTorrentByIdTests
             Is.EqualTo(["A magnet format is only used by a JsonPointer source."]));
     }
 
-    /// <remarks>
-    /// Each fault is reported against the field that carries it, so a client can show both without
-    /// taking either apart.
-    /// </remarks>
     [Test]
     public async Task UpdateTorrentByIdAsync_WhenBothSourceSettingsAreWrongForTheKind_ReportsBoth()
     {

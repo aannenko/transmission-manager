@@ -115,9 +115,6 @@ internal sealed class TorrentSourceRulesTests
         }
     }
 
-    /// <remarks>
-    /// Both faults are real; only the parse error is reported.
-    /// </remarks>
     [Test]
     public void Validate_WhenPatternNeitherParsesNorFindsAMagnet_ReportsOnlyTheParseError()
     {

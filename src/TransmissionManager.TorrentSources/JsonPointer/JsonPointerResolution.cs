@@ -1,8 +1,5 @@
 ﻿namespace TransmissionManager.TorrentSources.JsonPointer;
 
-/// <summary>
-/// How resolving the segments of a JSON Pointer against a document ended.
-/// </summary>
 internal enum JsonPointerResolution
 {
     /// <summary>

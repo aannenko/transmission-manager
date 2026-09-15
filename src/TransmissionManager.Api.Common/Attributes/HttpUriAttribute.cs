@@ -18,10 +18,10 @@ public sealed class HttpUriAttribute : ValidationAttribute
     }
 
     /// <summary>
-    /// Determines whether the specified value is an absolute HTTP or HTTPS address.
+    /// Determines whether the value is an absolute <c>http</c> or <c>https</c> address.
     /// </summary>
-    /// <param name="value">The value to validate.</param>
-    /// <returns>Whether the value is valid.</returns>
+    /// <param name="value">The value to check.</param>
+    /// <returns><see langword="true"/> for such an address, and for <see langword="null"/>.</returns>
     public override bool IsValid(object? value) =>
         value is null ||
         (value is Uri uri &&

@@ -63,7 +63,6 @@ public sealed class TorrentWebPageClient(
 
         try
         {
-            // ResponseHeadersRead makes sure await returns after getting the response headers.
             using var response = await httpClient
                 .GetAsync(torrentWebPageUri, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                 .ConfigureAwait(false);
@@ -151,7 +150,6 @@ public sealed class TorrentWebPageClient(
                 var bytes = reader.Bytes;
                 var indexOfMagnet = bytes.IndexOf(Magnet);
 
-                // magnet not found, but there may be more to read - continue
                 if (indexOfMagnet is -1)
                 {
                     padding = Math.Min(_defaultPadding, bytes.Length);

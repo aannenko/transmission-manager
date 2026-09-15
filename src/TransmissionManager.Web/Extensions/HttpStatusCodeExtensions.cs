@@ -9,7 +9,7 @@ internal static class HttpStatusCodeExtensions
     /// Maps a status code to the outcome a failed call reports.
     /// </summary>
     /// <param name="statusCode">The status the server answered with, if any.</param>
-    /// <returns>The outcome, which is <see cref="ApiResultStatus.Failed"/> unless callers act on it.</returns>
+    /// <returns>The outcome the status maps to.</returns>
     /// <remarks>
     /// A success code lands on <see cref="ApiResultStatus.Failed"/> too: a response whose body could
     /// not be read reaches here carrying one.

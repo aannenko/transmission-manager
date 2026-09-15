@@ -24,7 +24,6 @@ internal static class GetTorrentPageEndpoint
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
     private static async Task<Results<Ok<GetTorrentPageResponse>, ValidationProblem>> GetTorrentPageAsync(
         [FromServices] TorrentService service,
-        //[AsParameters] GetTorrentPageParameters parameters,
         [EnumDataType(typeof(Order))] Order orderBy = Order.Id,
         [Range(1, 10000)] int take = 20,
         long? anchorId = null,

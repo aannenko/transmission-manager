@@ -515,7 +515,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         using var context = CreateContext();
         var service = CreateService(context);
 
-        // Complements the Exists case: re-writing a row's own hash must not trip the unique index.
+        // Re-writing a row's own hash must not trip the unique index.
         var dto = new TorrentUpdateDto(hashString: "0bda511316a069e86dd8ee8a3610475d2013a7fa");
 
         var (result, currentVersion) = await service.UpdateOneAsync(1, 1, dto).ConfigureAwait(false);

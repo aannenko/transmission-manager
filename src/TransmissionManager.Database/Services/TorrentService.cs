@@ -109,9 +109,11 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
     }
 
     /// <summary>
-    /// Returns the number of torrents matching <paramref name="filter"/>, served from
-    /// <see cref="TorrentCountCache"/> and recomputed against the database on a miss.
+    /// Counts the torrents matching <paramref name="filter"/>, from the cache when it holds a count.
     /// </summary>
+    /// <param name="filter">Which torrents to count.</param>
+    /// <param name="cancellationToken">Cancels the count.</param>
+    /// <returns>The number of matching torrents.</returns>
     public ValueTask<long> GetCountAsync(TorrentFilter filter = default, CancellationToken cancellationToken = default)
     {
         return countCache.GetOrAddAsync(filter, CountAsync, (dbContext, filter), cancellationToken);
