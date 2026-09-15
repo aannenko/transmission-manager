@@ -18,6 +18,8 @@ on:
       - 'src/*'
       - 'src/TransmissionManager.Web/**'
       - 'src/TransmissionManager.Api.Common/**'
+      - 'src/tests/TransmissionManager.Web.Tests/**'
+      - 'src/tests/TransmissionManager.BaseTests/**'
       - '!src/TransmissionManager.Api.slnx'
   pull_request:
     branches: ["main"]
@@ -27,6 +29,8 @@ on:
       - 'src/*'
       - 'src/TransmissionManager.Web/**'
       - 'src/TransmissionManager.Api.Common/**'
+      - 'src/tests/TransmissionManager.Web.Tests/**'
+      - 'src/tests/TransmissionManager.BaseTests/**'
       - '!src/TransmissionManager.Api.slnx'
 
 env:
