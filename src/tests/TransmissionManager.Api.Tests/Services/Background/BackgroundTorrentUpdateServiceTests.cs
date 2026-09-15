@@ -6,6 +6,8 @@ using Microsoft.Extensions.Time.Testing;
 using System.Net;
 using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Logging;
+using TransmissionManager.Api.Tests.Helpers;
+using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Models;
@@ -325,56 +327,4 @@ internal sealed class BackgroundTorrentUpdateServiceTests
 
     private static HttpResponseMessage Json(string body) =>
         new(HttpStatusCode.OK) { Content = new StringContent(body) };
-
-    private sealed record RecordedLog(LogLevel Level, EventId EventId, string Message, Exception? Exception);
-
-    private sealed class RecordingLogger<T> : ILogger<T>
-    {
-        public List<RecordedLog> Records { get; } = [];
-
-        IDisposable? ILogger.BeginScope<TState>(TState state) => NullScope.Instance;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-            ArgumentNullException.ThrowIfNull(formatter);
-            Records.Add(new(logLevel, eventId, formatter(state, exception), exception));
-        }
-
-        private sealed class NullScope : IDisposable
-        {
-            public static readonly NullScope Instance = new();
-            public void Dispose() { }
-        }
-    }
-
-    private sealed class SequencedHttpMessageHandler : HttpMessageHandler
-    {
-        private readonly Queue<Func<HttpRequestMessage, Task<HttpResponseMessage>>> _responses = new();
-        private int _callCount;
-
-        public int CallCount => _callCount;
-
-        public void Enqueue(Func<HttpRequestMessage, HttpResponseMessage> response) =>
-            _responses.Enqueue(request => Task.FromResult(response(request)));
-
-        protected override async Task<HttpResponseMessage> SendAsync(
-            HttpRequestMessage request,
-            CancellationToken cancellationToken)
-        {
-            _ = Interlocked.Increment(ref _callCount);
-
-            if (_responses.Count == 0)
-                throw new InvalidOperationException("No more queued responses.");
-
-            var factory = _responses.Dequeue();
-            return await factory(request).ConfigureAwait(false);
-        }
-    }
 }

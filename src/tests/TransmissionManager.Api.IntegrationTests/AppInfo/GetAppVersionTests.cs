@@ -29,11 +29,8 @@ internal sealed class GetAppVersionTests
     public async Task GetAppVersion_WhenCalled_ReturnsExpectedAppVersion()
     {
         var expectedVersion = typeof(Program).Assembly.GetName().Version;
-        var before = DateTimeOffset.Now;
 
         var response = await _client.GetAsync(EndpointAddresses.AppVersion).ConfigureAwait(false);
-
-        var after = DateTimeOffset.Now;
 
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
 

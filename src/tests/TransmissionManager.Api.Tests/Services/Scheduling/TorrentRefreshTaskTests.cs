@@ -5,6 +5,7 @@ using TransmissionManager.Api.Common.Constants;
 using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Api.Services.Logging;
 using TransmissionManager.Api.Services.Scheduling;
+using TransmissionManager.Api.Tests.Helpers;
 
 namespace TransmissionManager.Api.Tests.Services.Scheduling;
 
@@ -133,29 +134,5 @@ internal sealed class TorrentRefreshTaskTests
     {
         public Task<RefreshTorrentByIdOutcome> RefreshTorrentByIdAsync(long id, CancellationToken cancellationToken) =>
             Task.FromResult(outcome);
-    }
-
-    private sealed record RecordedLog(LogLevel Level, string Message, Exception? Exception);
-
-    private sealed class RecordingLogger<T> : ILogger<T>
-    {
-        private readonly List<RecordedLog> _records = [];
-
-        public IReadOnlyList<RecordedLog> Records => _records;
-
-        IDisposable? ILogger.BeginScope<TState>(TState state) => null;
-
-        public bool IsEnabled(LogLevel logLevel) => true;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
-        {
-            ArgumentNullException.ThrowIfNull(formatter);
-            _records.Add(new(logLevel, formatter(state, exception), exception));
-        }
     }
 }
