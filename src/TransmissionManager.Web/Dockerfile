@@ -4,7 +4,7 @@ ARG BINARY_VERSION
 WORKDIR /source
 
 # Copy everything and publish the app
-COPY Directory.Packages.props .
+COPY Directory.Build.props Directory.Packages.props .editorconfig ./
 COPY TransmissionManager.Api.Common/. TransmissionManager.Api.Common/
 COPY TransmissionManager.Web/. TransmissionManager.Web/
 RUN apt update \

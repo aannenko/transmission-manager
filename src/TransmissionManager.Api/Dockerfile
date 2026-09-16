@@ -5,7 +5,7 @@ ARG BINARY_VERSION
 WORKDIR /source
 
 # Copy everything and publish the app
-COPY Directory.Packages.props .
+COPY Directory.Build.props Directory.Packages.props .editorconfig ./
 COPY TransmissionManager.Database/. TransmissionManager.Database/
 COPY TransmissionManager.TorrentSources/. TransmissionManager.TorrentSources/
 COPY TransmissionManager.Transmission/. TransmissionManager.Transmission/
