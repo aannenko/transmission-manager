@@ -10,13 +10,13 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddSingleton(DtoJsonSerializerContext.Default);
 builder.Services.AddSingleton<LocalStorageService>();
-builder.Services.AddSingleton<ConnectionService>();
+builder.Services.AddSingleton<ApiAddressService>();
 builder.Services.AddSingleton<ThemeService>();
 builder.Services.AddHttpClient<TransmissionManagerClient>(static (services, client) =>
-    client.BaseAddress = services.GetRequiredService<ConnectionService>().BaseAddress);
+    client.BaseAddress = services.GetRequiredService<ApiAddressService>().BaseAddress);
 
 var host = builder.Build();
 
-await host.Services.GetRequiredService<ConnectionService>().LoadAsync().ConfigureAwait(false);
+await host.Services.GetRequiredService<ApiAddressService>().LoadAsync().ConfigureAwait(false);
 
 await host.RunAsync().ConfigureAwait(false);

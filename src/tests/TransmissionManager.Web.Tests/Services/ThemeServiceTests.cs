@@ -29,9 +29,16 @@ internal sealed class ThemeServiceTests
         Assert.That(service.Theme, Is.EqualTo(expected));
     }
 
+    /// <remarks>
+    /// The numbers are the ones a name check alone lets through: every one of them parses.
+    /// </remarks>
     [TestCase(null, TestName = "LoadAsync_WhenStorageHoldsNoThemeName_FallsBackToLight(nothing stored)")]
     [TestCase("", TestName = "LoadAsync_WhenStorageHoldsNoThemeName_FallsBackToLight(empty string)")]
     [TestCase("sepia")]
+    [TestCase("2")]
+    [TestCase("99")]
+    [TestCase("-1")]
+    [TestCase("-2")]
     public async Task LoadAsync_WhenStorageHoldsNoThemeName_FallsBackToLight(string? stored)
     {
         var runtime = new FakeJSRuntime();

@@ -4,7 +4,7 @@ using TransmissionManager.Web.Dto;
 namespace TransmissionManager.Web.Services;
 
 #pragma warning disable CA1812 // Avoid uninstantiated internal classes - instantiated by the DI container.
-internal sealed class ConnectionService(
+internal sealed class ApiAddressService(
     IWebAssemblyHostEnvironment hostEnvironment,
     IHttpClientFactory httpClientFactory,
     LocalStorageService localStorage)
@@ -17,23 +17,13 @@ internal sealed class ConnectionService(
     public async Task LoadAsync()
     {
         var value = await localStorage.GetItemAsync(_storageKey).ConfigureAwait(false);
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri))
+        if (Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
+        {
             BaseAddress = uri;
+        }
     }
 
-    /// <summary>
-    /// Connects to the API at <paramref name="baseAddress"/> and remembers the address on success.
-    /// </summary>
-    /// <param name="baseAddress">The address to try.</param>
-    /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
-    /// <returns>The version the API reported, or what it answered instead.</returns>
-    /// <exception cref="OperationCanceledException">
-    /// Thrown when the attempt is cancelled or exceeds the one-second timeout.
-    /// </exception>
-    /// <remarks>
-    /// The address is stored only once the API has answered as itself, so a host that merely
-    /// responds - another application on the port, or one answering 404 - is not remembered.
-    /// </remarks>
     public async Task<ApiResult<Version>> ConnectAsync(Uri baseAddress, CancellationToken cancellationToken = default)
     {
         using var httpClient = httpClientFactory.CreateClient(nameof(TransmissionManagerClient));

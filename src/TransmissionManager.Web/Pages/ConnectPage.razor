@@ -6,7 +6,7 @@
 @using TransmissionManager.Web.Services
 @using TransmissionManager.Web.Validation
 @inherits CommonComponentBase
-@inject ConnectionService ConnectionService
+@inject ApiAddressService ApiAddressService
 
 <PageTitle>Connect - Transmission Manager</PageTitle>
 
@@ -48,8 +48,8 @@
 
     protected override void OnInitialized()
     {
-        Host = ConnectionService.BaseAddress.Host;
-        Port = ConnectionService.BaseAddress.Port;
+        Host = ApiAddressService.BaseAddress.Host;
+        Port = ApiAddressService.BaseAddress.Port;
     }
 
     private protected override string GetOperationCanceledMessage(OperationCanceledException exception) =>
@@ -87,8 +87,8 @@
         }
 
         var result = await CallNetworkService(
-            (ConnectionService, baseAddress),
-            static args => args.ConnectionService.ConnectAsync(args.baseAddress));
+            (ApiAddressService, baseAddress),
+            static args => args.ApiAddressService.ConnectAsync(args.baseAddress));
 
         if (result.Status is ApiResultStatus.Success)
         {

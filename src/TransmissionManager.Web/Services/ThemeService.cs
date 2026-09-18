@@ -13,7 +13,9 @@ internal sealed class ThemeService(LocalStorageService localStorage)
     public async Task LoadAsync()
     {
         var value = await localStorage.GetItemAsync(_storageKey).ConfigureAwait(false);
-        Theme = Enum.TryParse<Theme>(value, ignoreCase: true, out var theme) ? theme : Theme.Light;
+        Theme = Enum.TryParse<Theme>(value, ignoreCase: true, out var theme) && Enum.IsDefined(theme)
+            ? theme
+            : Theme.Light;
     }
 
     public async Task SetThemeAsync(Theme theme)
