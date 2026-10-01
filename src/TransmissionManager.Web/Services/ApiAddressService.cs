@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using TransmissionManager.Api.Common.Validation;
 using TransmissionManager.Web.Dto;
 
 namespace TransmissionManager.Web.Services;
@@ -12,16 +13,14 @@ internal sealed class ApiAddressService(
 {
     private const string _storageKey = "baseAddress";
 
-    public Uri BaseAddress { get; private set; } = new UriBuilder(hostEnvironment.BaseAddress) { Port = 9092 }.Uri;
+    public Uri BaseAddress { get; private set; } =
+        new UriBuilder(hostEnvironment.BaseAddress) { Port = 9092, Path = "/" }.Uri;
 
     public async Task LoadAsync()
     {
         var value = await localStorage.GetItemAsync(_storageKey).ConfigureAwait(false);
-        if (Uri.TryCreate(value, UriKind.Absolute, out var uri)
-            && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps))
-        {
+        if (HttpUriUtils.TryCreate(value, out var uri))
             BaseAddress = uri;
-        }
     }
 
     public async Task<ApiResult<Version>> ConnectAsync(Uri baseAddress, CancellationToken cancellationToken = default)

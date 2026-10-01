@@ -19,7 +19,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
 {
     public async Task<ApiResult<Version>> GetAppVersionAsync(CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(EndpointAddresses.AppVersion, UriKind.Relative);
+        var requestUri = ToRequestUri(EndpointAddresses.AppVersion);
         using var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
         return await response
             .ToApiResultAsync(DtoJsonSerializerContext.Default.Version, cancellationToken)
@@ -30,7 +30,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         long torrentId,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
+        var requestUri = ToRequestUri($"{EndpointAddresses.Torrents}/{torrentId}");
         using var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
         return await response
             .ToApiResultAsync(DtoJsonSerializerContext.Default.TorrentDto, cancellationToken)
@@ -41,7 +41,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         GetTorrentPageParameters request = default,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(request.ToPathAndQueryString(), UriKind.Relative);
+        var requestUri = ToRequestUri(request.ToPathAndQueryString());
         using var response = await httpClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
         return await response
             .ToApiResultAsync(DtoJsonSerializerContext.Default.GetTorrentPageResponse, cancellationToken)
@@ -52,7 +52,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         AddTorrentRequest request,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(EndpointAddresses.Torrents, UriKind.Relative);
+        var requestUri = ToRequestUri(EndpointAddresses.Torrents);
         using var response = await httpClient
             .PostAsJsonAsync(
                 requestUri,
@@ -72,7 +72,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         long torrentId,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}", UriKind.Relative);
+        var requestUri = ToRequestUri($"{EndpointAddresses.Torrents}/{torrentId}");
         using var response = await httpClient
             .PostAsync(requestUri, null, cancellationToken)
             .ConfigureAwait(false);
@@ -90,7 +90,7 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         UpdateTorrentByIdRequest request,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri($"{EndpointAddresses.Torrents}/{torrentId}?version={version}", UriKind.Relative);
+        var requestUri = ToRequestUri($"{EndpointAddresses.Torrents}/{torrentId}?version={version}");
         using var response = await httpClient
             .PatchAsJsonAsync(
                 requestUri,
@@ -108,9 +108,8 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
         DeleteTorrentByIdType deleteType,
         CancellationToken cancellationToken = default)
     {
-        var requestUri = new Uri(
-            $"{EndpointAddresses.Torrents}/{torrentId}?version={version}&deleteType={deleteType}",
-            UriKind.Relative);
+        var requestUri = ToRequestUri(
+            $"{EndpointAddresses.Torrents}/{torrentId}?version={version}&deleteType={deleteType}");
 
         using var response = await httpClient.DeleteAsync(requestUri, cancellationToken).ConfigureAwait(false);
         return await response.ToApiResultAsync(cancellationToken).ConfigureAwait(false);
@@ -137,4 +136,11 @@ internal sealed class TransmissionManagerClient(HttpClient httpClient)
             ? ApiResult<T>.Failure(result.StatusCode, result.ProblemDetails)
             : result;
     }
+
+    /// <remarks>
+    /// A path that starts with a slash replaces the base address's path, which would drop the prefix
+    /// a reverse proxy might serve the API under.
+    /// </remarks>
+    private static Uri ToRequestUri(string rootedPathAndQuery) =>
+        new(rootedPathAndQuery.TrimStart('/'), UriKind.Relative);
 }

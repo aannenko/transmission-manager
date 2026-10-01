@@ -28,8 +28,19 @@ internal sealed class ApiAddressServiceTests
         Assert.That(service.BaseAddress, Is.EqualTo(_defaultAddress));
     }
 
+    [Test]
+    public void BaseAddress_WhenTheHostAddressHasAPath_IsTheRootOfTheApiPort()
+    {
+        using var handler = new ThrowingHttpMessageHandler(_noRequestExpected);
+
+        var service = CreateService(new(), handler, "http://localhost:5000/web/");
+
+        Assert.That(service.BaseAddress, Is.EqualTo(_defaultAddress));
+    }
+
     [TestCase("http://api.example:9092/")]
     [TestCase("https://api.example/")]
+    [TestCase("https://proxy.example/tm/")]
     public async Task LoadAsync_WhenStorageHoldsAnHttpAddress_AdoptsIt(string stored)
     {
         using var handler = new ThrowingHttpMessageHandler(_noRequestExpected);
@@ -123,10 +134,13 @@ internal sealed class ApiAddressServiceTests
         Assert.That(service.BaseAddress, Is.EqualTo(_defaultAddress));
     }
 
-    private static ApiAddressService CreateService(FakeJSRuntime runtime, HttpMessageHandler handler)
+    private static ApiAddressService CreateService(
+        FakeJSRuntime runtime,
+        HttpMessageHandler handler,
+        string hostAddress = _hostAddress)
     {
         return new(
-            new FakeWebAssemblyHostEnvironment(_hostAddress),
+            new FakeWebAssemblyHostEnvironment(hostAddress),
             new FakeHttpClientFactory(handler),
             new LocalStorageService(runtime));
     }

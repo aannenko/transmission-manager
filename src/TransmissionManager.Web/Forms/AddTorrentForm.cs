@@ -15,6 +15,7 @@ internal sealed class AddTorrentForm : IValidatableObject
     public TorrentSourceKind SourceKind { get; private set; }
 
     [Required(ErrorMessage = "Value required.")]
+    [HttpUri]
     public string SourceUri { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Value required.")]
@@ -76,7 +77,7 @@ internal sealed class AddTorrentForm : IValidatableObject
     /// </exception>
     public AddTorrentRequest CreateRequest()
     {
-        if (!TryCreateHttpUri(SourceUri, out var sourceUri))
+        if (!HttpUriUtils.TryCreate(SourceUri, out var sourceUri))
             throw new InvalidOperationException($"{nameof(SourceUri)} must be validated before creating a request.");
 
         return new()
@@ -92,21 +93,8 @@ internal sealed class AddTorrentForm : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        if (!string.IsNullOrWhiteSpace(SourceUri) && !TryCreateHttpUri(SourceUri, out _))
-        {
-            yield return new ValidationResult(
-                "Value must be an absolute http or https address.",
-                [nameof(SourceUri)]);
-        }
-
         var jsonValueFormat = IsWebPageSource ? null : JsonValueFormat;
-        foreach (var result in TorrentSourceRules.GetValidationResults(
-            SourceKind,
-            MagnetRegexPattern,
-            jsonValueFormat))
-        {
-            yield return result;
-        }
+        return TorrentSourceRules.GetValidationResults(SourceKind, MagnetRegexPattern, jsonValueFormat);
     }
 
     private void SaveSourceDraft()
@@ -135,10 +123,6 @@ internal sealed class AddTorrentForm : IValidatableObject
 
     private static string? OrNullOnEmpty(string value) =>
         value.Length == 0 ? null : value;
-
-    private static bool TryCreateHttpUri(string value, [NotNullWhen(true)] out Uri? uri) =>
-        Uri.TryCreate(value, UriKind.Absolute, out uri)
-        && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
     private sealed class SourceDraft
     {

@@ -22,4 +22,5 @@ Then open the UI at `http://<docker-host>:9093/`.
 
 ## Connecting to the API
 - By default, the web app connects to `http://<docker-host>:9092` (same host, port 9092). This can be changed from the UI to point to any reachable Transmission Manager API instance.
+- On the Connect page, enter the address the API is served at: a full one such as `http://<api-host>:9092`, or a short one such as `<api-host>:9092`, which means `http://`. Without a port, http uses 80 and https uses 443. A path is kept, so the API can sit behind a reverse proxy under a prefix such as `https://<proxy-host>/transmission-manager/`, as long as the proxy strips the prefix before passing requests on. A query, a fragment and credentials are dropped.
 - If your API runs on a different host, ensure it is reachable from the browser.

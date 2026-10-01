@@ -117,6 +117,8 @@ TransmissionManager and the Transmission daemon are **independent systems**. The
 
 Text fields are `<InputText type="search" role="textbox">`, which makes Chromium draw the clear button itself — the app ships no markup, CSS or icon for it. The `role` is there because `type="search"` otherwise announces every field as a search box; the type is presentational, the role is the truth. Two consequences were accepted deliberately: the button appears only while the field is focused, and Firefox draws none at all. **Carry both attributes on every new text field** — nothing in the build or the tests catches their absence.
 
+**A form check on one field is a validation attribute.** Blazor runs attributes when their field changes, but `IValidatableObject` only on submit, and not at all while any attribute fails, so keep it for checks that span fields.
+
 ### C# style
 
 Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal sealed` for non-public implementations; `ConfigureAwait(false)` in library async code.

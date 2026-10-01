@@ -17,15 +17,9 @@
         <DataAnnotationsValidator />
 
         <div>
-            <label for="host">Host:</label>
-            <InputText id="host" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="Host" />
-            <ValidationMessage For="@(() => Host)" />
-        </div>
-
-        <div>
-            <label for="port">Port:</label>
-            <InputNumber id="port" class="form-input" disabled="@IsBusy" @bind-Value="Port" />
-            <ValidationMessage For="@(() => Port)" />
+            <label for="address">Address:</label>
+            <InputText id="address" type="search" role="textbox" class="form-input" disabled="@IsBusy" @bind-Value="Address" />
+            <ValidationMessage For="@(() => Address)" />
         </div>
 
         <button class="form-button clickable" type="submit" disabled="@IsBusy">Connect</button>
@@ -40,20 +34,13 @@
 @code {
     private protected override string BusyMessage => "Connecting...";
 
-    [Required, HostName]
-    public string Host { get; private set; } = string.Empty;
+    [Required, ApiAddress]
+    public string Address { get; private set; } = string.Empty;
 
-    [Required, Range(0, 65535)]
-    public int Port { get; private set; } = 9092;
-
-    protected override void OnInitialized()
-    {
-        Host = ApiAddressService.BaseAddress.Host;
-        Port = ApiAddressService.BaseAddress.Port;
-    }
+    protected override void OnInitialized() => Address = ApiAddressService.BaseAddress.AbsoluteUri;
 
     private protected override string GetOperationCanceledMessage(OperationCanceledException exception) =>
-        $"Connection attempt timed out. Please check the {nameof(Host)} and {nameof(Port)}.";
+        $"Connection attempt timed out. Please check the {nameof(Address)}.";
 
     /// <remarks>
     /// An answer carrying no problem details did not come from this API - a wrong port reaching some
@@ -66,25 +53,14 @@
     {
         var message = base.GetProblemDetailsMessage(problemDetails, statusCode);
         return problemDetails is null
-            ? $"{message} Please check the {nameof(Host)} and {nameof(Port)}."
+            ? $"{message} Please check the {nameof(Address)}."
             : message;
     }
 
     private async Task ConnectAsync()
     {
-        if (IsBusy)
+        if (IsBusy || !ApiAddressUtils.TryCreate(Address, out var baseAddress))
             return;
-
-        Uri baseAddress;
-        try
-        {
-            baseAddress = new UriBuilder("http", Host, Port).Uri;
-        }
-        catch (UriFormatException e)
-        {
-            Message = e.Message;
-            return;
-        }
 
         var result = await CallNetworkService(
             (ApiAddressService, baseAddress),
@@ -92,6 +68,7 @@
 
         if (result.Status is ApiResultStatus.Success)
         {
+            Address = baseAddress.AbsoluteUri;
             Message = $"Connected to {baseAddress} | Version: {result.Value} ";
         }
     }

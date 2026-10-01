@@ -16,6 +16,8 @@ internal sealed class TransmissionManagerClientTests
     private const string _addRequestBody =
         """{"sourceUri":"https://api.example/topics#/result/1/hash","sourceKind":"JsonPointer","downloadDir":"/tvshows","magnetRegexPattern":"[a-fA-F0-9]{40}","jsonValueFormat":"magnet:?xt=urn:btih:{0}"}""";
 
+    private const string _proxiedAddress = "http://localhost/tm/";
+
     [Test]
     public async Task AddTorrentAsync_WhenProblemDetailsContainsErrors_ReportsThemWithResponseMetadata()
     {
@@ -411,6 +413,20 @@ internal sealed class TransmissionManagerClientTests
         }
     }
 
+    [TestCaseSource(nameof(ProxiedRequests))]
+    public async Task EveryMethod_WhenBaseAddressHasAPath_SendsItsRequestBelowIt(
+        TestRequest expectedRequest,
+        Func<TransmissionManagerClient, Task<ApiResultStatus>> call)
+    {
+        using var handler = new FakeHttpMessageHandler(expectedRequest, new(HttpStatusCode.NotFound));
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_proxiedAddress) };
+        var client = new TransmissionManagerClient(httpClient);
+
+        var status = await call(client).ConfigureAwait(false);
+
+        Assert.That(status, Is.EqualTo(ApiResultStatus.NotFound));
+    }
+
     private static AddTorrentRequest CreateRequest() =>
         new()
         {
@@ -428,4 +444,55 @@ internal sealed class TransmissionManagerClientTests
         new(
             new(HttpMethod.Post, _endpoint, Content: _addRequestBody),
             new(statusCode, Content: content, ContentType: contentType));
+
+    private static IEnumerable<TestCaseData> ProxiedRequests()
+    {
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.GetAppVersionAsync),
+            new(HttpMethod.Get, new($"{_proxiedAddress}api/v1/appversion")),
+            static async client => (await client.GetAppVersionAsync().ConfigureAwait(false)).Status);
+
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.GetTorrentByIdAsync),
+            new(HttpMethod.Get, new($"{_proxiedAddress}api/v1/torrents/7")),
+            static async client => (await client.GetTorrentByIdAsync(7).ConfigureAwait(false)).Status);
+
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.GetTorrentPageAsync),
+            new(HttpMethod.Get, new($"{_proxiedAddress}api/v1/torrents?take=5")),
+            static async client => (await client.GetTorrentPageAsync(new(Take: 5)).ConfigureAwait(false)).Status);
+
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.AddTorrentAsync),
+            new(HttpMethod.Post, new($"{_proxiedAddress}api/v1/torrents"), Content: _addRequestBody),
+            static async client => (await client.AddTorrentAsync(CreateRequest()).ConfigureAwait(false)).Status);
+
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.RefreshTorrentByIdAsync),
+            new(HttpMethod.Post, new($"{_proxiedAddress}api/v1/torrents/7")),
+            static async client => (await client.RefreshTorrentByIdAsync(7).ConfigureAwait(false)).Status);
+
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.UpdateTorrentByIdAsync),
+            new(
+                HttpMethod.Patch,
+                new($"{_proxiedAddress}api/v1/torrents/7?version=3"),
+                Content: """{"downloadDir":"/tvshows/new"}"""),
+            static async client => (await client
+                .UpdateTorrentByIdAsync(7, 3, new() { DownloadDir = "/tvshows/new" })
+                .ConfigureAwait(false)).Status);
+
+        yield return ProxiedRequest(
+            nameof(TransmissionManagerClient.DeleteTorrentByIdAsync),
+            new(HttpMethod.Delete, new($"{_proxiedAddress}api/v1/torrents/7?version=3&deleteType=Local")),
+            static async client => (await client
+                .DeleteTorrentByIdAsync(7, 3, DeleteTorrentByIdType.Local)
+                .ConfigureAwait(false)).Status);
+    }
+
+    private static TestCaseData ProxiedRequest(
+        string methodName,
+        TestRequest expectedRequest,
+        Func<TransmissionManagerClient, Task<ApiResultStatus>> call) =>
+        new TestCaseData(expectedRequest, call).SetArgDisplayNames(methodName);
 }

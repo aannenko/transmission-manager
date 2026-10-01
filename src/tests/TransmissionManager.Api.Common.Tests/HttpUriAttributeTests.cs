@@ -30,12 +30,29 @@ internal sealed class HttpUriAttributeTests
         Assert.That(isValid, Is.True); // null is valid, use [Required] to enforce presence
     }
 
-    [Test]
-    public void IsValid_WithANonUriValue_ReturnsFalse()
+    [TestCase("https://torrentTracker.com/forum/viewtopic.php?t=1", true)]
+    [TestCase("http://torrentTracker.com/forum/viewtopic.php?t=1", true)]
+    [TestCase(
+        "\u00A0https://torrentTracker.com/forum/viewtopic.php?t=1\u00A0",
+        true,
+        TestName = "IsValid_WithVariousStrings_ReturnsExpected(non-breaking spaces around an http address)")]
+    [TestCase("torrentTracker.com/forum/viewtopic.php", false)]
+    [TestCase("ftp://torrentTracker.com/file", false)]
+    public void IsValid_WithVariousStrings_ReturnsExpected(string address, bool shouldBeValid)
     {
         var attribute = new HttpUriAttribute();
 
-        var isValid = attribute.IsValid("https://torrentTracker.com");
+        var isValid = attribute.IsValid(address);
+
+        Assert.That(isValid, Is.EqualTo(shouldBeValid));
+    }
+
+    [Test]
+    public void IsValid_WithAValueOfAnotherType_ReturnsFalse()
+    {
+        var attribute = new HttpUriAttribute();
+
+        var isValid = attribute.IsValid(42);
 
         Assert.That(isValid, Is.False);
     }

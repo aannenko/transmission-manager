@@ -116,6 +116,24 @@ internal sealed class AddTorrentFormTests
         }
     }
 
+    [Test]
+    public void Validate_WhenAnotherFieldIsAlsoInvalid_StillReportsTheSourceUri()
+    {
+        var form = new AddTorrentForm
+        {
+            SourceUri = "ftp://tracker.example/topic/1",
+            DownloadDir = string.Empty,
+        };
+
+        var memberNames = Validate(form).SelectMany(static result => result.MemberNames).ToList();
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(memberNames, Does.Contain(nameof(AddTorrentForm.DownloadDir)));
+            Assert.That(memberNames, Does.Contain(nameof(AddTorrentForm.SourceUri)));
+        }
+    }
+
     private static List<ValidationResult> Validate(AddTorrentForm form)
     {
         var results = new List<ValidationResult>();
