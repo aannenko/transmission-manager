@@ -216,11 +216,6 @@ internal sealed class JsonPointerResolverTests
             Throws.InstanceOf<JsonException>());
     }
 
-    /// <remarks>
-    /// <see cref="Utf8JsonReader.Read"/> admits these documents; only decoding the text rejects
-    /// them, and it does so with an <see cref="InvalidOperationException"/> that would escape the
-    /// whole search. Reported as malformed JSON because the source, not the pointer, is at fault.
-    /// </remarks>
     [TestCase("""{ "a": "\uD800" }""", TestName =
         "ResolveAsync_WhenAddressedStringCannotBeDecoded_Throws(unpaired surrogate escape)")]
     public void ResolveAsync_WhenAddressedStringCannotBeDecoded_Throws(string document)

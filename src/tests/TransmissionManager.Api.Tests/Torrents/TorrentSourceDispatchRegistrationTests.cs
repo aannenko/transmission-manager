@@ -6,10 +6,6 @@ using TransmissionManager.TorrentSources.Dto;
 
 namespace TransmissionManager.Api.Tests.Torrents;
 
-/// <remarks>
-/// Dispatch resolves its client at call time, so a kind whose client was never registered fails at
-/// the first search - on the cron path, unattended - rather than at startup.
-/// </remarks>
 [Parallelizable(ParallelScope.Self)]
 internal sealed class TorrentSourceDispatchRegistrationTests
 {

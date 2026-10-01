@@ -44,9 +44,6 @@ internal sealed class GetTorrentPageParametersExtensionsTests
                 $"{EndpointAddresses.Torrents}?take={GetTorrentPageParameters.MaxTake}&anchorId={anchorId}"));
     }
 
-    /// <remarks>
-    /// An unescaped <c>&amp;</c> in a string value would forge a parameter.
-    /// </remarks>
     [Test]
     public void ToPathAndQueryString_WhenEveryValueIsSet_WritesThemInOrderAndEscaped()
     {

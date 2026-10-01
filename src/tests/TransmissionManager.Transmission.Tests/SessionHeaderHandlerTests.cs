@@ -97,10 +97,6 @@ internal sealed class SessionHeaderHandlerTests
         }
     }
 
-    /// <remarks>
-    /// The retry re-sends the original <see cref="HttpRequestMessage"/>, so anything that consumed
-    /// or replaced its content would put an empty body on the wire the second time.
-    /// </remarks>
     [Test]
     public async Task SendAsync_WhenRetryingARequestWithABody_ResendsTheSameBody()
     {

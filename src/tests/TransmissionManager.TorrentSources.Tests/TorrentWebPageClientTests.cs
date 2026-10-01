@@ -90,13 +90,6 @@ internal sealed class TorrentWebPageClientTests
         }
     }
 
-    /// <remarks>
-    /// The shape check reads the pattern's own text, so one that contains <c>magnet:\?</c> and still
-    /// matches something else passes it. Building a <see cref="Uri"/> out of whatever such a pattern
-    /// matched used to throw <see cref="UriFormatException"/> and reach the caller as HTTP 500 -
-    /// pulling the bare info hash out of a magnet link is the case a user runs into, because
-    /// extracting just the hash is a natural thing to try.
-    /// </remarks>
     [TestCase(@"(?<=magnet:\?xt=urn:btih:)[0-9A-Fa-f]{40}", _pageWithMagnet,
         "3A81AAA70E75439D332C146ABDE899E546356BE2",
         TestName = "FindMagnetUriAsync_WhenPatternMatchesSomethingOtherThanAMagnet_ReturnsInvalidSelector(bare info hash)")]
@@ -261,11 +254,6 @@ internal sealed class TorrentWebPageClientTests
         }
     }
 
-    /// <remarks>
-    /// The short-document cases are regression guards: the scan asks the reader to carry a fixed
-    /// overlap into the next chunk, which used to throw whenever the whole document was shorter
-    /// than that overlap.
-    /// </remarks>
     [TestCase(_pageWithoutMagnet)]
     [TestCase("<html></html>")] // shorter than the scan's overlap
     [TestCase("")]
@@ -549,11 +537,6 @@ internal sealed class TorrentWebPageClientTests
         }
     }
 
-    /// <remarks>
-    /// Nothing else bounds this. The resilience pipeline's timeouts elapse once the response
-    /// headers arrive, and it sets <c>HttpClient.Timeout</c> to <see cref="Timeout.InfiniteTimeSpan"/>,
-    /// so a source that stalls its body used to block the caller forever.
-    /// </remarks>
     [Test]
     public async Task FindMagnetUriAsync_WhenSourceStallsResponseBody_ReturnsRetrievalFailed()
     {

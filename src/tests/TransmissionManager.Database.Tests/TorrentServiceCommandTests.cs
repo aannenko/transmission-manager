@@ -123,10 +123,6 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         }
     }
 
-    /// <remarks>
-    /// The compiled model carries no collation annotations, so schema creation stays
-    /// case-insensitive only because <c>OnModelCreating</c> re-applies them.
-    /// </remarks>
     [TestCase(
         "0BDA511316A069E86DD8EE8A3610475D2013A7FA",
         "https://torrentTracker.com/forum/viewtopic.php?t=9999999",
@@ -195,9 +191,6 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
         }
     }
 
-    /// <remarks>
-    /// Were the Id reused, a stale <c>(Id, Version)</c> token would match a different, newer torrent.
-    /// </remarks>
     [Test]
     public async Task AddOneAsync_AfterTheHighestIdWasDeleted_DoesNotReuseThatId()
     {
