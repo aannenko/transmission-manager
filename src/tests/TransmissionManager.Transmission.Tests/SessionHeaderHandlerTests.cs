@@ -124,6 +124,42 @@ internal sealed class SessionHeaderHandlerTests
         }
     }
 
+    [Test]
+    public async Task SendAsync_WhenRetryingAfterAConflict_DisposesOnlyTheConflictResponse()
+    {
+        using var conflictBody = new MemoryStream();
+        using var successBody = new MemoryStream();
+        using var conflict = new HttpResponseMessage(HttpStatusCode.Conflict)
+        {
+            Content = new StreamContent(conflictBody),
+        };
+
+        _ = conflict.Headers.TryAddWithoutValidation(_sessionHeaderName, _firstSessionHeaderValue);
+
+        using var innerHandler = new SequencedHttpMessageHandler();
+        innerHandler.Enqueue(_ => conflict);
+        innerHandler.Enqueue(_ => new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StreamContent(successBody),
+        });
+
+        using var sessionHandler = new SessionHeaderHandler(new SessionHeaderProvider(_options))
+        {
+            InnerHandler = innerHandler
+        };
+
+        using var client = new HttpClient(sessionHandler);
+        using var request = new HttpRequestMessage(HttpMethod.Get, _requestUri);
+        using var response = await client.SendAsync(request).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+            Assert.That(conflictBody.CanRead, Is.False);
+            Assert.That(successBody.CanRead, Is.True);
+        }
+    }
+
     private static Dictionary<string, string> SessionHeader(string value)
     {
         return new() { [_sessionHeaderName] = value };

@@ -29,6 +29,8 @@ public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider) :
             _ = request.Headers.Remove(headerName);
             _ = request.Headers.TryAddWithoutValidation(headerName, newHeaderValue);
 
+            response.Dispose();
+
             // The retry re-sends this same request, so its content must be re-sendable.
             response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
         }
