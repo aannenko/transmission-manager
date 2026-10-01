@@ -26,9 +26,7 @@ internal sealed class HostNameAttributeTests
         Assert.That(_attribute.IsValid(value), Is.False);
     }
 
-    /// <remarks>
-    /// Absence is <c>[Required]</c>'s business, and the two sit together on the field they guard.
-    /// </remarks>
+    /// <remarks>Absence is <c>[Required]</c>'s business.</remarks>
     [Test]
     public void IsValid_WhenValueIsNull_ReturnsTrue()
     {

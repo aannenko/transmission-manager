@@ -2,10 +2,6 @@
 
 namespace TransmissionManager.Web.Tests.Helpers;
 
-/// <summary>
-/// Stands in for the browser's <c>localStorage</c>, keeping whatever the calls write in
-/// <see cref="Storage"/> so a test can seed it or read it back.
-/// </summary>
 internal sealed class FakeJSRuntime : IJSRuntime
 {
     public Dictionary<string, string?> Storage { get; } = new(StringComparer.Ordinal);

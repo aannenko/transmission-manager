@@ -124,9 +124,8 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     /// <remarks>
-    /// Guards the <c>NOCASE</c> collation on the unique indexes: the compiled model carries no
-    /// collation annotations, so only <c>OnModelCreating</c> re-applying them keeps these columns
-    /// case-insensitive.
+    /// The compiled model carries no collation annotations, so schema creation stays
+    /// case-insensitive only because <c>OnModelCreating</c> re-applies them.
     /// </remarks>
     [TestCase(
         "0BDA511316A069E86DD8EE8A3610475D2013A7FA",
@@ -161,9 +160,9 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     /// <remarks>
-    /// Pins an accepted trade-off: RFC 6901 member names are case-sensitive, yet uniqueness is
-    /// <c>NOCASE</c> over the whole <c>SourceUri</c>, fragment included, so pointers into two
-    /// differently-cased members collide.
+    /// RFC 6901 member names are case-sensitive, yet uniqueness is <c>NOCASE</c> over the whole
+    /// <c>SourceUri</c>, fragment included, so pointers into two differently-cased members collide;
+    /// this is accepted.
     /// </remarks>
     [Test]
     public async Task AddOneAsync_WhenSourceUriDiffersOnlyInPointerFragmentCase_ReturnsNotUnique()
@@ -197,8 +196,7 @@ internal sealed class TorrentServiceCommandTests : BaseTorrentServiceTests
     }
 
     /// <remarks>
-    /// Guards the OCC contract: were the Id reused, a stale <c>(Id, Version)</c> token would match
-    /// a different, newer torrent.
+    /// Were the Id reused, a stale <c>(Id, Version)</c> token would match a different, newer torrent.
     /// </remarks>
     [Test]
     public async Task AddOneAsync_AfterTheHighestIdWasDeleted_DoesNotReuseThatId()

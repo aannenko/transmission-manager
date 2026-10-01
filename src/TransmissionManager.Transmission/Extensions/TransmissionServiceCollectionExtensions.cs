@@ -7,10 +7,15 @@ using TransmissionManager.Transmission.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>Registers the Transmission RPC client.</summary>
 public static class TransmissionServiceCollectionExtensions
 {
     private const string _transmissionConfigKey = "Transmission";
 
+    /// <summary>Adds the Transmission client, session handler and validated options.</summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The same service collection.</returns>
     public static IServiceCollection AddTransmissionServices(
         this IServiceCollection services,
         IConfiguration configuration)

@@ -8,6 +8,9 @@ using TransmissionManager.TorrentSources.Dto;
 
 namespace TransmissionManager.TorrentSources.WebPage;
 
+/// <summary>Finds magnet links in web pages.</summary>
+/// <param name="options">The source options.</param>
+/// <param name="httpClient">The HTTP client used to fetch pages.</param>
 public sealed class TorrentWebPageClient(
     IOptionsMonitor<TorrentWebPageClientOptions> options,
     HttpClient httpClient)

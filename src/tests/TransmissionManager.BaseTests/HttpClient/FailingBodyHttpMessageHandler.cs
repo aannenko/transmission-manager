@@ -3,10 +3,6 @@ using System.Net.Sockets;
 
 namespace TransmissionManager.BaseTests.HttpClient;
 
-/// <summary>
-/// Answers with response headers immediately and then fails the body read with an
-/// <see cref="IOException"/>, as a source that drops the connection mid-response does.
-/// </summary>
 public sealed class FailingBodyHttpMessageHandler : HttpMessageHandler
 {
     public const string ErrorMessage = "Unable to read data from the transport connection.";

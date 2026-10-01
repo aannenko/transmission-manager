@@ -7,9 +7,8 @@ using TransmissionManager.TorrentSources.Dto;
 namespace TransmissionManager.Api.Tests.Torrents;
 
 /// <remarks>
-/// Guards the seam between the enum and the clients, which nothing else covers: dispatch resolves
-/// its client at call time, so a kind whose client was never registered fails at the first search -
-/// on the cron path, unattended - rather than at startup.
+/// Dispatch resolves its client at call time, so a kind whose client was never registered fails at
+/// the first search - on the cron path, unattended - rather than at startup.
 /// </remarks>
 [Parallelizable(ParallelScope.Self)]
 internal sealed class TorrentSourceDispatchRegistrationTests

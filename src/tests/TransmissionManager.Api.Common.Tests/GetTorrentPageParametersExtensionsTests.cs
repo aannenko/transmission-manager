@@ -27,11 +27,8 @@ internal sealed class GetTorrentPageParametersExtensionsTests
     }
 
     /// <remarks>
-    /// Pins the emitted anchor, not the rented size - an under-estimate is invisible here, because
-    /// the builder grows and re-copies, so only the bucket differs and never the string. What this
-    /// does catch is a number going missing or arriving mangled at either limit, which is reachable
-    /// because <c>anchorId</c> carries no range attribute and the empty-page fallback saturates at
-    /// both deliberately.
+    /// An under-estimate of the rented size is invisible here: the builder grows and re-copies, so
+    /// only the bucket differs, never the string.
     /// </remarks>
     [TestCase(long.MinValue)]
     [TestCase(long.MaxValue)]
@@ -48,8 +45,7 @@ internal sealed class GetTorrentPageParametersExtensionsTests
     }
 
     /// <remarks>
-    /// Pins the parameter order the estimate is built in, and that the two caller-supplied strings
-    /// reach the query escaped - an unescaped <c>&amp;</c> would forge a parameter.
+    /// An unescaped <c>&amp;</c> in a string value would forge a parameter.
     /// </remarks>
     [Test]
     public void ToPathAndQueryString_WhenEveryValueIsSet_WritesThemInOrderAndEscaped()

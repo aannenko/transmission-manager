@@ -3,18 +3,9 @@ using System.Net.Sockets;
 
 namespace TransmissionManager.BaseTests.HttpClient;
 
-/// <summary>
-/// Answers with response headers immediately and then never delivers the body.
-/// </summary>
 /// <remarks>
-/// The shape <see cref="FakeHttpMessageHandler"/> cannot express, since it always completes its
-/// content. Nothing but a caller-supplied deadline ends a request answered this way: a resilience
-/// pipeline's timeouts elapse once the headers arrive, and it leaves
-/// <c>HttpClient.Timeout</c> infinite.
-/// <para>
 /// An aborted read is reported the way <c>SocketsHttpHandler</c> reports it: a
 /// <see cref="TaskCanceledException"/> carrying the transport failure as its inner exception.
-/// </para>
 /// </remarks>
 public sealed class StallingBodyHttpMessageHandler : HttpMessageHandler
 {

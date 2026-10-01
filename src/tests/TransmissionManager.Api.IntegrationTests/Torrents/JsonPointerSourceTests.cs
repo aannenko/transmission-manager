@@ -21,16 +21,10 @@ internal sealed class JsonPointerSourceTests
     private const string _downloadDir = "/tvshows";
     private const string _refreshedTorrentName = "Refreshed via JSON";
 
-    // The shipped defaults are empty, so a JSON source carries its own extraction settings - which is
-    // what an operator has to do for any document holding something other than a whole magnet link.
+    // The shipped defaults are empty, so a JSON source carries its own extraction settings.
     private const string _valuePattern = "[a-fA-F0-9]{40}";
     private const string _magnetFormat = "magnet:?xt=urn:btih:{0}";
 
-    /// <remarks>
-    /// Seeded with the hash the document already holds, so the refresh resolves to the same magnet
-    /// and Transmission answers <c>Duplicate</c> - which exercises dispatch without dragging in the
-    /// add-and-remove cycle a changed hash would require.
-    /// </remarks>
     private static readonly Torrent[] _initialTorrents =
     [
         new()

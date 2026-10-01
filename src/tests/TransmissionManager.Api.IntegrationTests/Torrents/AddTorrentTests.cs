@@ -148,10 +148,6 @@ internal sealed class AddTorrentTests
         TestData.Transmission.FilledRequestHeaders,
         _transmissionRefusedRequestBody);
 
-    /// <remarks>
-    /// Transmission answers successfully but accepts nothing - neither <c>torrent-added</c> nor
-    /// <c>torrent-duplicate</c> - which is how a refusal reaches the handler as a dependency failure.
-    /// </remarks>
     private static readonly TestResponse _transmissionRefusedValidHeaderResponse = new(
         HttpStatusCode.OK,
         TestData.Transmission.DefaultResponseHeaders,

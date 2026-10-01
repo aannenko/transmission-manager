@@ -5,10 +5,14 @@ using TransmissionManager.Database.Services;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>Registers database services.</summary>
 public static class DatabaseServiceCollectionExtensions
 {
     private const string _appDbConfigKey = "AppDb";
 
+    /// <summary>Adds the database context, torrent services and compiled model.</summary>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The same service collection.</returns>
     public static IServiceCollection AddDatabaseServices(this IServiceCollection services)
     {
         return services

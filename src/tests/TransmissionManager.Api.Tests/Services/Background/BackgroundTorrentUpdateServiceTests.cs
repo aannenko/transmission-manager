@@ -282,7 +282,6 @@ internal sealed class BackgroundTorrentUpdateServiceTests
         _ = dbContext.Torrents.Add(torrent);
         _ = await dbContext.SaveChangesAsync().ConfigureAwait(false);
 
-        // Bump version so the test exercises a non-trivial expected version.
         _ = await dbContext.Torrents.Where(t => t.Id == torrent.Id)
             .ExecuteUpdateAsync(setters => setters.SetProperty(t => t.Version, t => t.Version + 1))
             .ConfigureAwait(false);
@@ -307,9 +306,8 @@ internal sealed class BackgroundTorrentUpdateServiceTests
     /// <remarks>
     /// The service waits on <see cref="TimeProvider"/> between attempts, so nothing happens until
     /// the fake clock moves; but it reaches each wait only after real asynchronous work, which the
-    /// test cannot observe. Hence the pump: advance, yield, look again. One advance of 30 minutes
-    /// clears any single wait, the longest being the fortieth at 40 squared seconds. The wall clock
-    /// is only a guard against a hang - a converging drain never approaches it.
+    /// test cannot observe. The wall clock is only a guard against a hang - a converging drain never
+    /// approaches it.
     /// </remarks>
     private async Task DrainAsync(Task task)
     {

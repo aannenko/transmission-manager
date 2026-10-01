@@ -1,5 +1,6 @@
 ﻿namespace TransmissionManager.Database.Dto;
 
+/// <summary>Defines torrent mutation results.</summary>
 public enum TorrentMutationResult
 {
     /// <summary>
@@ -12,7 +13,7 @@ public enum TorrentMutationResult
     Success,
 
     /// <summary>
-    /// No row with the requested id exists.
+    /// No row with the requested ID exists.
     /// </summary>
     /// <remarks>
     /// Best-effort under concurrent churn: another writer can delete the row between the failed

@@ -120,11 +120,6 @@ internal sealed class PaddedBytesReaderTests
         }
     }
 
-    /// <remarks>
-    /// Pins the guarantee the magnet scan depends on: a caller may retain a window, discover the
-    /// stream is exhausted, and still read that window back. Losing it silently discarded magnets
-    /// that were already fully buffered.
-    /// </remarks>
     [Test]
     public async Task ReadNextAsync_WhenNothingNewIsReadAfterRetainingBytes_KeepsTheRetainedWindow()
     {

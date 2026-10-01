@@ -69,8 +69,8 @@ internal sealed class SessionHeaderHandlerTests
     }
 
     /// <remarks>
-    /// Pins the single retry: a handler that re-sent on every conflict would answer a Transmission
-    /// stuck on 409 with a request storm.
+    /// A handler that re-sent on every conflict would answer a Transmission stuck on 409 with a
+    /// request storm.
     /// </remarks>
     [Test]
     public async Task SendAsync_WhenTheRetryAlsoConflicts_ReturnsItAndKeepsTheFirstHeader()

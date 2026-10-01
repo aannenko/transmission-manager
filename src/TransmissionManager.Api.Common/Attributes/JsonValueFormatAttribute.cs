@@ -15,6 +15,7 @@ namespace TransmissionManager.Api.Common.Attributes;
 /// </remarks>
 public sealed class JsonValueFormatAttribute : RegularExpressionAttribute
 {
+    /// <summary>Initializes a validator for JSON value formats containing a <c>{0}</c> placeholder.</summary>
     public JsonValueFormatAttribute() : base(@"^[^{}]*(\{0\}[^{}]*)+$")
     {
         MatchTimeoutInMilliseconds = 50;

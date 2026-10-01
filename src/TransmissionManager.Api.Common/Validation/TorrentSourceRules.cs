@@ -76,6 +76,9 @@ public static class TorrentSourceRules
     /// would allocate the other shape only to throw it away - measured 80 B against 192 B for one
     /// error.
     /// </remarks>
+    /// <param name="sourceKind">How the source is interpreted.</param>
+    /// <param name="magnetRegexPattern">The optional magnet-link regular expression.</param>
+    /// <param name="jsonValueFormat">The optional JSON value format.</param>
     public static IEnumerable<ValidationResult> GetValidationResults(
         TorrentSourceKind sourceKind,
         string? magnetRegexPattern,

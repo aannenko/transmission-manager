@@ -16,6 +16,7 @@ namespace TransmissionManager.Api.Common.Attributes;
 /// </remarks>
 public sealed class MagnetRegexAttribute : RegularExpressionAttribute
 {
+    /// <summary>Initializes a validator for regular expressions that match magnet links.</summary>
     public MagnetRegexAttribute() : base(@"^.*magnet:\\\?.+$")
     {
         MatchTimeoutInMilliseconds = 50;

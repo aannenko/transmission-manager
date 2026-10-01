@@ -52,10 +52,6 @@ internal sealed class ThemeServiceTests
         Assert.That(service.Theme, Is.EqualTo(Theme.Light));
     }
 
-    /// <remarks>
-    /// Asserts the round trip rather than the stored text: nothing outside this service reads the
-    /// value, so only surviving a reload is a promise to anyone.
-    /// </remarks>
     [Test]
     public async Task SetThemeAsync_WhenGivenATheme_AdoptsItAndSurvivesAReload()
     {

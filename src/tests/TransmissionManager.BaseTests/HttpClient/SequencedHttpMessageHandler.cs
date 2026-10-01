@@ -1,9 +1,5 @@
 ﻿namespace TransmissionManager.BaseTests.HttpClient;
 
-/// <summary>
-/// Answers each request with the next queued response, so a test can drive a caller that retries or
-/// polls through a different answer every time, and count how many it asked for.
-/// </summary>
 public sealed class SequencedHttpMessageHandler : HttpMessageHandler
 {
     private readonly Queue<Func<HttpRequestMessage, Task<HttpResponseMessage>>> _responses = new();

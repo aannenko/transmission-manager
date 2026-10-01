@@ -7,8 +7,10 @@ public static class ProblemDetailsKeys
 {
     #region Extension members
 
+    /// <summary>The extension key for the current torrent version.</summary>
     public static readonly string CurrentVersion = "currentVersion";
 
+    /// <summary>The extension key for a Transmission result.</summary>
     public static readonly string TransmissionResult = "transmissionResult";
 
     /// <summary>
@@ -23,8 +25,10 @@ public static class ProblemDetailsKeys
 
     #region Request parameters
 
+    /// <summary>The error key for a torrent ID.</summary>
     public static readonly string Id = "id";
 
+    /// <summary>The error key for a torrent version.</summary>
     public static readonly string Version = "version";
 
     #endregion

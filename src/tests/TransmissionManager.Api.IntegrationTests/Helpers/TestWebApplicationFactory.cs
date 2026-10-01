@@ -114,10 +114,6 @@ internal sealed class TestWebApplicationFactory<TProgram>(
         }
     }
 
-    /// <remarks>
-    /// Mutates the database through a separate service scope while a successful
-    /// <c>torrent-add</c> response is pending, before the API handler attempts its local update.
-    /// </remarks>
     private sealed class DatabaseMutatingHttpMessageHandler(
         IReadOnlyDictionary<TestRequest, TestResponse> requestToResponseMap,
         IServiceProvider serviceProvider,

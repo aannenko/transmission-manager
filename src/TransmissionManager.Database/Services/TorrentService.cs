@@ -17,14 +17,14 @@ namespace TransmissionManager.Database.Services;
 /// <c>Id == id &amp;&amp; Version == version</c> predicate. They bypass the EF change tracker
 /// and therefore do <b>not</b> throw <see cref="DbUpdateConcurrencyException"/>; the
 /// affected-row count plus a single disambiguating SELECT (<see cref="ResolveLostRaceAsync"/>)
-/// decides between Success / NotFound / Conflict. This relies on SQLite <c>AUTOINCREMENT</c>
+/// decides between Success / NotFound / VersionConflict. This relies on SQLite <c>AUTOINCREMENT</c>
 /// not reusing primary-key values for deleted rows.
 /// </para>
 /// <para>
 /// The disambiguation result is best-effort: it reflects the row state at the follow-up SELECT,
 /// which can legitimately differ from the state at the failed UPDATE/DELETE under continued
 /// concurrent churn (e.g. another writer deletes the row between the failed mutation and the
-/// SELECT, turning what was a Conflict into a NotFound). Do not try to harden this with a
+/// SELECT, turning what was a VersionConflict into a NotFound). Do not try to harden this with a
 /// transaction — that would re-introduce the second round-trip on the hot path that this design
 /// was built to eliminate.
 /// </para>
@@ -34,7 +34,7 @@ namespace TransmissionManager.Database.Services;
 /// <c>SaveChangesAsync</c>), the <c>[ConcurrencyCheck]</c> attribute on <c>Torrent.Version</c>
 /// will arm a <c>WHERE Version=@orig</c> filter on the generated SQL and
 /// <see cref="DbUpdateConcurrencyException"/> can fire. You must catch it, map to
-/// <c>Conflict</c> / <c>NotFound</c> via <see cref="ResolveLostRaceAsync"/>, and call
+/// <c>VersionConflict</c> / <c>NotFound</c> via <see cref="ResolveLostRaceAsync"/>, and call
 /// <c>dbContext.ChangeTracker.Clear()</c> in the catch — otherwise the failed entity stays
 /// tracked with stale <c>OriginalValues</c> and the next <c>SaveChangesAsync</c> on the same
 /// scoped <c>DbContext</c> would silently retry the lost write.
@@ -58,10 +58,16 @@ namespace TransmissionManager.Database.Services;
 /// keep propagating as faults.
 /// </para>
 /// </remarks>
+/// <param name="dbContext">The torrent database context.</param>
+/// <param name="countCache">The filtered-count cache.</param>
 public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache countCache)
 {
     private const int _sqliteConstraintUnique = 2067;
 
+    /// <summary>Finds a torrent by its catalog ID.</summary>
+    /// <param name="id">The torrent ID.</param>
+    /// <param name="cancellationToken">Cancels the query.</param>
+    /// <returns>The torrent, or <see langword="null"/> when no row has the ID.</returns>
     public async Task<Torrent?> FindOneByIdAsync(long id, CancellationToken cancellationToken = default)
     {
         return await dbContext.Torrents.AsNoTracking()
@@ -79,6 +85,11 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
     /// overflows to <see cref="int.MinValue"/> and is rejected by
     /// <see cref="TorrentPageDescriptor{TAnchor}"/>'s validator.
     /// </exception>
+    /// <param name="page">The keyset page descriptor.</param>
+    /// <param name="filter">The optional torrent filters.</param>
+    /// <param name="cancellationToken">Cancels the query.</param>
+    /// <typeparam name="T">The anchor value type.</typeparam>
+    /// <returns>The requested torrent page.</returns>
     public async Task<TorrentPage> GetPageAsync<T>(
         TorrentPageDescriptor<T> page = default,
         TorrentFilter filter = default,
@@ -122,6 +133,10 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
             ApplyFilter(arg.Context.Torrents.AsNoTracking(), arg.Filter).LongCountAsync(ct);
     }
 
+    /// <summary>Adds a torrent to the catalog.</summary>
+    /// <param name="dto">The torrent values to insert.</param>
+    /// <param name="cancellationToken">Cancels the insert.</param>
+    /// <returns>The insert outcome and inserted row when successful.</returns>
     public async Task<TorrentAddOutcome> AddOneAsync(TorrentAddDto dto, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(dto);
@@ -144,6 +159,12 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
         return new(TorrentMutationResult.Success, torrent);
     }
 
+    /// <summary>Updates a torrent when its version still matches.</summary>
+    /// <param name="id">The torrent ID.</param>
+    /// <param name="version">The expected row version.</param>
+    /// <param name="dto">The fields to update.</param>
+    /// <param name="cancellationToken">Cancels the update.</param>
+    /// <returns>The mutation result and current version when applicable.</returns>
     public async Task<TorrentMutationOutcome> UpdateOneAsync(
         long id,
         long version,
@@ -202,6 +223,11 @@ public sealed class TorrentService(AppDbContext dbContext, TorrentCountCache cou
             : await ResolveLostRaceAsync(id, cancellationToken).ConfigureAwait(false);
     }
 
+    /// <summary>Deletes a torrent when its version still matches.</summary>
+    /// <param name="id">The torrent ID.</param>
+    /// <param name="version">The expected row version.</param>
+    /// <param name="cancellationToken">Cancels the delete.</param>
+    /// <returns>The mutation result and current version when applicable.</returns>
     public async Task<TorrentMutationOutcome> DeleteOneAsync(
         long id,
         long version,

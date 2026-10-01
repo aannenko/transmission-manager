@@ -7,12 +7,17 @@ using TransmissionManager.TorrentSources.WebPage;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
+/// <summary>Registers torrent-source clients.</summary>
 public static class TorrentSourcesServiceCollectionExtensions
 {
     private const string _torrentSourcesConfigKey = "TorrentSources";
     private const string _webPageConfigKey = "WebPage";
     private const string _jsonPointerConfigKey = "JsonPointer";
 
+    /// <summary>Adds the web-page and JSON-pointer torrent-source clients.</summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The application configuration.</param>
+    /// <returns>The same service collection.</returns>
     public static IServiceCollection AddTorrentSourcesServices(
         this IServiceCollection services,
         IConfiguration configuration)

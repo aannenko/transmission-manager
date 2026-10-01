@@ -62,10 +62,6 @@ internal sealed class CommonComponentBaseTests
         }
     }
 
-    /// <remarks>
-    /// The status code is what tells the two apart: a request that never reached a server carries
-    /// none, while one the server refused outright carries the status it refused with.
-    /// </remarks>
     [TestCase(null, TestComponent.DisconnectedMessage)]
     [TestCase(HttpStatusCode.InternalServerError, TestComponent.GenericErrorMessage)]
     public async Task CallNetworkService_WhenTheRequestThrows_ReportsItAccordingToItsStatus(
@@ -87,9 +83,6 @@ internal sealed class CommonComponentBaseTests
         }
     }
 
-    /// <remarks>
-    /// The two overloads carry the same body, so this guards them drifting apart.
-    /// </remarks>
     [Test]
     public async Task CallNetworkService_OnTheOverloadWithoutContent_ReportsFailuresTheSameWay()
     {

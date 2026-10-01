@@ -89,8 +89,8 @@ internal sealed class TorrentSourcesServiceCollectionExtensionsTests
     }
 
     /// <remarks>
-    /// Guards the two sections against being crossed or collapsed back into one, which the identical
-    /// values the application ships with would hide.
+    /// The application ships identical values in both sections, which would hide the two being
+    /// crossed or merged.
     /// </remarks>
     [Test]
     public void AddTorrentSourcesServices_WhenSourcesAreTunedDifferently_BindsEachToItsOwnSection()

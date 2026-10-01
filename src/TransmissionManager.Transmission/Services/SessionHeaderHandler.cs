@@ -2,6 +2,8 @@
 
 namespace TransmissionManager.Transmission.Services;
 
+/// <summary>Applies Transmission's session header and retries one session conflict.</summary>
+/// <param name="headerProvider">The shared session-header state.</param>
 public sealed class SessionHeaderHandler(SessionHeaderProvider headerProvider) : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(

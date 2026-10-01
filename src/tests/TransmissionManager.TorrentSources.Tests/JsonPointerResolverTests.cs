@@ -474,7 +474,6 @@ internal sealed class JsonPointerResolverTests
             Throws.InstanceOf<JsonException>());
     }
 
-    /// <returns>A document nesting <paramref name="nesting"/> arrays under "junk", then "wanted".</returns>
     private static string BuildNestedSkipDocument(int nesting) =>
         $$"""{"junk":{{new string('[', nesting)}}1{{new string(']', nesting)}},"wanted":"found-it"}""";
 
@@ -503,10 +502,6 @@ internal sealed class JsonPointerResolverTests
         return await JsonPointerResolver.ResolveAsync(stream, segments!, maxTokenBytes).ConfigureAwait(false);
     }
 
-    /// <remarks>
-    /// Answers at most <paramref name="chunkSize"/> bytes per read, so that the refill and
-    /// compaction path is exercised rather than skipped by a stream that answers in full.
-    /// </remarks>
     private sealed class ChunkedStream(byte[] data, int chunkSize) : Stream
     {
         private int _position;

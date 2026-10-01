@@ -12,6 +12,7 @@ namespace TransmissionManager.Api.Common.Attributes;
 /// </remarks>
 public sealed class HttpUriAttribute : ValidationAttribute
 {
+    /// <summary>Initializes a validator for absolute HTTP and HTTPS URIs.</summary>
     public HttpUriAttribute()
     {
         ErrorMessage = "Value must be an absolute http or https address.";

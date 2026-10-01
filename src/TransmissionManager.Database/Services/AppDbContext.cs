@@ -6,6 +6,8 @@ using TransmissionManager.Database.Models;
 
 namespace TransmissionManager.Database.Services;
 
+/// <summary>Provides access to the torrent catalog.</summary>
+/// <param name="options">The database-context options.</param>
 [method: DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(EntryCurrentValueComparer<>))]
 #pragma warning disable EF1001 // Internal EF Core API usage - required to prevent required class members from being trimmed
 [method: DynamicDependency(DynamicallyAccessedMemberTypes.All, typeof(NullableClassCurrentProviderValueComparer<,>))]
@@ -15,6 +17,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
 {
     private const string _noCaseCollation = "NOCASE";
 
+    /// <summary>Gets the torrent rows.</summary>
+    /// <returns>The torrent set.</returns>
     public DbSet<Torrent> Torrents => Set<Torrent>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

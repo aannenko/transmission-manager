@@ -15,6 +15,7 @@ namespace TransmissionManager.Api.Common.Attributes;
 /// </remarks>
 public sealed class CronAttribute : RegularExpressionAttribute
 {
+    /// <summary>Initializes a validator for five-field cron expressions.</summary>
     public CronAttribute()
         : base(@"^((\*(\d{1,2})?|\d{1,2}(\d{1,2})?|(\d{1,2}-\d{1,2})(\d{1,2})?|((\d{1,2},)+\d{1,2}))\s){4}(\*(\d{1,2})?|\d{1,2}(\d{1,2})?|(\d{1,2}-\d{1,2})(\d{1,2})?|((\d{1,2},)+\d{1,2}))$")
     {

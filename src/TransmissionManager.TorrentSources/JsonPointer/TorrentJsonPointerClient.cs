@@ -9,6 +9,9 @@ using TransmissionManager.TorrentSources.Dto;
 
 namespace TransmissionManager.TorrentSources.JsonPointer;
 
+/// <summary>Finds magnet links in JSON documents by RFC 6901 pointer.</summary>
+/// <param name="options">The source options.</param>
+/// <param name="httpClient">The HTTP client used to fetch documents.</param>
 public sealed class TorrentJsonPointerClient(
     IOptionsMonitor<TorrentJsonPointerClientOptions> options,
     HttpClient httpClient)

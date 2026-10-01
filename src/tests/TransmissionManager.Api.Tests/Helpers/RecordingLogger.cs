@@ -4,9 +4,6 @@ namespace TransmissionManager.Api.Tests.Helpers;
 
 internal sealed record RecordedLog(LogLevel Level, EventId EventId, string Message, Exception? Exception);
 
-/// <summary>
-/// Keeps every entry written through it, already formatted, so a test can assert on what was logged.
-/// </summary>
 internal sealed class RecordingLogger<T> : ILogger<T>
 {
     private readonly List<RecordedLog> _records = [];

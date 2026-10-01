@@ -110,10 +110,6 @@ internal static class TestData
         public const string FourthPageMagnetNew =
             "magnet:?xt=urn:btih:3A81AAA70E75439D332C146ABDE899E546356BE2&dn=TV+Show+4";
 
-        /// <summary>
-        /// A page fetched successfully that holds no magnet link, as an anti-bot challenge served
-        /// with a success status or a re-laid-out topic page would be.
-        /// </summary>
         public const string NoMagnetPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234571";
 
         public const string NoMagnetPageHtml = """
@@ -126,17 +122,8 @@ internal static class TestData
             </html>
             """;
 
-        /// <summary>
-        /// An address the server answers about with an unsuccessful status, as a removed topic
-        /// would be. Deliberately a status the resilience pipeline does not retry, so that a test
-        /// using it neither waits out backoffs nor depends on how many attempts are configured.
-        /// </summary>
         public const string RemovedPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234572";
 
-        /// <summary>
-        /// A page holding a magnet link that Transmission answers about without accepting, so that
-        /// a failure of the second dependency can be told from a failure of the first.
-        /// </summary>
         public const string TransmissionRefusedPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234573";
 
         public const string TransmissionRefusedMagnet =
@@ -145,15 +132,8 @@ internal static class TestData
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
     }
 
-    /// <summary>
-    /// Fixtures for a <see cref="TorrentSourceKind.JsonPointer"/> source.
-    /// </summary>
     internal static class JsonApi
     {
-        /// <remarks>
-        /// One such document may contain one or more info hashes,
-        /// pointers below allow to differentiate between them.
-        /// </remarks>
         public const string Address = "https://torrentTracker.com/v1/static/pvc/f/1106";
 
         public const string FirstTopicId = "6880555";
@@ -293,6 +273,7 @@ internal static class TestData
             [new(HttpMethod.Get, new(WebPages.NoMagnetPageAddress))] =
                 new(HttpStatusCode.OK, Content: WebPages.NoMagnetPageHtml),
 
+            // Must stay a status the resilience pipeline does not retry, or requests to this address wait out its backoffs.
             [new(HttpMethod.Get, new(WebPages.RemovedPageAddress))] =
                 new(HttpStatusCode.NotFound),
 

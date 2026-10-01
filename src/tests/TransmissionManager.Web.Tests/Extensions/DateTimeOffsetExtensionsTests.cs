@@ -5,10 +5,6 @@ namespace TransmissionManager.Web.Tests.Extensions;
 [Parallelizable(ParallelScope.Self)]
 internal sealed class DateTimeOffsetExtensionsTests
 {
-    /// <remarks>
-    /// The application runs under invariant globalization, which is what fixes the field order and
-    /// the separators asserted here.
-    /// </remarks>
     [TestCase(0, "2026-09-17 08:05:03 (+00:00)")]
     [TestCase(2, "2026-09-17 08:05:03 (+02:00)")]
     [TestCase(-5, "2026-09-17 08:05:03 (-05:00)")]

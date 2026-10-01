@@ -2,6 +2,7 @@
 
 namespace TransmissionManager.Database.Dto;
 
+/// <summary>Reports the result of inserting a torrent.</summary>
 /// <param name="Result">
 /// <see cref="TorrentMutationResult.Success"/> or <see cref="TorrentMutationResult.NotUnique"/>.
 /// The remaining <see cref="TorrentMutationResult"/> members cannot occur on an insert.

@@ -7,12 +7,16 @@ using Order = TransmissionManager.Api.Common.Dto.Torrents.GetTorrentPageOrder;
 
 namespace TransmissionManager.Api.Common.Dto.Torrents;
 
+/// <summary>Formats torrent-page parameters for HTTP requests.</summary>
 public static class GetTorrentPageParametersExtensions
 {
     private static readonly int _maxTakeLength = (int)Math.Log10(GetTorrentPageParameters.MaxTake) + 1;
     private static readonly int _maxTorrentOrderItemLength = Enum.GetNames<Order>().Max(static i => i.Length);
     private static readonly int _maxDirectionItemLength = Enum.GetNames<Direction>().Max(static i => i.Length);
 
+    /// <summary>Formats torrent-page parameters as a relative request address.</summary>
+    /// <param name="parameters">The parameters to format.</param>
+    /// <returns>The torrent endpoint path and encoded query string.</returns>
     public static string ToPathAndQueryString(in this GetTorrentPageParameters parameters)
     {
         var (orderBy, anchorId, anchorValue, take, direction, propertyStartsWith, cronExists) = parameters;

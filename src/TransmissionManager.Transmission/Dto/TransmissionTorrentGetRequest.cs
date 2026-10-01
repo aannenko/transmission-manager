@@ -22,12 +22,18 @@ public sealed class TransmissionTorrentGetRequestArguments
     public required IReadOnlyList<TransmissionTorrentGetRequestFields> Fields { get; init; }
 }
 
+/// <summary>Defines fields requested from Transmission's <c>torrent-get</c> method.</summary>
 [JsonConverter(typeof(CamelCaseJsonStringEnumConverter<TransmissionTorrentGetRequestFields>))]
 public enum TransmissionTorrentGetRequestFields
 {
+    /// <summary>Requests the torrent info hash.</summary>
     HashString, // used instead of Id
+    /// <summary>Requests the torrent name.</summary>
     Name,
+    /// <summary>Requests the final size in bytes.</summary>
     SizeWhenDone,
+    /// <summary>Requests the completed fraction.</summary>
     PercentDone,
+    /// <summary>Requests the download directory.</summary>
     DownloadDir,
 }

@@ -17,6 +17,8 @@ namespace TransmissionManager.Api.Common.Dto.Torrents;
 /// </remarks>
 public sealed class UpdateTorrentByIdRequest : IValidatableObject
 {
+    /// <summary>Gets the replacement Transmission download directory.</summary>
+    /// <returns>The download directory, or <see langword="null"/> to leave it unchanged.</returns>
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
     [MinLength(1)]
     public string? DownloadDir { get; init; }
@@ -32,6 +34,7 @@ public sealed class UpdateTorrentByIdRequest : IValidatableObject
     /// checked against the stored torrent.
     /// </para>
     /// </remarks>
+    /// <returns>The replacement magnet-link regular expression.</returns>
     [UnconditionalSuppressMessage("Trimming", "IL2026:Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code", Justification = "Tested after trimming")]
     [MaxLength(TorrentSourceRules.MaxPatternLength)]
     public string? MagnetRegexPattern { get; init; }
@@ -43,9 +46,12 @@ public sealed class UpdateTorrentByIdRequest : IValidatableObject
     /// Only its shape is checked here; whether the torrent reads a format at all depends on the
     /// source kind and is checked against the stored torrent.
     /// </remarks>
+    /// <returns>The replacement JSON value format.</returns>
     [JsonValueFormat]
     public string? JsonValueFormat { get; init; }
 
+    /// <summary>Gets the replacement refresh schedule.</summary>
+    /// <returns>The cron expression, or <see langword="null"/> to leave it unchanged.</returns>
     [Cron]
     public string? Cron { get; init; }
 
