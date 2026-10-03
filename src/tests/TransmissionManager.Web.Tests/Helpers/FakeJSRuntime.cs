@@ -6,8 +6,16 @@ internal sealed class FakeJSRuntime : IJSRuntime
 {
     public Dictionary<string, string?> Storage { get; } = new(StringComparer.Ordinal);
 
+    public bool IsStorageBlocked { get; init; }
+
     public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
     {
+        if (IsStorageBlocked && identifier.StartsWith("localStorage.", StringComparison.Ordinal))
+        {
+            return ValueTask.FromException<TValue>(new JSException(
+                "Failed to read the 'localStorage' property from 'Window': Access is denied for this document."));
+        }
+
         switch (identifier)
         {
             case "localStorage.getItem":
@@ -16,10 +24,6 @@ internal sealed class FakeJSRuntime : IJSRuntime
 
             case "localStorage.setItem":
                 Storage[Key(args)] = args![1] as string;
-                return default;
-
-            case "localStorage.removeItem":
-                _ = Storage.Remove(Key(args));
                 return default;
 
             default:

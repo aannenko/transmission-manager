@@ -66,10 +66,12 @@
             (ApiAddressService, baseAddress),
             static args => args.ApiAddressService.ConnectAsync(args.baseAddress));
 
-        if (result.Status is ApiResultStatus.Success)
+        if (result is { Status: ApiResultStatus.Success, Value: { } connection })
         {
             Address = baseAddress.AbsoluteUri;
-            Message = $"Connected to {baseAddress} | Version: {result.Value} ";
+            Message = connection.IsAddressSaved
+                ? $"Connected to {baseAddress} | Version: {connection.Version}"
+                : $"Connected to {baseAddress} | Version: {connection.Version} | The address cannot be saved.";
         }
     }
 }

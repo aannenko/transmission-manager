@@ -21,6 +21,6 @@ internal sealed class ThemeService(LocalStorageService localStorage)
     public async Task SetThemeAsync(Theme theme)
     {
         Theme = theme;
-        await localStorage.SetItemAsync(_storageKey, theme.ToString().ToLowerInvariant()).ConfigureAwait(false);
+        _ = await localStorage.TrySetItemAsync(_storageKey, theme.ToString().ToLowerInvariant()).ConfigureAwait(false);
     }
 }

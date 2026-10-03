@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.Web.Dto;
+using TransmissionManager.Web.Extensions;
 using TransmissionManager.Web.Services;
 using TransmissionManager.Web.Tests.Helpers;
 
@@ -76,6 +77,17 @@ internal sealed class ApiAddressServiceTests
     }
 
     [Test]
+    public async Task LoadAsync_WhenTheBrowserBlocksStorage_KeepsTheDefault()
+    {
+        using var handler = new ThrowingHttpMessageHandler(_noRequestExpected);
+        var service = CreateService(new() { IsStorageBlocked = true }, handler);
+
+        await service.LoadAsync().ConfigureAwait(false);
+
+        Assert.That(service.BaseAddress, Is.EqualTo(_defaultAddress));
+    }
+
+    [Test]
     public async Task ConnectAsync_WhenTheApiAnswersAsItself_RemembersTheAddress()
     {
         using var handler = new FakeHttpMessageHandler(
@@ -90,7 +102,9 @@ internal sealed class ApiAddressServiceTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.Status, Is.EqualTo(ApiResultStatus.Success));
-            Assert.That(result.Value, Is.EqualTo(new Version(1, 2, 3)));
+            Assert.That(result.Value, Is.EqualTo(
+                new ApiAddressService.ConnectionOutcome(new Version(1, 2, 3), IsAddressSaved: true)));
+
             Assert.That(service.BaseAddress, Is.EqualTo(_apiAddress));
             Assert.That(runtime.Storage[_storageKey], Is.EqualTo(_apiAddress.AbsoluteUri));
         }
@@ -122,6 +136,32 @@ internal sealed class ApiAddressServiceTests
         }
     }
 
+    [TestCase(HttpStatusCode.NotFound, """{"status":404,"errors":{"id":["No such endpoint."]}}""", ApiResultStatus.NotFound, "id: No such endpoint.")]
+    [TestCase(HttpStatusCode.OK, "<html>Some other application</html>", ApiResultStatus.Failed, null)]
+    [TestCase(HttpStatusCode.BadGateway, "<html>Proxy failure</html>", ApiResultStatus.Failed, null)]
+    public async Task ConnectAsync_WhenTheAddressAnswersButNotAsThisApi_ReportsWhatItAnswered(
+        HttpStatusCode statusCode,
+        string content,
+        ApiResultStatus expectedStatus,
+        string? expectedErrors)
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, new(_appVersionAddress)),
+            new(statusCode, Content: content));
+
+        var service = CreateService(new(), handler);
+
+        var result = await service.ConnectAsync(_apiAddress).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Status, Is.EqualTo(expectedStatus));
+            Assert.That(result.StatusCode, Is.EqualTo(statusCode));
+            Assert.That(result.ProblemDetails?.JoinErrorMessages(), Is.EqualTo(expectedErrors));
+            Assert.That(result.Value, Is.Null);
+        }
+    }
+
     [Test]
     public void ConnectAsync_WhenTheAddressNeverAnswers_GivesUpRatherThanWaiting()
     {
@@ -132,6 +172,27 @@ internal sealed class ApiAddressServiceTests
             await service.ConnectAsync(_apiAddress).ConfigureAwait(false));
 
         Assert.That(service.BaseAddress, Is.EqualTo(_defaultAddress));
+    }
+
+    [Test]
+    public async Task ConnectAsync_WhenTheBrowserBlocksStorage_AdoptsTheAddressButReportsItUnsaved()
+    {
+        using var handler = new FakeHttpMessageHandler(
+            new(HttpMethod.Get, new(_appVersionAddress)),
+            new(HttpStatusCode.OK, Content: "\"1.2.3\""));
+
+        var service = CreateService(new() { IsStorageBlocked = true }, handler);
+
+        var result = await service.ConnectAsync(_apiAddress).ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.Status, Is.EqualTo(ApiResultStatus.Success));
+            Assert.That(result.Value, Is.EqualTo(
+                new ApiAddressService.ConnectionOutcome(new Version(1, 2, 3), IsAddressSaved: false)));
+
+            Assert.That(service.BaseAddress, Is.EqualTo(_apiAddress));
+        }
     }
 
     private static ApiAddressService CreateService(

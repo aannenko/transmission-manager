@@ -11,6 +11,8 @@ internal sealed class ApiAddressService(
     LocalStorageService localStorage)
 #pragma warning restore CA1812
 {
+    internal sealed record ConnectionOutcome(Version Version, bool IsAddressSaved);
+
     private const string _storageKey = "baseAddress";
 
     public Uri BaseAddress { get; private set; } =
@@ -23,7 +25,9 @@ internal sealed class ApiAddressService(
             BaseAddress = uri;
     }
 
-    public async Task<ApiResult<Version>> ConnectAsync(Uri baseAddress, CancellationToken cancellationToken = default)
+    public async Task<ApiResult<ConnectionOutcome>> ConnectAsync(
+        Uri baseAddress,
+        CancellationToken cancellationToken = default)
     {
         using var httpClient = httpClientFactory.CreateClient(nameof(TransmissionManagerClient));
         httpClient.BaseAddress = baseAddress;
@@ -31,12 +35,12 @@ internal sealed class ApiAddressService(
         var apiClient = new TransmissionManagerClient(httpClient);
 
         var result = await apiClient.GetAppVersionAsync(cancellationToken).ConfigureAwait(false);
-        if (result.Status is not ApiResultStatus.Success)
-            return result;
+        if (result is not { Status: ApiResultStatus.Success, StatusCode: { } statusCode, Value: { } version })
+            return ApiResult<ConnectionOutcome>.Failure(result.StatusCode, result.ProblemDetails);
 
         BaseAddress = baseAddress;
-        await localStorage.SetItemAsync(_storageKey, baseAddress.AbsoluteUri).ConfigureAwait(false);
+        var isSaved = await localStorage.TrySetItemAsync(_storageKey, baseAddress.AbsoluteUri).ConfigureAwait(false);
 
-        return result;
+        return ApiResult<ConnectionOutcome>.Success(statusCode, new(version, isSaved));
     }
 }

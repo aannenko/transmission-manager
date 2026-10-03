@@ -119,6 +119,8 @@ Text fields are `<InputText type="search" role="textbox">`, which makes Chromium
 
 **A form check on one field is a validation attribute.** Blazor runs attributes when their field changes, but `IValidatableObject` only on submit, and not at all while any attribute fails, so keep it for checks that span fields.
 
+**Browser storage is optional.** A browser set to block site data refuses `localStorage`, OPFS and IndexedDB alike (Chromium, measured), so every feature must keep working without them, as `LocalStorageService` does; give any new store a fallback.
+
 ### C# style
 
 Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal sealed` for non-public implementations; `ConfigureAwait(false)` in library async code.

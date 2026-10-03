@@ -53,6 +53,16 @@ internal sealed class ThemeServiceTests
     }
 
     [Test]
+    public async Task LoadAsync_WhenTheBrowserBlocksStorage_FallsBackToLight()
+    {
+        var service = CreateService(new() { IsStorageBlocked = true });
+
+        await service.LoadAsync().ConfigureAwait(false);
+
+        Assert.That(service.Theme, Is.EqualTo(Theme.Light));
+    }
+
+    [Test]
     public async Task SetThemeAsync_WhenGivenATheme_AdoptsItAndSurvivesAReload()
     {
         var runtime = new FakeJSRuntime();
@@ -66,6 +76,16 @@ internal sealed class ThemeServiceTests
         await reloaded.LoadAsync().ConfigureAwait(false);
 
         Assert.That(reloaded.Theme, Is.EqualTo(Theme.Dark));
+    }
+
+    [Test]
+    public async Task SetThemeAsync_WhenTheBrowserBlocksStorage_StillAdoptsTheTheme()
+    {
+        var service = CreateService(new() { IsStorageBlocked = true });
+
+        await service.SetThemeAsync(Theme.Dark).ConfigureAwait(false);
+
+        Assert.That(service.Theme, Is.EqualTo(Theme.Dark));
     }
 
     private static ThemeService CreateService(FakeJSRuntime runtime)
