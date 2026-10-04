@@ -19,6 +19,9 @@ on:
   schedule:
     - cron: '31 11 * * 3'
 
+permissions:
+  contents: read
+
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
@@ -58,12 +61,12 @@ jobs:
     steps:
     # https://github.com/actions/setup-dotnet
     - name: Set up .NET SDK
-      uses: actions/setup-dotnet@v5
+      uses: actions/setup-dotnet@v6
       with:
         dotnet-version: '10.x'
 
     - name: Checkout repository
-      uses: actions/checkout@v5
+      uses: actions/checkout@v7
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL

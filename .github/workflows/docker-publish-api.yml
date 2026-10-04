@@ -29,6 +29,9 @@ on:
       - '!src/TransmissionManager.Web/**'
       - '!src/tests/TransmissionManager.Web.Tests/**'
 
+permissions:
+  contents: read
+
 env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
