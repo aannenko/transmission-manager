@@ -129,6 +129,11 @@ internal static class TestData
         public const string TransmissionRefusedMagnet =
             "magnet:?xt=urn:btih:5C7D9E1F2A3B4C5D6E7F8091A2B3C4D5E6F70819&dn=TV+Show+5";
 
+        public const string TransmissionErrorPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234575";
+
+        public const string TransmissionErrorMagnet =
+            "magnet:?xt=urn:btih:9F8E7D6C5B4A39281706F5E4D3C2B1A098765432&dn=TV+Show+9";
+
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
     }
 
@@ -185,6 +190,11 @@ internal static class TestData
 
         public const string AddTorrentDuplicateResponseBody =
             """{{"arguments":{{"torrent-duplicate":{{"hashString":"{0}","id":{1},"name":"{2}"}}}},"result":"success"}}""";
+
+        public const string AddTorrentErrorResult = "invalid or corrupt torrent file";
+
+        public const string AddTorrentErrorResponseBody =
+            $$"""{"arguments":{},"result":"{{AddTorrentErrorResult}}"}""";
 
         public const string DeleteTorrentRequestBody =
             """{{"method":"torrent-remove","arguments":{{"ids":["{0}"],"delete-local-data":{1}}}}}""";
@@ -280,6 +290,10 @@ internal static class TestData
             [new(HttpMethod.Get, new(WebPages.TransmissionRefusedPageAddress))] =
                 new(HttpStatusCode.OK,
                     Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.TransmissionRefusedMagnet)),
+
+            [new(HttpMethod.Get, new(WebPages.TransmissionErrorPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.TransmissionErrorMagnet)),
 
             [new(HttpMethod.Get, new(JsonApi.Address))] =
                 new(HttpStatusCode.OK, Content: JsonApi.Document),

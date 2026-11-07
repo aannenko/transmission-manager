@@ -5,6 +5,7 @@ using TransmissionManager.Api.Services.Background;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
+using GetTorrentResult = TransmissionManager.Api.Services.Transmission.TransmissionGetTorrentResult;
 using Outcome = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdOutcome;
 using Result = TransmissionManager.Api.Actions.Torrents.RefreshById.RefreshTorrentByIdResult;
 
@@ -23,12 +24,16 @@ internal sealed class RefreshTorrentByIdHandler(
         if (torrent is null)
             return OnNotFoundLocally();
 
-        var (_, transmissionGetError) = await transmissionService
+        var (trmGetResult, _, trmGetError) = await transmissionService
             .GetTorrentAsync(torrent.HashString, cancellationToken)
             .ConfigureAwait(false);
 
-        if (transmissionGetError is not null)
-            return OnNotFoundInTransmission(transmissionGetError);
+        if (trmGetResult is not GetTorrentResult.Found)
+        {
+            return trmGetResult is GetTorrentResult.NotFound
+                ? OnNotFoundInTransmission(trmGetError!)
+                : OnDependencyFailed(ProblemDetailsKeys.Transmission, trmGetError!);
+        }
 
         var (searchResult, magnetUri, getMagnetError) = await serviceProvider
             .FindMagnetUriAsync(
@@ -43,25 +48,27 @@ internal sealed class RefreshTorrentByIdHandler(
         {
             return searchResult.IsUnprocessableSource()
                 ? OnInvalidConfiguration(getMagnetError!)
-                : OnDependencyFailed(ProblemDetailsKeys.TorrentSource, null, getMagnetError!);
+                : OnDependencyFailed(ProblemDetailsKeys.TorrentSource, getMagnetError!);
         }
 
-        var (transmissionAddResult, transmissionAddTorrent, transmissionAddError) = await transmissionService
+        var (addResult, transmissionTorrent, addError) = await transmissionService
             .AddTorrentUsingMagnetAsync(magnetUri, torrent.DownloadDir, cancellationToken)
             .ConfigureAwait(false);
 
-        if (transmissionAddTorrent is null)
-            return OnDependencyFailed(ProblemDetailsKeys.Transmission, transmissionAddResult, transmissionAddError!);
+        if (transmissionTorrent is null)
+            return OnDependencyFailed(ProblemDetailsKeys.Transmission, addError!);
 
-        if (transmissionAddResult is TransmissionAddResult.Added)
+        var transmissionResult = addResult.ToTransmissionAddResult();
+
+        if (transmissionResult is TransmissionAddResult.Added)
         {
             var torrentName = GetTorrentUpdatedName(
                 torrent.Name,
-                transmissionAddTorrent.Name,
-                transmissionAddTorrent.HashString,
+                transmissionTorrent.Name,
+                transmissionTorrent.HashString,
                 out var isNameBackgroundUpdateRequired);
 
-            var torrentUpdateDto = transmissionAddTorrent.ToTorrentUpdateDto(DateTime.UtcNow, torrentName);
+            var torrentUpdateDto = transmissionTorrent.ToTorrentUpdateDto(DateTime.UtcNow, torrentName);
             var (updateResult, currentVersion) = await torrentService
                 .UpdateOneAsync(torrent.Id, torrent.Version, torrentUpdateDto, cancellationToken)
                 .ConfigureAwait(false);
@@ -71,18 +78,18 @@ internal sealed class RefreshTorrentByIdHandler(
                 case TorrentMutationResult.Success:
                     break;
                 case TorrentMutationResult.NotFound:
-                    return OnRemoved(transmissionAddResult);
+                    return OnRemoved(transmissionResult);
                 case TorrentMutationResult.VersionConflict:
-                    return OnConflict(transmissionAddResult, currentVersion!.Value);
+                    return OnConflict(transmissionResult, currentVersion!.Value);
                 case TorrentMutationResult.NotUnique:
-                    return OnExists(transmissionAddResult);
+                    return OnExists(transmissionResult);
                 default:
                     throw new InvalidOperationException(
                         $"Unexpected {nameof(TorrentMutationResult)}: {updateResult}");
             }
 
             // Remove the old Transmission torrent only after the local row points at the new hash.
-            var transmissionRemoveError = (await transmissionService
+            var removeError = (await transmissionService
                 .RemoveTorrentAsync(torrent.HashString, false, cancellationToken)
                 .ConfigureAwait(false)).Error;
 
@@ -95,12 +102,12 @@ internal sealed class RefreshTorrentByIdHandler(
             {
                 _ = backgroundUpdateService.UpdateTorrentNameAsync(
                     id,
-                    transmissionAddTorrent.HashString,
+                    transmissionTorrent.HashString,
                     torrent.Name,
                     torrent.Version);
             }
 
-            return OnRefreshed(torrent.ToDto(), transmissionAddResult, transmissionRemoveError);
+            return OnRefreshed(torrent.ToDto(), transmissionResult, removeError);
         }
         else if (torrent.Name == torrent.HashString)
         {
@@ -111,7 +118,7 @@ internal sealed class RefreshTorrentByIdHandler(
                 torrent.Version);
         }
 
-        return OnRefreshed(torrent.ToDto(), transmissionAddResult);
+        return OnRefreshed(torrent.ToDto(), transmissionResult);
     }
 
     private static Outcome OnRefreshed(
@@ -126,8 +133,8 @@ internal sealed class RefreshTorrentByIdHandler(
     private static Outcome OnNotFoundInTransmission(string message) =>
         new(Result.NotFoundInTransmission, null, null, null, [new(ProblemDetailsKeys.Transmission, [message])]);
 
-    private static Outcome OnDependencyFailed(string key, TransmissionAddResult? transmissionResult, string message) =>
-        new(Result.DependencyFailed, null, transmissionResult, null, [new(key, [message])]);
+    private static Outcome OnDependencyFailed(string key, string message) =>
+        new(Result.DependencyFailed, null, null, null, [new(key, [message])]);
 
     private static Outcome OnInvalidConfiguration(string message) =>
         new(Result.InvalidConfiguration, null, null, null, [new(ProblemDetailsKeys.TorrentSource, [message])]);

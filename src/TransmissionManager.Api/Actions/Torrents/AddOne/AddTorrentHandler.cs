@@ -40,18 +40,20 @@ internal sealed class AddTorrentHandler(
                 : OnDependencyFailed(ProblemDetailsKeys.TorrentSource, getMagnetError!);
         }
 
-        var (transmissionResult, transmissionTorrent, transmissionError) = await transmissionService
+        var (trmAddResult, transmissionTorrent, trmAddError) = await transmissionService
             .AddTorrentUsingMagnetAsync(magnetUri, request.DownloadDir, cancellationToken)
             .ConfigureAwait(false);
 
         if (transmissionTorrent is null)
-            return OnDependencyFailed(ProblemDetailsKeys.Transmission, transmissionError!);
+            return OnDependencyFailed(ProblemDetailsKeys.Transmission, trmAddError!);
 
-        var (addResult, torrent) = await torrentService
+        var transmissionResult = trmAddResult.ToTransmissionAddResult();
+
+        var (insertResult, torrent) = await torrentService
             .AddOneAsync(request.ToTorrentAddDto(transmissionTorrent, DateTime.UtcNow), cancellationToken)
             .ConfigureAwait(false);
 
-        if (addResult is TorrentMutationResult.NotUnique)
+        if (insertResult is TorrentMutationResult.NotUnique)
             return OnExists(transmissionResult);
 
         return OnAdded(torrent!, transmissionResult, request.Cron);

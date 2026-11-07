@@ -1,21 +1,26 @@
 ﻿using System.Text;
-using TransmissionManager.Api.Common.Dto.Transmission;
 using TransmissionManager.Transmission.Services;
 
 namespace TransmissionManager.Api.Services.Transmission;
 
 internal sealed class TransmissionClientWrapper(TransmissionClient transmissionClient)
 {
-    private static readonly CompositeFormat _getError =
-        CompositeFormat.Parse("Could not get a torrent with hash '{0}' from Transmission{1}.");
+    private const string _addUnexpectedResponseError =
+        "Could not add a torrent to Transmission: its response holds neither torrent-added nor torrent-duplicate.";
 
-    private static readonly CompositeFormat _addError =
-        CompositeFormat.Parse("Could not add a torrent to Transmission{0}.");
+    private static readonly CompositeFormat _addRequestFailedError =
+        CompositeFormat.Parse("Could not add a torrent to Transmission. {0}");
 
-    private static readonly CompositeFormat _removeError =
-        CompositeFormat.Parse("Could not remove a torrent with hash '{0}' from Transmission: '{1}'.");
+    private static readonly CompositeFormat _getNotFoundError =
+        CompositeFormat.Parse("Could not get a torrent with hash '{0}' from Transmission.");
 
-    public async Task<TransmissionAddResponse> AddTorrentUsingMagnetAsync(
+    private static readonly CompositeFormat _getRequestFailedError =
+        CompositeFormat.Parse("Could not get a torrent with hash '{0}' from Transmission. {1}");
+
+    private static readonly CompositeFormat _removeRequestFailedError =
+        CompositeFormat.Parse("Could not remove a torrent with hash '{0}' from Transmission. {1}");
+
+    public async Task<TransmissionAddTorrentOutcome> AddTorrentUsingMagnetAsync(
         Uri magnetUri,
         string downloadDir,
         CancellationToken cancellationToken)
@@ -29,19 +34,22 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
             return transmissionResponse.Arguments switch
             {
                 { TorrentAdded: not null } =>
-                    new(TransmissionAddResult.Added, transmissionResponse.Arguments.TorrentAdded, null),
+                    new(TransmissionAddTorrentResult.Added, transmissionResponse.Arguments.TorrentAdded, null),
                 { TorrentDuplicate: not null } =>
-                    new(TransmissionAddResult.Duplicate, transmissionResponse.Arguments.TorrentDuplicate, null),
-                _ => new(null, null, string.Format(null, _addError, string.Empty))
+                    new(TransmissionAddTorrentResult.Duplicate, transmissionResponse.Arguments.TorrentDuplicate, null),
+                _ => new(TransmissionAddTorrentResult.UnexpectedResponse, null, _addUnexpectedResponseError)
             };
         }
         catch (HttpRequestException e)
         {
-            return new(null, null, string.Format(null, _addError, $": {e.Message}"));
+            return new(
+                TransmissionAddTorrentResult.RequestFailed,
+                null,
+                string.Format(null, _addRequestFailedError, e.Message));
         }
     }
 
-    public async Task<TransmissionGetResponse> GetTorrentAsync(
+    public async Task<TransmissionGetTorrentOutcome> GetTorrentAsync(
         string hashString,
         CancellationToken cancellationToken)
     {
@@ -54,16 +62,19 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
             var torrent = transmissionResponse?.Arguments?.Torrents?.SingleOrDefault();
 
             return torrent is not null
-                ? new(torrent, null)
-                : new(null, string.Format(null, _getError, hashString, string.Empty));
+                ? new(TransmissionGetTorrentResult.Found, torrent, null)
+                : new(TransmissionGetTorrentResult.NotFound, null, string.Format(null, _getNotFoundError, hashString));
         }
         catch (HttpRequestException e)
         {
-            return new(null, string.Format(null, _getError, hashString, $": '{e.Message}'"));
+            return new(
+                TransmissionGetTorrentResult.RequestFailed,
+                null,
+                string.Format(null, _getRequestFailedError, hashString, e.Message));
         }
     }
 
-    public async Task<TransmissionRemoveResponse> RemoveTorrentAsync(
+    public async Task<TransmissionRemoveTorrentOutcome> RemoveTorrentAsync(
         string hashString,
         bool deleteData,
         CancellationToken cancellationToken)
@@ -74,11 +85,13 @@ internal sealed class TransmissionClientWrapper(TransmissionClient transmissionC
                 .RemoveTorrentsAsync([hashString], deleteData, cancellationToken)
                 .ConfigureAwait(false);
 
-            return new(null);
+            return new(TransmissionRemoveTorrentResult.Removed, null);
         }
         catch (HttpRequestException e)
         {
-            return new(string.Format(null, _removeError, hashString, e.Message));
+            return new(
+                TransmissionRemoveTorrentResult.RequestFailed,
+                string.Format(null, _removeRequestFailedError, hashString, e.Message));
         }
     }
 }

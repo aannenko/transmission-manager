@@ -4,6 +4,7 @@ using TransmissionManager.Api.Services.Scheduling;
 using TransmissionManager.Api.Services.Transmission;
 using TransmissionManager.Database.Dto;
 using TransmissionManager.Database.Services;
+using RemoveTorrentResult = TransmissionManager.Api.Services.Transmission.TransmissionRemoveTorrentResult;
 using Result = TransmissionManager.Api.Actions.Torrents.DeleteById.DeleteTorrentByIdResult;
 
 namespace TransmissionManager.Api.Actions.Torrents.DeleteById;
@@ -30,12 +31,12 @@ internal sealed class DeleteTorrentByIdHandler(
             return OnConflict(torrent.Version);
 
         var deleteData = deleteType is DeleteTorrentByIdType.LocalAndTransmissionAndData;
-        var transmissionResult = await transmissionService
+        var (trmRemoveResult, trmRemoveError) = await transmissionService
             .RemoveTorrentAsync(torrent.HashString, deleteData, cancellationToken)
             .ConfigureAwait(false);
 
-        if (transmissionResult.Error is not null)
-            return OnDependencyFailed(transmissionResult.Error);
+        if (trmRemoveResult is not RemoveTorrentResult.Removed)
+            return OnDependencyFailed(trmRemoveError!);
 
         return await RemoveLocal(id, version, cancellationToken).ConfigureAwait(false);
     }

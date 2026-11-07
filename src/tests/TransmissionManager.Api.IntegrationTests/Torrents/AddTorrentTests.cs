@@ -16,7 +16,7 @@ namespace TransmissionManager.Api.IntegrationTests.Torrents;
 [Parallelizable(ParallelScope.Self)]
 internal sealed class AddTorrentTests
 {
-    private const string _transmissionRefusedDownloadDir = "/tvshows";
+    private const string _downloadDir = "/tvshows";
 
     private static readonly Torrent[] _initialTorrents = [TestData.Database.CreateInitialTorrents()[0]];
 
@@ -134,7 +134,7 @@ internal sealed class AddTorrentTests
         null,
         TestData.Transmission.AddTorrentRequestBodyFormat,
         TestData.WebPages.TransmissionRefusedMagnet,
-        _transmissionRefusedDownloadDir);
+        _downloadDir);
 
     private static readonly TestRequest _transmissionRefusedInvalidHeaderRequest = new(
         HttpMethod.Post,
@@ -153,6 +153,31 @@ internal sealed class AddTorrentTests
         TestData.Transmission.DefaultResponseHeaders,
         """{"arguments":{},"result":"success"}""");
 
+    // Add Torrent Transmission Answers With An Error
+
+    private static readonly string _transmissionErrorRequestBody = string.Format(
+        null,
+        TestData.Transmission.AddTorrentRequestBodyFormat,
+        TestData.WebPages.TransmissionErrorMagnet,
+        _downloadDir);
+
+    private static readonly TestRequest _transmissionErrorInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _transmissionErrorRequestBody);
+
+    private static readonly TestRequest _transmissionErrorValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _transmissionErrorRequestBody);
+
+    private static readonly TestResponse _transmissionErrorValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        TestData.Transmission.AddTorrentErrorResponseBody);
+
     // Request-Response map
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
@@ -165,6 +190,8 @@ internal sealed class AddTorrentTests
         [_addHashConflictValidHeaderRequest] = _addHashConflictValidHeaderResponse,
         [_transmissionRefusedInvalidHeaderRequest] = _invalidHeaderResponse,
         [_transmissionRefusedValidHeaderRequest] = _transmissionRefusedValidHeaderResponse,
+        [_transmissionErrorInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_transmissionErrorValidHeaderRequest] = _transmissionErrorValidHeaderResponse,
     };
 
     #endregion
@@ -280,7 +307,7 @@ internal sealed class AddTorrentTests
         var dto = new AddTorrentRequest
         {
             SourceUri = new(TestData.WebPages.TransmissionRefusedPageAddress),
-            DownloadDir = _transmissionRefusedDownloadDir,
+            DownloadDir = _downloadDir,
         };
 
         var countBefore = await GetTorrentCountAsync().ConfigureAwait(false);
@@ -297,6 +324,9 @@ internal sealed class AddTorrentTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(problem.Errors, Contains.Key("transmission"));
+            Assert.That(
+                problem.Errors["transmission"],
+                Has.One.Contains("neither torrent-added nor torrent-duplicate"));
             Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
 
             // The point of keying the messages is that there is nothing else to read.
@@ -305,6 +335,36 @@ internal sealed class AddTorrentTests
 
         var countAfter = await GetTorrentCountAsync().ConfigureAwait(false);
         Assert.That(countAfter, Is.EqualTo(countBefore));
+    }
+
+    [Test]
+    public async Task AddTorrentAsync_WhenTransmissionFailsToAddTheMagnet_Returns424BlamingTransmission()
+    {
+        var dto = new AddTorrentRequest
+        {
+            SourceUri = new(TestData.WebPages.TransmissionErrorPageAddress),
+            DownloadDir = _downloadDir,
+        };
+
+        var response = await _client.PostAsJsonAsync(EndpointAddresses.Torrents, dto).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.FailedDependency));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                problem.Errors["transmission"],
+                Has.One.StartsWith("Could not add a torrent to Transmission."));
+            Assert.That(
+                problem.Errors["transmission"],
+                Has.One.Contains(TestData.Transmission.AddTorrentErrorResult));
+            Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
+        }
     }
 
     [Test]

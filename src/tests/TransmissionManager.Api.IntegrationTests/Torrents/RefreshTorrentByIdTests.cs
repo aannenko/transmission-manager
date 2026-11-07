@@ -36,6 +36,15 @@ internal sealed class RefreshTorrentByIdTests
     private const string TransmissionRefusedTorrentName = "TV Show 7";
     private const string TransmissionRefusedTorrentDownloadDir = "/tvshows";
 
+    private const string LookupFailedTorrentHashString = "c4e6a8b0d2f4c6e8a0b2d4f6a8c0e2b4d6f8a0c2";
+    private const string LookupFailedTorrentName = "TV Show 8";
+    private const string LookupFailedTorrentWebPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234576";
+    private const string LookupFailedTorrentDownloadDir = "/tvshows";
+
+    private const string TransmissionErrorTorrentHashString = "e1f3a5c7b9d1e3f5a7c9b1d3e5f7a9c1b3d5e7f9";
+    private const string TransmissionErrorTorrentName = "TV Show 9";
+    private const string TransmissionErrorTorrentDownloadDir = "/tvshows";
+
     private static readonly DateTime _noMagnetTorrentRefreshDate =
         new(2021, 8, 3, 12, 34, 56, 789, DateTimeKind.Utc);
 
@@ -86,6 +95,28 @@ internal sealed class RefreshTorrentByIdTests
             SourceUri = TestData.WebPages.TransmissionRefusedPageAddress,
             SourceKind = DbSourceKind.WebPage,
             DownloadDir = TransmissionRefusedTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = LookupFailedTorrentHashString,
+            Name = LookupFailedTorrentName,
+            SourceUri = LookupFailedTorrentWebPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = LookupFailedTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = TransmissionErrorTorrentHashString,
+            Name = TransmissionErrorTorrentName,
+            SourceUri = TestData.WebPages.TransmissionErrorPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = TransmissionErrorTorrentDownloadDir,
             RefreshDate = _noMagnetTorrentRefreshDate,
             Version = 1,
         },
@@ -435,6 +466,74 @@ internal sealed class RefreshTorrentByIdTests
         TestData.Transmission.DefaultResponseHeaders,
         """{"arguments":{},"result":"success"}""");
 
+    // Fail To Get Lookup-Failed Torrent
+
+    private static readonly string _getLookupFailedTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        LookupFailedTorrentHashString);
+
+    private static readonly TestRequest _getLookupFailedTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getLookupFailedTorrentRequestBody);
+
+    private static readonly TestRequest _getLookupFailedTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getLookupFailedTorrentRequestBody);
+
+    // Must stay a status the resilience pipeline does not retry, or the request waits out its backoffs.
+    private static readonly TestResponse _getLookupFailedTorrentValidHeaderResponse = new(
+        HttpStatusCode.Forbidden,
+        TestData.Transmission.DefaultResponseHeaders);
+
+    // Get And Fail To Add Transmission-Error Torrent
+
+    private static readonly string _getTransmissionErrorTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        TransmissionErrorTorrentHashString);
+
+    private static readonly TestRequest _getTransmissionErrorTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getTransmissionErrorTorrentRequestBody);
+
+    private static readonly TestRequest _getTransmissionErrorTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getTransmissionErrorTorrentRequestBody);
+
+    private static readonly TestResponse _getTransmissionErrorTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            TransmissionErrorTorrentDownloadDir,
+            TransmissionErrorTorrentHashString,
+            TransmissionErrorTorrentName));
+
+    private static readonly TestRequest _addTransmissionErrorTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentRequestBodyFormat,
+            TestData.WebPages.TransmissionErrorMagnet,
+            TransmissionErrorTorrentDownloadDir));
+
+    private static readonly TestResponse _addTransmissionErrorTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        TestData.Transmission.AddTorrentErrorResponseBody);
+
     // Request-Response map
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
@@ -459,6 +558,11 @@ internal sealed class RefreshTorrentByIdTests
         [_getTransmissionRefusedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getTransmissionRefusedTorrentValidHeaderRequest] = _getTransmissionRefusedTorrentValidHeaderResponse,
         [_addTransmissionRefusedTorrentValidHeaderRequest] = _addTransmissionRefusedTorrentValidHeaderResponse,
+        [_getLookupFailedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getLookupFailedTorrentValidHeaderRequest] = _getLookupFailedTorrentValidHeaderResponse,
+        [_getTransmissionErrorTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getTransmissionErrorTorrentValidHeaderRequest] = _getTransmissionErrorTorrentValidHeaderResponse,
+        [_addTransmissionErrorTorrentValidHeaderRequest] = _addTransmissionErrorTorrentValidHeaderResponse,
     };
 
     #endregion
@@ -508,7 +612,11 @@ internal sealed class RefreshTorrentByIdTests
         var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
+            Assert.That(result.Message, Is.Null);
+        }
 
         // Successful refresh that calls torrent-add increments Version by 1.
         // Build a local Torrent so we don't mutate the static `_initialTorrents` shared by other tests.
@@ -543,7 +651,9 @@ internal sealed class RefreshTorrentByIdTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
-            Assert.That(result.Message, Is.Not.Null.And.Not.Empty);
+            Assert.That(
+                result.Message,
+                Does.StartWith("Could not remove a torrent").And.Contain("remove failed"));
         }
 
         var source = _initialTorrents[3];
@@ -661,7 +771,9 @@ internal sealed class RefreshTorrentByIdTests
         Assert.That(problem, Is.Not.Null);
         using (Assert.EnterMultipleScope())
         {
-            Assert.That(problem.Errors, Contains.Key("transmission"));
+            Assert.That(
+                problem.Errors["transmission"],
+                Is.EqualTo([$"Could not get a torrent with hash '{_initialTorrents[2].HashString}' from Transmission."]));
             Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
         }
     }
@@ -731,6 +843,57 @@ internal sealed class RefreshTorrentByIdTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(problem.Errors, Contains.Key("transmission"));
+            Assert.That(
+                problem.Errors["transmission"],
+                Has.One.Contains("neither torrent-added nor torrent-duplicate"));
+            Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenTransmissionLookupFails_Returns424BlamingTransmission()
+    {
+        var id = Array.FindIndex(_initialTorrents, static t => t.HashString == LookupFailedTorrentHashString) + 1;
+
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/{id}", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.FailedDependency));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["transmission"], Has.One.StartsWith("Could not get a torrent"));
+            Assert.That(problem.Errors["transmission"], Has.One.Contains("403"));
+            Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
+        }
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenTransmissionFailsToAddTheMagnet_Returns424BlamingTransmission()
+    {
+        var id = Array.FindIndex(_initialTorrents, static t => t.HashString == TransmissionErrorTorrentHashString) + 1;
+
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/{id}", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.FailedDependency));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(
+                problem.Errors["transmission"],
+                Has.One.StartsWith("Could not add a torrent to Transmission."));
+            Assert.That(
+                problem.Errors["transmission"],
+                Has.One.Contains(TestData.Transmission.AddTorrentErrorResult));
             Assert.That(problem.Errors.ContainsKey("torrentSource"), Is.False);
         }
     }

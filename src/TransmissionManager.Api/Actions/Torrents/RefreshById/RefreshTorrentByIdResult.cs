@@ -16,11 +16,11 @@ internal enum RefreshTorrentByIdResult
     NotFoundLocally,
 
     /// <summary>
-    /// The torrent could not be retrieved from Transmission.
+    /// Transmission answered the lookup without the torrent.
     /// </summary>
     /// <remarks>
-    /// The two systems are independent, so absence is not compensated for automatically. Lookup
-    /// failures share this result; the error message carries the actual reason.
+    /// The two systems are independent, so absence is not compensated for automatically. A lookup
+    /// request that fails is <see cref="DependencyFailed"/> instead.
     /// </remarks>
     NotFoundInTransmission,
 
@@ -59,8 +59,8 @@ internal enum RefreshTorrentByIdResult
     InvalidConfiguration,
 
     /// <summary>
-    /// The torrent source could not be retrieved, or Transmission could not accept the refreshed
-    /// magnet.
+    /// The torrent source could not be retrieved, Transmission could not be queried, or it did not
+    /// accept the refreshed magnet.
     /// </summary>
     /// <remarks>
     /// Transient as far as this application can tell, so the scheduled refresh will try again.

@@ -135,7 +135,7 @@ Primary constructors for DI; file-scoped namespaces; records for DTOs; `internal
 - *Full XML docs* on every `public` type or member used across production-project boundaries, directly or through framework discovery; same-project framework use alone does not qualify. An in-scope member also puts its declaring type in scope, while tests and `BaseTests` never make production code in scope. A primary constructor (including a positional record) documents its parameters on the type, and an interface implementation or override may use `<inheritdoc/>`. Otherwise the full form is `<summary>`, a `<param>` per parameter, a `<typeparam>` per type parameter, `<returns>` unless void or a constructor, and an `<exception>` per exception it throws itself; only `ArgumentNullException.ThrowIfNull` is exempt. A required tag with nothing to add restates the signature in one line, since a missing one renders as a blank. Worked form: `TorrentWebPageClient.FindMagnetUriAsync`.
 - *A suppression's reason*, on its `#pragma warning disable` line.
 - *A torrent source options class's `<remarks>`* naming the `IValidateOptions<T>` that owns its bounds.
-- *The last undocumented member* of one enum (`MagnetSearchResult.Found`), one overload group or one block's tags whose others are documented — never extended to sibling types.
+- *Every member* of an enum once any member is documented (`MagnetSearchResult`), and *the last undocumented member* of one overload group or one block's tags whose others are documented — never extended to sibling types.
 
 Tool directives (`// language=regex`) and upstream's comments in vendored code (`ValueStringBuilder`) are exempt.
 
