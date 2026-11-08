@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using TransmissionManager.Transmission.Dto;
@@ -124,19 +125,32 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
         }
         catch (Exception e)
         {
-            throw new HttpRequestException($"Request to Transmission failed unexpectedly: '{e.Message}'.", e);
+            throw new HttpRequestException(
+                $"Request to Transmission failed unexpectedly: '{RemoteTextUtils.Summarize(e.Message)}'.",
+                e);
         }
 
         using (response)
         {
-            _ = response.EnsureSuccessStatusCode();
+            // EnsureSuccessStatusCode would quote the reason phrase, which is the server's text.
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException(
+                    $"The server responded with {(int)response.StatusCode} {response.StatusCode}.",
+                    null,
+                    response.StatusCode);
+            }
+
+            using var body = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 
             TResponse? responseObject = default;
             JsonException? jsonException = null;
             try
             {
-                responseObject = await response.Content
-                    .ReadFromJsonAsync(responseTypeInfo, cancellationToken)
+                // JSON is UTF-8 whatever charset the response declares (RFC 8259, section 8.1), while
+                // ReadFromJsonAsync decodes by that charset and throws on one it does not support.
+                responseObject = await JsonSerializer
+                    .DeserializeAsync(body, responseTypeInfo, cancellationToken)
                     .ConfigureAwait(false);
             }
             catch (JsonException e)
@@ -146,17 +160,36 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
 
             if (responseObject is null)
             {
-                var responseString = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+                var excerpt = await SummarizeBodyAsync(body, cancellationToken).ConfigureAwait(false);
                 throw new HttpRequestException(
                     "Unexpected response from Transmission. " +
-                    $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{responseString}'.",
+                    $"Cannot deserialize the following content to {typeof(TResponse).FullName}: '{excerpt}'.",
                     jsonException);
             }
 
             return responseObject.IsSuccess()
                 ? responseObject
                 : throw new HttpRequestException(
-                    $"Response from Transmission does not indicate success: '{responseObject.Result}'");
+                    "Response from Transmission does not indicate success: " +
+                    $"'{RemoteTextUtils.Summarize(responseObject.Result)}'");
         }
+    }
+
+    private static async Task<string> SummarizeBodyAsync(Stream bufferedBody, CancellationToken cancellationToken)
+    {
+        // Only a buffered body can be rewound: streaming the response instead would make this throw.
+        bufferedBody.Position = 0;
+
+        using var reader = new StreamReader(
+            bufferedBody,
+            Encoding.UTF8,
+            detectEncodingFromByteOrderMarks: false,
+            leaveOpen: true);
+
+        // One character past the budget, or Summarize cannot tell that it cut.
+        var excerpt = new char[RemoteTextUtils.DefaultSummaryLength + 1];
+        var excerptLength = await reader.ReadBlockAsync(excerpt, cancellationToken).ConfigureAwait(false);
+
+        return RemoteTextUtils.Summarize(excerpt.AsSpan(0, excerptLength));
     }
 }

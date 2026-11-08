@@ -49,7 +49,7 @@ Endpoints live under `Actions/{Feature}/{ActionName}/` and combine an `{Action}E
 
 ### Error messages
 
-Every failure answers with an `errors` object keyed by what is at fault rather than a prose `detail` — `EndpointProblems` builds it. A message does not repeat back the id or the body the caller just sent, though it may quote a setting to show which one it means. **Text a torrent source served must go through `RemoteTextUtils.Summarize` before it enters any message** — see that type for why. Options validators are exempt: they answer an operator at startup, not a caller.
+Every failure answers with an `errors` object keyed by what is at fault rather than a prose `detail` — `EndpointProblems` builds it. A message does not repeat back the id or the body the caller just sent, though it may quote a setting to show which one it means. **Text a server served — a torrent source, or whatever answers at Transmission's address — must go through the receiving library's own `RemoteTextUtils.Summarize` before it enters any message that library composes, a framework exception's message included; a status is quoted by its code, never its reason phrase** — see either copy for why; `RemoteTextUtilsParityTests` keeps the two copies equal. Options validators are exempt: they answer an operator at startup, not a caller.
 
 ### Keyset pagination (GetPage endpoint)
 

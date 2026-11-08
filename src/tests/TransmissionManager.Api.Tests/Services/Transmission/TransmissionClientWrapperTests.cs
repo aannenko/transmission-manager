@@ -116,6 +116,29 @@ internal sealed class TransmissionClientWrapperTests
     }
 
     [Test]
+    public async Task GetTorrentAsync_WhenSomethingElseAnswers_ReturnsRequestFailedQuotingItSummarized()
+    {
+        var (result, torrent, error) = await GetAsync(static _ => new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<html>\r\n\u001b[31m" + new string('x', 100_000) + "</html>"),
+            })
+            .ConfigureAwait(false);
+
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result, Is.EqualTo(TransmissionGetTorrentResult.RequestFailed));
+            Assert.That(torrent, Is.Null);
+            Assert.That(
+                error,
+                Is.EqualTo(
+                    $"Could not get a torrent with hash '{_hashString}' from Transmission. " +
+                    "Unexpected response from Transmission. Cannot deserialize the following content to " +
+                    "TransmissionManager.Transmission.Dto.TransmissionTorrentGetResponse: " +
+                    $"'<html>___[31m{new string('x', 67)}...'."));
+        }
+    }
+
+    [Test]
     public async Task RemoveTorrentAsync_WhenTransmissionRemovesTheTorrent_ReturnsRemovedWithoutError()
     {
         var (result, error) = await RemoveAsync(Json("""{"arguments":{},"result":"success"}""")).ConfigureAwait(false);
