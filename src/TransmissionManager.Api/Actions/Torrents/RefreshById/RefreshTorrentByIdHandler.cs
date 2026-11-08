@@ -60,7 +60,9 @@ internal sealed class RefreshTorrentByIdHandler(
 
         var transmissionResult = addResult.ToTransmissionAddResult();
 
-        if (transmissionResult is TransmissionAddResult.Added)
+        // Transmission resolves a hash in either case, so a case-only difference must not repoint: the
+        // removal below would then take the torrent the row had just been repointed at.
+        if (!string.Equals(transmissionTorrent.HashString, torrent.HashString, StringComparison.OrdinalIgnoreCase))
         {
             var torrentName = GetTorrentUpdatedName(
                 torrent.Name,
@@ -152,7 +154,7 @@ internal sealed class RefreshTorrentByIdHandler(
     /// <remarks>
     /// The refreshed magnet is already in Transmission and the previous torrent has <b>not</b> been
     /// removed, because another row already holds the new hash. The partial outcome is surfaced as
-    /// it is and the user retries; the two systems are independent, so nothing compensates.
+    /// it is for the user to resolve; the two systems are independent, so nothing compensates.
     /// </remarks>
     private static Outcome OnExists(TransmissionAddResult? transmissionResult)
     {

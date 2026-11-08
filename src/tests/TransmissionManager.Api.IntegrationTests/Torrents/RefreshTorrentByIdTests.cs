@@ -17,6 +17,8 @@ namespace TransmissionManager.Api.IntegrationTests.Torrents;
 [Parallelizable(ParallelScope.Self)]
 internal sealed class RefreshTorrentByIdTests
 {
+    private const string OutdatedTorrentUpdatedHashString = "9ebc251e08fb1aecb7b24d26385341875473919a";
+
     private const string CleanupWarningTorrentHashString = "4f0334f9eac58c76d128cdb4ba7a62c269e98559";
     private const string CleanupWarningTorrentUpdatedHashString = "3a81aaa70e75439d332c146abde899e546356be2";
     private const string CleanupWarningTorrentName = "TV Show 4";
@@ -45,11 +47,32 @@ internal sealed class RefreshTorrentByIdTests
     private const string TransmissionErrorTorrentName = "TV Show 9";
     private const string TransmissionErrorTorrentDownloadDir = "/tvshows";
 
+    private const string RepointingDuplicateTorrentHashString = "6d1f3b5a7c9e0b2d4f6a8c0e1b3d5f7a9c2e4b60";
+    private const string RepointingDuplicateTorrentUpdatedHashString = "b7e9d1c3a5f70b9d2e4c6a8f0d1b3e5c7a9f2d48";
+    private const string RepointingDuplicateTorrentName = "TV Show 10";
+    private const string RepointingDuplicateTorrentUpdatedName = "TV Show 10 Updated";
+    private const string RepointingDuplicateTorrentDownloadDir = "/tvshows";
+
+    private const string ReAddedTorrentHashString = "f2a4c6e8b0d1f3a5c7e9b1d3f5a7c9e0b2d4f6a8";
+    private const string ReAddedTorrentName = "TV Show 11";
+    private const string ReAddedTorrentDownloadDir = "/tvshows";
+
+    private const string CaseOnlyDuplicateTorrentHashString = "0c2e4a6b8d1f3c5e7a9b0d2f4a6c8e1b3d5f7a90";
+    private const string CaseOnlyDuplicateTorrentName = "TV Show 12";
+    private const string CaseOnlyDuplicateTorrentDownloadDir = "/tvshows";
+
+    private const string HashConflictTorrentHashString = "a3c5e7b9d0f2a4c6e8b1d3f5a7c9e2b4d6f8a0c1";
+    private const string HashConflictTorrentName = "TV Show 13";
+    private const string HashConflictTorrentDownloadDir = "/tvshows";
+
     private static readonly DateTime _noMagnetTorrentRefreshDate =
         new(2021, 8, 3, 12, 34, 56, 789, DateTimeKind.Utc);
 
     private static readonly DateTime _cleanupWarningTorrentRefreshDate =
         new(2021, 9, 4, 13, 45, 57, 888, DateTimeKind.Utc);
+
+    private static readonly string _caseOnlyDuplicateTorrentStoredHashString =
+        CaseOnlyDuplicateTorrentHashString.ToUpperInvariant();
 
     private static readonly Torrent[] _initialTorrents =
     [
@@ -117,6 +140,50 @@ internal sealed class RefreshTorrentByIdTests
             SourceUri = TestData.WebPages.TransmissionErrorPageAddress,
             SourceKind = DbSourceKind.WebPage,
             DownloadDir = TransmissionErrorTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = RepointingDuplicateTorrentHashString,
+            Name = RepointingDuplicateTorrentName,
+            SourceUri = TestData.WebPages.RepointingDuplicatePageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = RepointingDuplicateTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = ReAddedTorrentHashString,
+            Name = ReAddedTorrentName,
+            SourceUri = TestData.WebPages.ReAddedPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = ReAddedTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = _caseOnlyDuplicateTorrentStoredHashString,
+            Name = CaseOnlyDuplicateTorrentName,
+            SourceUri = TestData.WebPages.CaseOnlyDuplicatePageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = CaseOnlyDuplicateTorrentDownloadDir,
+            RefreshDate = _noMagnetTorrentRefreshDate,
+            Version = 1,
+        },
+        new()
+        {
+            Id = default,
+            HashString = HashConflictTorrentHashString,
+            Name = HashConflictTorrentName,
+            SourceUri = TestData.WebPages.HashConflictPageAddress,
+            SourceKind = DbSourceKind.WebPage,
+            DownloadDir = HashConflictTorrentDownloadDir,
             RefreshDate = _noMagnetTorrentRefreshDate,
             Version = 1,
         },
@@ -236,7 +303,7 @@ internal sealed class RefreshTorrentByIdTests
     private static readonly string _addUpdatedTorrentResponseBody = string.Format(
         null,
         TestData.Transmission.AddTorrentAddedResponseBodyFormat,
-        _initialTorrents[1].HashString,
+        OutdatedTorrentUpdatedHashString,
         26,
         _initialTorrents[1].Name);
 
@@ -534,6 +601,210 @@ internal sealed class RefreshTorrentByIdTests
         TestData.Transmission.DefaultResponseHeaders,
         TestData.Transmission.AddTorrentErrorResponseBody);
 
+    private static readonly string _getRepointingDuplicateTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        RepointingDuplicateTorrentHashString);
+
+    private static readonly TestRequest _getRepointingDuplicateTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getRepointingDuplicateTorrentRequestBody);
+
+    private static readonly TestRequest _getRepointingDuplicateTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getRepointingDuplicateTorrentRequestBody);
+
+    private static readonly TestResponse _getRepointingDuplicateTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            RepointingDuplicateTorrentDownloadDir,
+            RepointingDuplicateTorrentHashString,
+            RepointingDuplicateTorrentName));
+
+    private static readonly TestRequest _addRepointingDuplicateTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentRequestBodyFormat,
+            TestData.WebPages.RepointingDuplicateMagnet,
+            RepointingDuplicateTorrentDownloadDir));
+
+    private static readonly TestResponse _addRepointingDuplicateTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentDuplicateResponseBodyFormat,
+            RepointingDuplicateTorrentUpdatedHashString,
+            28,
+            RepointingDuplicateTorrentUpdatedName));
+
+    private static readonly TestRequest _removeRepointingDuplicateTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.DeleteTorrentRequestBodyFormat,
+            RepointingDuplicateTorrentHashString,
+            "false"));
+
+    // Fails on purpose: a refresh reports only a failed removal, so a success would look like no removal at all.
+    private static readonly TestResponse _removeRepointingDuplicateTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        """{"arguments":{},"result":"remove failed"}""");
+
+    private static readonly string _getReAddedTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        ReAddedTorrentHashString);
+
+    private static readonly TestRequest _getReAddedTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getReAddedTorrentRequestBody);
+
+    private static readonly TestRequest _getReAddedTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getReAddedTorrentRequestBody);
+
+    private static readonly TestResponse _getReAddedTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            ReAddedTorrentDownloadDir,
+            ReAddedTorrentHashString,
+            ReAddedTorrentName));
+
+    private static readonly TestRequest _addReAddedTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentRequestBodyFormat,
+            TestData.WebPages.ReAddedMagnet,
+            ReAddedTorrentDownloadDir));
+
+    private static readonly TestResponse _addReAddedTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentAddedResponseBodyFormat,
+            ReAddedTorrentHashString,
+            29,
+            ReAddedTorrentName));
+
+    private static readonly string _getCaseOnlyDuplicateTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        _caseOnlyDuplicateTorrentStoredHashString);
+
+    private static readonly TestRequest _getCaseOnlyDuplicateTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getCaseOnlyDuplicateTorrentRequestBody);
+
+    private static readonly TestRequest _getCaseOnlyDuplicateTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getCaseOnlyDuplicateTorrentRequestBody);
+
+    private static readonly TestResponse _getCaseOnlyDuplicateTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            CaseOnlyDuplicateTorrentDownloadDir,
+            CaseOnlyDuplicateTorrentHashString,
+            CaseOnlyDuplicateTorrentName));
+
+    private static readonly TestRequest _addCaseOnlyDuplicateTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentRequestBodyFormat,
+            TestData.WebPages.CaseOnlyDuplicateMagnet,
+            CaseOnlyDuplicateTorrentDownloadDir));
+
+    private static readonly TestResponse _addCaseOnlyDuplicateTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentDuplicateResponseBodyFormat,
+            CaseOnlyDuplicateTorrentHashString,
+            32,
+            CaseOnlyDuplicateTorrentName));
+
+    private static readonly string _getHashConflictTorrentRequestBody = string.Format(
+        null,
+        TestData.Transmission.GetOneTorrentRequestBodyFormat,
+        HashConflictTorrentHashString);
+
+    private static readonly TestRequest _getHashConflictTorrentInvalidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.EmptyRequestHeaders,
+        _getHashConflictTorrentRequestBody);
+
+    private static readonly TestRequest _getHashConflictTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        _getHashConflictTorrentRequestBody);
+
+    private static readonly TestResponse _getHashConflictTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.GetOneTorrentResponseBodyFormat,
+            HashConflictTorrentDownloadDir,
+            HashConflictTorrentHashString,
+            HashConflictTorrentName));
+
+    private static readonly TestRequest _addHashConflictTorrentValidHeaderRequest = new(
+        HttpMethod.Post,
+        TestData.Transmission.ApiUri,
+        TestData.Transmission.FilledRequestHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentRequestBodyFormat,
+            TestData.WebPages.HashConflictPageMagnet,
+            HashConflictTorrentDownloadDir));
+
+    private static readonly TestResponse _addHashConflictTorrentValidHeaderResponse = new(
+        HttpStatusCode.OK,
+        TestData.Transmission.DefaultResponseHeaders,
+        string.Format(
+            null,
+            TestData.Transmission.AddTorrentDuplicateResponseBodyFormat,
+            _initialTorrents[0].HashString,
+            25,
+            _initialTorrents[0].Name));
+
     // Request-Response map
 
     private static readonly Dictionary<TestRequest, TestResponse> _transmissionRequestResponseMap = new()
@@ -563,6 +834,19 @@ internal sealed class RefreshTorrentByIdTests
         [_getTransmissionErrorTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
         [_getTransmissionErrorTorrentValidHeaderRequest] = _getTransmissionErrorTorrentValidHeaderResponse,
         [_addTransmissionErrorTorrentValidHeaderRequest] = _addTransmissionErrorTorrentValidHeaderResponse,
+        [_getRepointingDuplicateTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getRepointingDuplicateTorrentValidHeaderRequest] = _getRepointingDuplicateTorrentValidHeaderResponse,
+        [_addRepointingDuplicateTorrentValidHeaderRequest] = _addRepointingDuplicateTorrentValidHeaderResponse,
+        [_removeRepointingDuplicateTorrentValidHeaderRequest] = _removeRepointingDuplicateTorrentValidHeaderResponse,
+        [_getReAddedTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getReAddedTorrentValidHeaderRequest] = _getReAddedTorrentValidHeaderResponse,
+        [_addReAddedTorrentValidHeaderRequest] = _addReAddedTorrentValidHeaderResponse,
+        [_getCaseOnlyDuplicateTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getCaseOnlyDuplicateTorrentValidHeaderRequest] = _getCaseOnlyDuplicateTorrentValidHeaderResponse,
+        [_addCaseOnlyDuplicateTorrentValidHeaderRequest] = _addCaseOnlyDuplicateTorrentValidHeaderResponse,
+        [_getHashConflictTorrentInvalidHeaderRequest] = _invalidHeaderResponse,
+        [_getHashConflictTorrentValidHeaderRequest] = _getHashConflictTorrentValidHeaderResponse,
+        [_addHashConflictTorrentValidHeaderRequest] = _addHashConflictTorrentValidHeaderResponse,
     };
 
     #endregion
@@ -589,7 +873,7 @@ internal sealed class RefreshTorrentByIdTests
     }
 
     [Test]
-    public async Task RefreshTorrentByIdAsync_WhenIdExistsAndHashStringExistsInTransmission_RefreshesTorrentAndReturnsDuplicate()
+    public async Task RefreshTorrentByIdAsync_WhenDuplicateCarriesTheStoredHash_ChangesNothingAndReturnsDuplicate()
     {
         var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/1", null).ConfigureAwait(false);
 
@@ -598,7 +882,12 @@ internal sealed class RefreshTorrentByIdTests
         var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
 
         Assert.That(result, Is.Not.Null);
-        Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Duplicate));
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Duplicate));
+            Assert.That(result.Message, Is.Null);
+        }
+
         TorrentAssertions.AssertEqual(result.TorrentDto, _initialTorrents[0]);
     }
 
@@ -618,13 +907,12 @@ internal sealed class RefreshTorrentByIdTests
             Assert.That(result.Message, Is.Null);
         }
 
-        // Successful refresh that calls torrent-add increments Version by 1.
         // Build a local Torrent so we don't mutate the static `_initialTorrents` shared by other tests.
         var source = _initialTorrents[1];
         var expected = new Torrent
         {
             Id = source.Id,
-            HashString = source.HashString,
+            HashString = OutdatedTorrentUpdatedHashString,
             Name = source.Name,
             SourceUri = source.SourceUri,
             SourceKind = source.SourceKind,
@@ -636,6 +924,117 @@ internal sealed class RefreshTorrentByIdTests
         };
 
         TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.FromSeconds(1));
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenDuplicateCarriesANewHash_RepointsTorrentAndRequestsOldTorrentRemoval()
+    {
+        var index = Array.FindIndex(_initialTorrents, static t => t.HashString == RepointingDuplicateTorrentHashString);
+
+        var response = await _client
+            .PostAsync($"{EndpointAddresses.Torrents}/{index + 1}", null)
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
+
+        Assert.That(result, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Duplicate));
+            Assert.That(
+                result.Message,
+                Does.StartWith($"Could not remove a torrent with hash '{RepointingDuplicateTorrentHashString}'")
+                    .And.Contain("remove failed"));
+        }
+
+        var source = _initialTorrents[index];
+        var expected = new Torrent
+        {
+            Id = source.Id,
+            HashString = RepointingDuplicateTorrentUpdatedHashString,
+            Name = RepointingDuplicateTorrentUpdatedName,
+            SourceUri = source.SourceUri,
+            SourceKind = source.SourceKind,
+            DownloadDir = source.DownloadDir,
+            MagnetRegexPattern = source.MagnetRegexPattern,
+            Cron = source.Cron,
+            RefreshDate = DateTime.Now,
+            Version = source.Version + 1,
+        };
+
+        TorrentAssertions.AssertEqual(result.TorrentDto, expected, TimeSpan.FromSeconds(1));
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenAddedCarriesTheStoredHash_ChangesNothingAndReturnsAdded()
+    {
+        var index = Array.FindIndex(_initialTorrents, static t => t.HashString == ReAddedTorrentHashString);
+
+        var response = await _client
+            .PostAsync($"{EndpointAddresses.Torrents}/{index + 1}", null)
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
+
+        Assert.That(result, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Added));
+            Assert.That(result.Message, Is.Null);
+        }
+
+        TorrentAssertions.AssertEqual(result.TorrentDto, _initialTorrents[index]);
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenDuplicateCarriesTheStoredHashInAnotherCase_ChangesNothing()
+    {
+        var index = Array.FindIndex(
+            _initialTorrents,
+            static t => t.HashString == _caseOnlyDuplicateTorrentStoredHashString);
+
+        var response = await _client
+            .PostAsync($"{EndpointAddresses.Torrents}/{index + 1}", null)
+            .ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var result = await response.Content.ReadFromJsonAsync<RefreshTorrentByIdResponse>().ConfigureAwait(false);
+
+        Assert.That(result, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(result.TransmissionResult, Is.EqualTo(TransmissionAddResult.Duplicate));
+            Assert.That(result.Message, Is.Null);
+        }
+
+        TorrentAssertions.AssertEqual(result.TorrentDto, _initialTorrents[index]);
+    }
+
+    [Test]
+    public async Task RefreshTorrentByIdAsync_WhenDuplicateCarriesAnotherTorrentsHash_ReturnsConflictBlamingTorrent()
+    {
+        var id = Array.FindIndex(_initialTorrents, static t => t.HashString == HashConflictTorrentHashString) + 1;
+
+        var response = await _client.PostAsync($"{EndpointAddresses.Torrents}/{id}", null).ConfigureAwait(false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Conflict));
+
+        var problem = await response.Content
+            .ReadFromJsonAsync<HttpValidationProblemDetails>()
+            .ConfigureAwait(false);
+
+        Assert.That(problem, Is.Not.Null);
+        using (Assert.EnterMultipleScope())
+        {
+            Assert.That(problem.Errors["torrent"], Has.Length.EqualTo(1));
+            Assert.That(problem.Errors.ContainsKey("id"), Is.False);
+            Assert.That(problem.Errors.ContainsKey("version"), Is.False);
+        }
     }
 
     [Test]

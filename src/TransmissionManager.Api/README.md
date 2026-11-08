@@ -184,7 +184,7 @@ Alternatively, send requests using [Visual Studio Code](https://code.visualstudi
 Using the API, you can also request information from Transmission Manager API about itself via [AppVersion.http](Actions/AppVersion/AppVersion.http).
 
 ## Conflicting changes
-Each torrent has a `version` field, returned in every torrent JSON response. When a new torrent is added to Transmission Manager, it starts with `version = 1`, and goes up by 1 whenever its stored data changes - when you update it, when a refresh finds a newer torrent to download, and when Transmission reports a name for a torrent that did not have one yet. A refresh that finds the torrent you already have changes nothing, `version` included.
+Each torrent has a `version` field, returned in every torrent JSON response. When a new torrent is added to Transmission Manager, it starts with `version = 1`, and goes up by 1 whenever its stored data changes - when you update it, when a refresh finds a newer torrent (even one already in Transmission), and when Transmission reports a name for a torrent that did not have one yet. A refresh that finds the same torrent again changes nothing, `version` included.
 To prevent from overwriting someone's changes, `PATCH` (update) and `DELETE` require a `version` query parameter that matches the torrent's current `version`.
 In case of such conflict, the request is rejected with a `409 Conflict` response, carrying the torrent's `currentVersion` in the response extensions.
 In such cases it is recommended to refetch the torrent, check that your change still makes sense against its new data, and potentially resubmit against that version.

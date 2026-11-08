@@ -14,9 +14,6 @@ internal sealed class TorrentRefreshTaskTests
 {
     private const long _torrentId = 42;
 
-    // A Duplicate refresh is a no-change success (RefreshTorrentByIdResult.Refreshed). It must be
-    // logged as succeeded - guards against discriminating on the TransmissionAddResult (which would
-    // treat Duplicate as a failure).
     [Test]
     public async Task Invoke_WhenRefreshSucceedsAsDuplicate_LogsScheduledRefreshSucceeded()
     {
