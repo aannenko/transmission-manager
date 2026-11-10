@@ -51,6 +51,9 @@ Content-Type: application/json
 ###
 
 # Refresh a torrent by id
+# transmissionResult tells whether Transmission added the magnet or already had it, not whether the torrent changed:
+# either way the torrent switches to the magnet's hash if that differs, which raises its version
+# A 409 blaming "torrent" means another torrent already holds that hash; remove one of the two to resolve it
 POST {{TransmissionManager_Web_HostAddress}}/1
 Content-Type: application/json
 

@@ -6,7 +6,8 @@ internal enum RefreshTorrentByIdResult
     /// The torrent was successfully refreshed.
     /// </summary>
     /// <remarks>
-    /// Also covers a magnet that Transmission already had, in which case nothing changed locally.
+    /// Covers a magnet Transmission added and one it already had alike: either way, the row was
+    /// repointed if and only if Transmission reported a hash other than the stored one.
     /// </remarks>
     Refreshed,
 

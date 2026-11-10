@@ -35,6 +35,33 @@ internal sealed class TorrentDtoExtensionsTests
         Assert.That(updated.JsonValueFormat, Is.Null);
     }
 
+    [Test]
+    public void IsUpToDateIn_WhenTorrentsHoldItAtItsVersion_ReturnsTrue()
+    {
+        var torrent = CreateTorrent("magnet:?xt=urn:btih:{0}");
+        var other = torrent with { Id = torrent.Id + 1 };
+
+        Assert.That(torrent.IsUpToDateIn([other, torrent with { }]), Is.True);
+    }
+
+    [Test]
+    public void IsUpToDateIn_WhenTorrentsHoldItAtAnotherVersion_ReturnsFalse()
+    {
+        var torrent = CreateTorrent("magnet:?xt=urn:btih:{0}");
+        var other = torrent with { Id = torrent.Id + 1 };
+
+        Assert.That(torrent.IsUpToDateIn([other, torrent with { Version = torrent.Version - 1 }]), Is.False);
+    }
+
+    [Test]
+    public void IsUpToDateIn_WhenTorrentsDoNotHoldIt_ReturnsFalse()
+    {
+        var torrent = CreateTorrent("magnet:?xt=urn:btih:{0}");
+        var other = torrent with { Id = torrent.Id + 1 };
+
+        Assert.That(torrent.IsUpToDateIn([other]), Is.False);
+    }
+
     private static TorrentDto CreateTorrent(string jsonValueFormat) =>
         new(
             Id: 1,

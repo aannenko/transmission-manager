@@ -134,6 +134,21 @@ internal static class TestData
         public const string TransmissionErrorMagnet =
             "magnet:?xt=urn:btih:9F8E7D6C5B4A39281706F5E4D3C2B1A098765432&dn=TV+Show+9";
 
+        public const string RepointingDuplicatePageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234577";
+
+        public const string RepointingDuplicateMagnet =
+            "magnet:?xt=urn:btih:B7E9D1C3A5F70B9D2E4C6A8F0D1B3E5C7A9F2D48&dn=TV+Show+10";
+
+        public const string ReAddedPageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234578";
+
+        public const string ReAddedMagnet =
+            "magnet:?xt=urn:btih:F2A4C6E8B0D1F3A5C7E9B1D3F5A7C9E0B2D4F6A8&dn=TV+Show+11";
+
+        public const string CaseOnlyDuplicatePageAddress = "https://torrentTracker.com/forum/viewtopic.php?t=1234579";
+
+        public const string CaseOnlyDuplicateMagnet =
+            "magnet:?xt=urn:btih:0C2E4A6B8D1F3C5E7A9B0D2F4A6C8E1B3D5F7A90&dn=TV+Show+12";
+
         public static readonly CompositeFormat WebPageHtmlFormat = CompositeFormat.Parse(WebPageHtml);
     }
 
@@ -294,6 +309,18 @@ internal static class TestData
             [new(HttpMethod.Get, new(WebPages.TransmissionErrorPageAddress))] =
                 new(HttpStatusCode.OK,
                     Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.TransmissionErrorMagnet)),
+
+            [new(HttpMethod.Get, new(WebPages.RepointingDuplicatePageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.RepointingDuplicateMagnet)),
+
+            [new(HttpMethod.Get, new(WebPages.ReAddedPageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.ReAddedMagnet)),
+
+            [new(HttpMethod.Get, new(WebPages.CaseOnlyDuplicatePageAddress))] =
+                new(HttpStatusCode.OK,
+                    Content: string.Format(null, WebPages.WebPageHtmlFormat, WebPages.CaseOnlyDuplicateMagnet)),
 
             [new(HttpMethod.Get, new(JsonApi.Address))] =
                 new(HttpStatusCode.OK, Content: JsonApi.Document),

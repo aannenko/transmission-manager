@@ -1,10 +1,10 @@
 ﻿@page "/"
 @page "/torrents"
 @using TransmissionManager.Api.Common.Dto.Torrents
-@using TransmissionManager.Api.Common.Dto.Transmission
 @using TransmissionManager.Web.Components
 @using TransmissionManager.Web.Constants
 @using TransmissionManager.Web.Dto
+@using TransmissionManager.Web.Extensions
 @using TransmissionManager.Web.Services
 @inherits CommonComponentBase
 @inject TransmissionManagerClient Client
@@ -83,7 +83,7 @@ else
     private async Task<ApiResult<RefreshTorrentByIdResponse>> RefreshTorrentAsync(long id)
     {
         var result = await Client.RefreshTorrentByIdAsync(id);
-        if (result.Status is ApiResultStatus.Success && result.Value!.TransmissionResult is TransmissionAddResult.Added)
+        if (result.Status is ApiResultStatus.Success && !result.Value!.TorrentDto.IsUpToDateIn(_torrents))
         {
             await LoadTorrentsAsync();
             StateHasChanged();

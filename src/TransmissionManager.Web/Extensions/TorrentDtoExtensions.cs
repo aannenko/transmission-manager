@@ -31,4 +31,15 @@ internal static class TorrentDtoExtensions
                 : patch.Cron.Length == 0 ? null : patch.Cron,
             Version = previous.Version + 1,
         };
+
+    public static bool IsUpToDateIn(this TorrentDto torrent, ReadOnlySpan<TorrentDto> torrents)
+    {
+        foreach (var listed in torrents)
+        {
+            if (listed.Id == torrent.Id)
+                return listed.Version == torrent.Version;
+        }
+
+        return false;
+    }
 }
