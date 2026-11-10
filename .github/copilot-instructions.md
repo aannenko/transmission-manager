@@ -169,3 +169,5 @@ Static classes that are *not* extension classes (e.g. constants holders like `Pa
 ### Docker
 
 Multi-stage Dockerfiles target `linux/amd64` and `linux/arm64`. API uses `runtime-deps:chiseled-extra` (minimal, non-root); Web uses `nginx:alpine`. Published with `PublishTrimmed=true`.
+
+**Each Dockerfile copies the projects its app is built from by name**, so a project the app newly depends on, even only transitively (the API reaches `TransmissionManager.Http` through `TorrentSources` and `Transmission`), needs its own `COPY` line there. A solution build and its tests pass without it; only an image build — CI's `docker` job — fails.
