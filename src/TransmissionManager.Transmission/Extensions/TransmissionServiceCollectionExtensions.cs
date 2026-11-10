@@ -36,12 +36,14 @@ public static class TransmissionServiceCollectionExtensions
             .Bind(transmissionSection)
             .ValidateOnStart();
 
-        _ = services
+        var transmissionClientBuilder = services
             .AddSingleton<SessionHeaderProvider>()
             .AddScoped<SessionHeaderHandler>()
             .AddHttpClient<TransmissionClient>(ConfigureHttpClient)
-            .AddHttpMessageHandler<SessionHeaderHandler>()
-            .AddStandardResilienceHandler(ConfigureResilience);
+            .AddHttpMessageHandler<SessionHeaderHandler>();
+
+        _ = transmissionClientBuilder.AddStandardResilienceHandler(ConfigureResilience);
+        _ = transmissionClientBuilder.AddHttpMessageHandler(static () => new ResponseBufferingHandler());
 
         return services;
     }
