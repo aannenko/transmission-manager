@@ -19,6 +19,8 @@ dotnet test src/TransmissionManager.slnx --filter "FullyQualifiedName~AddTorrent
 
 CI in the form of GitHub Actions lives in `.github/workflows/`. **A push is not finished until its runs are** — watch them (`gh run watch <id> --exit-status`) and report what they said.
 
+**When a project is added, removed or renamed, or an app's dependencies change, update every list that names projects by hand: the `.slnx` files, the apps' Dockerfiles and the workflows.** A local build passes without these updates: CI tests only the two scoped solutions, so a test project missing from them never runs there, and a Dockerfile copies every project its app is built from, transitive ones included — the API reaches `TransmissionManager.Http` only through `TorrentSources` and `Transmission`.
+
 ## Architecture
 
 Deployable apps:
@@ -169,5 +171,3 @@ Static classes that are *not* extension classes (e.g. constants holders like `Pa
 ### Docker
 
 Multi-stage Dockerfiles target `linux/amd64` and `linux/arm64`. API uses `runtime-deps:chiseled-extra` (minimal, non-root); Web uses `nginx:alpine`. Published with `PublishTrimmed=true`.
-
-**Each Dockerfile copies the projects its app is built from by name**, so a project the app newly depends on, even only transitively (the API reaches `TransmissionManager.Http` through `TorrentSources` and `Transmission`), needs its own `COPY` line there. A solution build and its tests pass without it; only an image build — CI's `docker` job — fails.
