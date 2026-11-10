@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Text.Json;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
@@ -416,6 +418,108 @@ internal sealed class TransmissionClientTests
                 .And.InnerException.TypeOf<JsonException>());
     }
 
+    [TestCase("text/plain; charset=utf-8")]
+    [TestCase("text/html; charset=iso-8859-1")]
+    [TestCase("text/html; charset=bogus")]
+    [TestCase("text/html; charset=utf-7")]
+    public void GetTorrentsAsync_WhenResponseIsNotJson_QuotesItSummarized(string contentType)
+    {
+        var page = "<html>\r\n\u001b[31m\u0085" + new string('x', 100_000) + "</html>";
+
+        var expectedError =
+            "Unexpected response from Transmission. Cannot deserialize the following content to " +
+            $"{typeof(TransmissionTorrentGetResponse).FullName}: '<html>___[31m_{new string('x', 66)}...'.";
+
+        using var handler = new SequencedHttpMessageHandler();
+        handler.Enqueue(_ => Answer(page, contentType));
+
+        Assert.That(
+            async () => await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false),
+            Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(expectedError));
+    }
+
+    /// <remarks>
+    /// Served through a stream that cannot seek, as a body off the network is, so the excerpt can only be
+    /// read if the body was buffered first.
+    /// </remarks>
+    [TestCaseSource(nameof(UnreadableBodyTestCases))]
+    public void GetTorrentsAsync_WhenBodyIsNotAResponse_QuotesItDecodedAsUtf8(byte[] body, string expectedExcerpt)
+    {
+        using var handler = new SequencedHttpMessageHandler();
+        handler.Enqueue(_ => Answer(body));
+
+        Assert.That(
+            async () => await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false),
+            Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(
+                "Unexpected response from Transmission. Cannot deserialize the following content to " +
+                $"{typeof(TransmissionTorrentGetResponse).FullName}: '{expectedExcerpt}'."));
+    }
+
+    [TestCase("application/json; charset=bogus")]
+    [TestCase("application/json; charset=windows-1252")]
+    [TestCase("application/json; charset=utf-7")]
+    [TestCase("application/json; charset=iso-8859-1")]
+    [TestCase("application/json; charset=utf-16")]
+    public async Task GetTorrentsAsync_WhenResponseDeclaresACharsetOtherThanUtf8_ReadsItAsUtf8(string contentType)
+    {
+        const string name = "Caf\u00e9";
+        const string body = $$"""{"arguments":{"torrents":[{"name":"{{name}}"}]},"result":"success"}""";
+
+        using var handler = new SequencedHttpMessageHandler();
+        handler.Enqueue(_ => Answer(body, contentType));
+
+        var response = await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false);
+
+        Assert.That(response.Arguments?.Torrents?.Single().Name, Is.EqualTo(name));
+    }
+
+    [Test]
+    public void GetTorrentsAsync_WhenResultIsNotSuccess_QuotesItSummarized()
+    {
+        var body = $$"""{"arguments":{},"result":"bad\u001b[31m\r\nFORGED{{new string('x', 100)}}"}""";
+
+        var expectedError =
+            $"Response from Transmission does not indicate success: 'bad_[31m__FORGED{new string('x', 64)}...'";
+
+        using var handler = new SequencedHttpMessageHandler();
+        handler.Enqueue(_ => Answer(body, "application/json"));
+
+        Assert.That(
+            async () => await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false),
+            Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(expectedError));
+    }
+
+    [Test]
+    public void GetTorrentsAsync_WhenRequestFails_QuotesTheReasonSummarized()
+    {
+        using var handler = new ThrowingHttpMessageHandler("boom\r\n\u001b[31mFORGED" + new string('x', 100));
+
+        var expectedError = $"Request to Transmission failed unexpectedly: 'boom___[31mFORGED{new string('x', 63)}...'.";
+
+        Assert.That(
+            async () => await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false),
+            Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(expectedError));
+    }
+
+    [TestCase(HttpStatusCode.BadGateway, "The server responded with 502 BadGateway.")]
+    [TestCase((HttpStatusCode)520, "The server responded with 520.")]
+    public void GetTorrentsAsync_WhenStatusIsNotSuccess_ReportsItsCodeButNotItsReasonPhrase(
+        HttpStatusCode statusCode,
+        string expectedError)
+    {
+        using var handler = new SequencedHttpMessageHandler();
+        handler.Enqueue(_ => new HttpResponseMessage(statusCode)
+        {
+            ReasonPhrase = "Bad\u001b[31mGateway\u0085",
+        });
+
+        Assert.That(
+            async () => await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false),
+            Throws.TypeOf<HttpRequestException>()
+                .With.Message.EqualTo(expectedError)
+                .And.Property(nameof(HttpRequestException.StatusCode)).EqualTo(statusCode));
+    }
+
     private static void AssertTransmissionTorrentGetResponse(TransmissionTorrentGetResponse actual, string expected)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expected);
@@ -519,5 +623,77 @@ internal sealed class TransmissionClientTests
         }
 
         Assert.That(actual.Result, Is.EqualTo(deserialized.Result));
+    }
+
+    private static HttpResponseMessage Answer(string body, string contentType)
+    {
+        var content = new StringContent(body) { Headers = { ContentType = MediaTypeHeaderValue.Parse(contentType) } };
+
+        return new(HttpStatusCode.OK) { Content = content };
+    }
+
+    private static HttpResponseMessage Answer(byte[] body) =>
+        new(HttpStatusCode.OK) { Content = new StreamContent(new NonSeekableStream(new MemoryStream(body))) };
+
+    private static async Task<TransmissionTorrentGetResponse> GetTorrentsAnsweredByAsync(HttpMessageHandler handler)
+    {
+        using var httpClient = new HttpClient(handler) { BaseAddress = new(_options.CurrentValue.BaseAddress) };
+
+        return await new TransmissionClient(_options, httpClient).GetTorrentsAsync().ConfigureAwait(false);
+    }
+
+    private static IEnumerable<TestCaseData<byte[], string>> UnreadableBodyTestCases()
+    {
+        const string test = nameof(GetTorrentsAsync_WhenBodyIsNotAResponse_QuotesItDecodedAsUtf8);
+
+        yield return new(Encoding.UTF8.GetBytes("null"), "null") { TestName = $"{test}(JSON null)" };
+
+        yield return new([], string.Empty) { TestName = $"{test}(empty)" };
+
+        yield return new([.. Encoding.UTF8.GetPreamble(), .. Encoding.UTF8.GetBytes("<p>x</p>")], "<p>x</p>")
+        { TestName = $"{test}(UTF-8 BOM)" };
+
+        yield return new([.. Encoding.UTF8.GetBytes("<p>caf"), 0xE9, .. Encoding.UTF8.GetBytes("</p>")], "<p>caf\uFFFD</p>")
+        { TestName = $"{test}(Latin-1 byte)" };
+
+        yield return new(
+            [.. Encoding.Unicode.GetPreamble(), .. Encoding.Unicode.GetBytes("""{"result":"success"}""")],
+            "\uFFFD\uFFFD{_\"_r_e_s_u_l_t_\"_:_\"_s_u_c_c_e_s_s_\"_}_")
+        { TestName = $"{test}(UTF-16 JSON)" };
+
+        yield return new(Encoding.UTF8.GetBytes(new string('x', 79) + "\U0001F600tail"), new string('x', 79) + "...")
+        { TestName = $"{test}(surrogate pair at the cut)" };
+    }
+
+    private sealed class NonSeekableStream(Stream inner) : Stream
+    {
+        public override bool CanRead => true;
+
+        public override bool CanSeek => false;
+
+        public override bool CanWrite => false;
+
+        public override long Length => throw new NotSupportedException();
+
+        public override long Position
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) =>
+            inner.ReadAsync(buffer, cancellationToken);
+
+        public override void Flush()
+        {
+        }
+
+        public override int Read(byte[] buffer, int offset, int count) => inner.Read(buffer, offset, count);
+
+        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+
+        public override void SetLength(long value) => throw new NotSupportedException();
+
+        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
     }
 }

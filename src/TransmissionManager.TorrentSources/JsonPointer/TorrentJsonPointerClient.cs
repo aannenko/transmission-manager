@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using TransmissionManager.Http;
 using TransmissionManager.TorrentSources.Dto;
 
 namespace TransmissionManager.TorrentSources.JsonPointer;
@@ -86,7 +87,7 @@ public sealed class TorrentJsonPointerClient(
             {
                 return MagnetSearchOutcome.Failure(
                     MagnetSearchResult.RetrievalFailed,
-                    $"The server responded with {(int)response.StatusCode} {response.StatusCode}");
+                    RemoteTextUtils.DescribeStatus(response.StatusCode));
             }
 
             return await FindMagnetUriInResponseAsync(

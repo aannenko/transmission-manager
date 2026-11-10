@@ -1,4 +1,6 @@
-﻿namespace TransmissionManager.TorrentSources.Tests;
+﻿using System.Net;
+
+namespace TransmissionManager.Http.Tests;
 
 [Parallelizable(ParallelScope.All)]
 internal sealed class RemoteTextUtilsTests
@@ -27,7 +29,7 @@ internal sealed class RemoteTextUtilsTests
         Assert.That(RemoteTextUtils.Summarize(value), Is.EqualTo(expected));
 
     /// <remarks>
-    /// The property the whole helper exists for: a source's bytes reach a log line, where a control
+    /// The property the whole helper exists for: a server's bytes reach a log line, where a control
     /// character is structure rather than data - a newline forges a record, an escape sequence drives
     /// the operator's terminal. Nothing in the summary may be one, whatever was served.
     /// </remarks>
@@ -151,4 +153,16 @@ internal sealed class RemoteTextUtilsTests
 
         Assert.That(RemoteTextUtils.Summarize(served), Is.EqualTo(served));
     }
+
+    [Test]
+    public void DescribeStatus_WhenStatusHasAName_GivesItsNumberAndName() =>
+        Assert.That(
+            RemoteTextUtils.DescribeStatus(HttpStatusCode.BadGateway),
+            Is.EqualTo("The server responded with 502 BadGateway."));
+
+    [Test]
+    public void DescribeStatus_WhenStatusHasNoName_GivesItsNumberOnly() =>
+        Assert.That(
+            RemoteTextUtils.DescribeStatus((HttpStatusCode)520),
+            Is.EqualTo("The server responded with 520."));
 }
