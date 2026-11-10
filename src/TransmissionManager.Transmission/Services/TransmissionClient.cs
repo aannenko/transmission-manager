@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
+using TransmissionManager.Http;
 using TransmissionManager.Transmission.Dto;
 using TransmissionManager.Transmission.Options;
 using TransmissionManager.Transmission.Serialization;
@@ -136,7 +137,7 @@ public sealed class TransmissionClient(IOptionsMonitor<TransmissionClientOptions
             if (!response.IsSuccessStatusCode)
             {
                 throw new HttpRequestException(
-                    $"The server responded with {(int)response.StatusCode} {response.StatusCode}.",
+                    RemoteTextUtils.DescribeStatus(response.StatusCode),
                     null,
                     response.StatusCode);
             }

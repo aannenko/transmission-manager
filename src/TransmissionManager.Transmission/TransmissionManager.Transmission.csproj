@@ -9,4 +9,8 @@
     <PackageReference Include="Microsoft.Extensions.Http.Resilience" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TransmissionManager.Http\TransmissionManager.Http.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -501,11 +501,14 @@ internal sealed class TransmissionClientTests
             Throws.TypeOf<HttpRequestException>().With.Message.EqualTo(expectedError));
     }
 
-    [Test]
-    public void GetTorrentsAsync_WhenStatusIsNotSuccess_ReportsItsCodeButNotItsReasonPhrase()
+    [TestCase(HttpStatusCode.BadGateway, "The server responded with 502 BadGateway.")]
+    [TestCase((HttpStatusCode)520, "The server responded with 520.")]
+    public void GetTorrentsAsync_WhenStatusIsNotSuccess_ReportsItsCodeButNotItsReasonPhrase(
+        HttpStatusCode statusCode,
+        string expectedError)
     {
         using var handler = new SequencedHttpMessageHandler();
-        handler.Enqueue(static _ => new HttpResponseMessage(HttpStatusCode.BadGateway)
+        handler.Enqueue(_ => new HttpResponseMessage(statusCode)
         {
             ReasonPhrase = "Bad\u001b[31mGateway\u0085",
         });
@@ -513,8 +516,8 @@ internal sealed class TransmissionClientTests
         Assert.That(
             async () => await GetTorrentsAnsweredByAsync(handler).ConfigureAwait(false),
             Throws.TypeOf<HttpRequestException>()
-                .With.Message.EqualTo("The server responded with 502 BadGateway.")
-                .And.Property(nameof(HttpRequestException.StatusCode)).EqualTo(HttpStatusCode.BadGateway));
+                .With.Message.EqualTo(expectedError)
+                .And.Property(nameof(HttpRequestException.StatusCode)).EqualTo(statusCode));
     }
 
     private static void AssertTransmissionTorrentGetResponse(TransmissionTorrentGetResponse actual, string expected)

@@ -4,6 +4,7 @@ using System.Buffers;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Text.RegularExpressions;
+using TransmissionManager.Http;
 using TransmissionManager.TorrentSources.Dto;
 
 namespace TransmissionManager.TorrentSources.WebPage;
@@ -74,7 +75,7 @@ public sealed class TorrentWebPageClient(
             {
                 return MagnetSearchOutcome.Failure(
                     MagnetSearchResult.RetrievalFailed,
-                    $"The server responded with {(int)response.StatusCode} {response.StatusCode}");
+                    RemoteTextUtils.DescribeStatus(response.StatusCode));
             }
 
             return await FindMagnetUriInResponseAsync(

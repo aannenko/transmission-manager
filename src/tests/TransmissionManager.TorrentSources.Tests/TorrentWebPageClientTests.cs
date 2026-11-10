@@ -1,8 +1,8 @@
-﻿using System.Globalization;
-using System.Net;
+﻿using System.Net;
 using System.Text.RegularExpressions;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
+using TransmissionManager.Http;
 using TransmissionManager.TorrentSources.Dto;
 using TransmissionManager.TorrentSources.WebPage;
 
@@ -321,6 +321,7 @@ internal sealed class TorrentWebPageClientTests
     [TestCase(HttpStatusCode.ServiceUnavailable, "challenge")]
     [TestCase(HttpStatusCode.NotFound, null)]
     [TestCase(HttpStatusCode.InternalServerError, null)]
+    [TestCase((HttpStatusCode)520, null)]
     public async Task FindMagnetUriAsync_WhenResponseIsNotSuccessful_ReturnsRetrievalFailed(
         HttpStatusCode statusCode,
         string? mitigatedHeaderValue)
@@ -341,7 +342,7 @@ internal sealed class TorrentWebPageClientTests
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
             Assert.That(outcome.MagnetUri, Is.Null);
-            Assert.That(outcome.Error, Does.Contain(((int)statusCode).ToString(CultureInfo.InvariantCulture)));
+            Assert.That(outcome.Error, Is.EqualTo(RemoteTextUtils.DescribeStatus(statusCode)));
         }
     }
 

@@ -7,6 +7,7 @@ WORKDIR /source
 # Copy everything and publish the app
 COPY Directory.Build.props Directory.Packages.props .editorconfig ./
 COPY TransmissionManager.Database/. TransmissionManager.Database/
+COPY TransmissionManager.Http/. TransmissionManager.Http/
 COPY TransmissionManager.TorrentSources/. TransmissionManager.TorrentSources/
 COPY TransmissionManager.Transmission/. TransmissionManager.Transmission/
 COPY TransmissionManager.Api.Common/. TransmissionManager.Api.Common/

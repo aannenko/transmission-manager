@@ -1,7 +1,7 @@
-﻿using System.Globalization;
-using System.Net;
+﻿using System.Net;
 using TransmissionManager.BaseTests.HttpClient;
 using TransmissionManager.BaseTests.Options;
+using TransmissionManager.Http;
 using TransmissionManager.TorrentSources.Dto;
 using TransmissionManager.TorrentSources.JsonPointer;
 
@@ -150,6 +150,7 @@ internal sealed class TorrentJsonPointerClientTests
     [TestCase(HttpStatusCode.NotFound)]
     [TestCase(HttpStatusCode.Forbidden)]
     [TestCase(HttpStatusCode.ServiceUnavailable)]
+    [TestCase((HttpStatusCode)520)]
     public async Task FindMagnetUriAsync_WhenResponseIsNotSuccessful_ReturnsRetrievalFailed(
         HttpStatusCode statusCode)
     {
@@ -166,7 +167,7 @@ internal sealed class TorrentJsonPointerClientTests
         using (Assert.EnterMultipleScope())
         {
             Assert.That(outcome.Result, Is.EqualTo(MagnetSearchResult.RetrievalFailed));
-            Assert.That(outcome.Error, Does.Contain(((int)statusCode).ToString(CultureInfo.InvariantCulture)));
+            Assert.That(outcome.Error, Is.EqualTo(RemoteTextUtils.DescribeStatus(statusCode)));
         }
     }
 

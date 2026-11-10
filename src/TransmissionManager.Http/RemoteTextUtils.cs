@@ -1,14 +1,17 @@
 ﻿using System.Buffers;
+using System.Net;
 
-namespace TransmissionManager.Transmission;
+namespace TransmissionManager.Http;
 
+/// <summary>Summarizes and describes what a remote server sent.</summary>
 /// <remarks>
 /// Text a server served is untrusted: a control character in it forges structure in whatever the
 /// summary is embedded in, and its length is whatever the server chose to send. Both are
 /// neutralised here, so a summary holds no control character and costs a bounded amount of message.
 /// </remarks>
-internal static class RemoteTextUtils
+public static class RemoteTextUtils
 {
+    /// <summary>The number of characters <see cref="Summarize"/> keeps by default.</summary>
     public const int DefaultSummaryLength = 80;
     private const int _maxSummaryLength = 100;
     private const string _ellipsis = "...";
@@ -25,6 +28,9 @@ internal static class RemoteTextUtils
         '\u0097', '\u0098', '\u0099', '\u009A', '\u009B', '\u009C', '\u009D', '\u009E',
         '\u009F');
 
+    /// <summary>Summarizes text a server served.</summary>
+    /// <param name="value">The text as the server served it.</param>
+    /// <param name="maxLength">The maximum number of characters to include in the summary.</param>
     /// <returns>
     /// The first <paramref name="maxLength"/> characters of <paramref name="value"/> at most - one
     /// fewer when the cut would strand the high half of a surrogate pair - each control character
@@ -56,5 +62,21 @@ internal static class RemoteTextUtils
         return value.Length <= maxLength
             ? summary.ToString()
             : string.Concat(summary, _ellipsis);
+    }
+
+    /// <summary>Describes the status a server responded with.</summary>
+    /// <param name="statusCode">The status code the server responded with.</param>
+    /// <returns>
+    /// A sentence giving <paramref name="statusCode"/> by its number and, when it has one, its name.
+    /// </returns>
+    /// <remarks>
+    /// Takes the code rather than the response, so the reason phrase - the server's own text - cannot
+    /// be quoted.
+    /// </remarks>
+    public static string DescribeStatus(HttpStatusCode statusCode)
+    {
+        return Enum.IsDefined(statusCode)
+            ? $"The server responded with {(int)statusCode} {statusCode}."
+            : $"The server responded with {(int)statusCode}.";
     }
 }
